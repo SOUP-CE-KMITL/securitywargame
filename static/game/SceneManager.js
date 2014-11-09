@@ -1,5 +1,7 @@
 
-function SceneManager(stage){
+SceneManager = {};
+
+SceneManager.SetUp=function(stage){
 	this.scenes={
 		"home": new HomeScene(),
 		"play": new PlayScene(),
@@ -10,7 +12,7 @@ function SceneManager(stage){
 	this.stage = stage;
 }
 
-SceneManager.prototype.ChangeScene=function(dest, effect, dur){
+SceneManager.ChangeScene=function(dest, effect, dur){
 	var newScene = this.scenes[dest];
 	
 	if(newScene.inited == false) 
@@ -20,13 +22,51 @@ SceneManager.prototype.ChangeScene=function(dest, effect, dur){
 		if(this.currentScene!=null){
 			this.currentScene.Hide(this.stage);
 		}
-		newScene.Show(this.stage);
+		newScene.Show(this.stage, this.params);
 		this.currentScene = newScene;
 	}
 }
 
 function HomeScene(){}
 
-function LevelScene(){}
+function LevelScene(){
+	this.inited=false;
+}
+
+LevelScene.prototype.Init=function(){
+	this.inited=true;
+	this.scene = new createjs.Container();
+}
+LevelScene.prototype.Show=function(stage){
+
+	function onLevelSelected(e){
+		SceneManager.params=e.target.urlsafekey;
+		SceneManager.ChangeScene("play")
+	}
+	stage.addChild(this.scene);
+
+	var xmlhttp;
+	if (window.XMLHttpRequest){
+	  xmlhttp=new XMLHttpRequest();
+	}else{
+	  xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+	}
+
+	xmlhttp.open("POST","/maplist",false);
+	xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+	xmlhttp.send("player=john");
+	var maplist = JSON.parse(xmlhttp.responseText);
+
+	for(var i=0; i<maplist.length; i++){
+		var btn = new createjs.Text(maplist[i], "18px arial", "#000000");
+		btn.urlsafekey = maplist[i];
+		btn.y = i*30
+		btn.addEventListener("click", onLevelSelected);
+		this.scene.addChild(btn);
+	}
+}
+LevelScene.prototype.Hide=function(stage){
+	stage.removeChild(this.scene);
+}
 
 function EndScene(){}

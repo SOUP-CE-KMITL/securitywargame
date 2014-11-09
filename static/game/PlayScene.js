@@ -14,7 +14,6 @@ PlayScene.prototype.Init = function(){
 
 	this.objLayer.addChild(new createjs.Bitmap("resource/bg.png"));
 
-	loader = new XMLLoader("ahtkZXZ-Y3liZXItc2VjdXJpdHktd2FyLWdhbWVyEgsSBUdyYXBoGICAgICA4JcJDA", this);
 
 	this.inspecWin = new createjs.Container();
 	this.guiLayer.addChild(this.inspecWin);
@@ -77,19 +76,21 @@ PlayScene.prototype.Init = function(){
 	PlayScene.currentCity = null;
 }
 
-PlayScene.prototype.Show = function(stage){
+PlayScene.prototype.Show = function(stage, params){
 	stage.addChild(this.scene);
 	PlayScene.turnText.text = "0"
+	new XMLLoader(SceneManager.params, this);
 }
 
 PlayScene.prototype.OnLoadComplete = function(jGraph, p){
 	p.mapDrawer = new MapDrawer(jGraph);
 
 	PlayScene.graph = jGraph;
+	console.log(jGraph);
 
 	var cities = p.mapDrawer.DrawWorldMap(p.objLayer);
 	for(var i=0; i<cities.length; i++){
-		cities[i].sprite.addEventListener("click", City.ShowCityMap);
+		cities[i].sprite.addEventListener("click", City.ClickHandler);
 		cities[i].sprite.addEventListener("mouseover", City.ShowCityInfo);
 	}
 }
@@ -109,26 +110,35 @@ PlayScene.Launch = function(e){
 	for (var i=0; i<p.atkQueue.length; i++){
 		if (p.atkQueue[i].start + p.atkQueue[i].dur == parseInt(p.turnText.text, 10)){
 			var sol = p.atkQueue[i].soldier;
-			var dstMachine = getMachineById(getServiceById(sol.edge.dest).machineID);
-			var im = excImpact(dstMachine.impact);
-			
-			//Check if it has better impact
-			dstMachine.status = "found";
-			sol.edge.status = "used";
-			if(im.c < sol.confident){
-				var value = sol.confident - im.c;
-				PlayScene.moneyText.text = parseInt(PlayScene.moneyText.text, 10) + value;
-				dstMachine.impact += value*9
-			}
-			if(dstMachine.impact.i%3 < sol.confident){
-				var value = sol.confident - im.i;
-				PlayScene.moneyText.text = parseInt(PlayScene.moneyText.text, 10) + value;
-				dstMachine.impact += value*3
-			}
-			if(dstMachine.impact.a < sol.availability){
-				var value = sol.confident - im.a;
-				PlayScene.moneyText.text = parseInt(PlayScene.moneyText.text, 10) + value;
-				dstMachine.impact += value
+			if(sol.name=="explorer"){
+				var dstMachine=sol.city.machine;
+				dstMachine.status="ready";
+				p.atkQueue.splice(i,1);
+				i-=1;
+				sol.city.sprite.gotoAndStop("level1");
+				sol.city.Spread();
+			}else{
+				var dstMachine = getMachineById(getServiceById(sol.edge.dest).machineID);
+				var im = excImpact(dstMachine.impact);
+				
+				//Check if it has better impact
+				dstMachine.status = "ready";
+				sol.edge.status = "used";
+				if(im.c < sol.confident){
+					var value = sol.confident - im.c;
+					PlayScene.moneyText.text = parseInt(PlayScene.moneyText.text, 10) + value;
+					dstMachine.impact += value*9
+				}
+				if(dstMachine.impact.i%3 < sol.confident){
+					var value = sol.confident - im.i;
+					PlayScene.moneyText.text = parseInt(PlayScene.moneyText.text, 10) + value;
+					dstMachine.impact += value*3
+				}
+				if(dstMachine.impact.a < sol.availability){
+					var value = sol.confident - im.a;
+					PlayScene.moneyText.text = parseInt(PlayScene.moneyText.text, 10) + value;
+					dstMachine.impact += value
+				}
 			}
 		}
 	}

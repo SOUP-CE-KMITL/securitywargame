@@ -7,9 +7,9 @@ function XMLLoader(keystring, playScene){
 	  xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
 	}
 
-	xmlhttp.open("POST","http://localhost:12080/loader",true);
+	xmlhttp.open("GET","/get-graph?id="+keystring,true);
 	xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-	xmlhttp.send("keystring="+keystring+"&player=john");
+	xmlhttp.send();
 	
 	xmlhttp.onreadystatechange = function(){
 		if (xmlhttp.readyState==4 && xmlhttp.status==200){

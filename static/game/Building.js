@@ -44,7 +44,7 @@ Building.ShowInfo=function(event){
 	var t = event.target;
 	var info = "name: "+t.ref.sName+"\n"+
 	           "city: "+t.ref.city.name+"\n"+
-	           "taken: no\n";
+	           "status: "+t.ref.service.status+"\n";
 	PlayScene.inspecWin.stat.text = info;
 }
 

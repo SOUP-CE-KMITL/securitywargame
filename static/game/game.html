@@ -22,8 +22,8 @@
 				var stage=new createjs.Stage("demo");
 				stage.enableMouseOver();
 				createjs.Ticker.addEventListener("tick", stage);
-				var sm = new SceneManager(stage);
-				sm.ChangeScene("play");
+				SceneManager.SetUp(stage);
+				SceneManager.ChangeScene("level");
 
 				/*function showCityMap(event){
 					var node = nodes[event.target.num];

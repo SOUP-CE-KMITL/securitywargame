@@ -54,7 +54,7 @@ Soldier.Action = function (e){
 	};
 	t.ref.edge.status="using";
 	var dstMachine = getMachineById(getServiceById(t.ref.edge.dest).machineID)
-	dstMachine.state="attacking";
+	dstMachine.status="attacking";
 	dstMachine.atkCount += 1;
 	t.ref.Draw(PlayScene.cityMap, PlayScene.cursor.x, PlayScene.cursor.y);
 	QueueList.Add(t.ref.name, atkObj.dur);
@@ -72,4 +72,58 @@ Soldier.ShowInfo = function(e){
 		"occupiable: "+t.ref.confident+"\n"+
 		"capacity: "+t.ref.integrity+"\n"+
 		"damage: "+t.ref.availability+"\n";
+}
+
+function Explorer(city){
+	this.name="explorer";
+	this.city=city;
+	this.level=2;
+}
+
+Explorer.Draw=function(parent, x, y){
+	if(parent==null){return}
+	this.sheet = new createjs.SpriteSheet({
+		"animations":{
+			"default":[0,15,"default"]
+		},
+		"images":["resource/ninja.png"],
+		"frames":{
+			"width": 128,
+			"height": 128,
+			"regX": 64,
+			"regY": 64,
+			"count": 16
+		}
+	});
+
+	this.sprite = new createjs.Sprite(this.sheet, "default");
+	this.sprite.x = x;
+	this.sprite.y = y;
+	this.sprite.ref = this;
+	parent.addChild(this.sprite);
+	this.sprite.gotoAndStop("default");
+}
+
+Explorer.ShowInfo=function(e){
+	var t=e.target;
+	PlayScene.inspecWin.stat.text = 
+		"name: "+t.ref.name+"\n"+
+		"city: "+t.ref.city.name+"\n";
+}
+
+Explorer.Action=function(e){
+	var t=e.target;
+	PlayScene.moneyText.text = PlayScene.moneyText.text-t.ref.level;
+	var atkObj = {
+		"start": parseInt(PlayScene.turnText.text, 10),
+		"soldier": t.ref,
+		"dur": 2,
+	};
+	t.ref.city.machine.status="using";
+	var dstMachine = t.ref.city.machine;
+	dstMachine.status="attacking";
+	dstMachine.atkCount += 1;
+	QueueList.Add(t.ref.name, atkObj.dur);
+	PlayScene.atkQueue.push(atkObj);
+	ActionPane.container.removeAllChildren();
 }

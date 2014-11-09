@@ -7,7 +7,7 @@ MapDrawer.prototype.Format = function(){
 
 	for(var i=0; i<this.graph.services.length; i++){
 		var s = this.graph.services[i];
-		s.status = s.status || "found";//this should be hidden. using found for testing.
+		s.status = s.status || "found";
 		s.impact = s.impact || 0;
 
 		var m = getMachineById(s.machineID);
@@ -20,7 +20,7 @@ MapDrawer.prototype.Format = function(){
 
 	for(var j=0; j<this.graph.machines.length; j++){
 		var m = this.graph.machines[j];
-		m.status = m.status || "found";
+		m.status = m.status || "hidden";//this should be hidden. using found for testing.
 		m.impact = m.impact || 0;
 	}
 
@@ -92,18 +92,20 @@ MapDrawer.prototype.DrawWorldMap=function(layer){
 		}
 	}
 
-	
+	//
+	cities[0].machine.status = "found";
+	cities[0].sprite.visible=true;
+
 	for(var i=0; i<this.graph.paths.length; i++){
 		var a = getCityById(getServiceById(this.graph.paths[i].src).machineID).sprite;
 		var b = getCityById(getServiceById(this.graph.paths[i].dest).machineID).sprite;
-
-		var g = createjs.Graphics;
-		var road = new g().beginStroke("#FFFFFF").moveTo(a.x, a.y).lineTo(b.x, b.y).endStroke();
-		var shape = new createjs.Shape(road);
-		layer.addChild(shape);
+		if(a.visible==true && b.visible==true){
+			var g = createjs.Graphics;
+			var road = new g().beginStroke("#FFFFFF").moveTo(a.x, a.y).lineTo(b.x, b.y).endStroke();
+			var shape = new createjs.Shape(road);
+			layer.addChild(shape);
+		}
 	}
 
 	return cities
 }
-
-

@@ -741,6 +741,17 @@ class AddNewPathHandler(Handler,FacebookHandler):
 		else:
 			u.paths = [ w ]
 		u.put()
+
+class MapListHandler(webapp2.RequestHandler):
+	def post(self):
+		graphs = Graph.query()
+		output=[];
+		for g in graphs:
+			urlkey = g.graphID;
+			output.append(urlkey)
+
+		output = json.dumps(output);
+		self.response.write(output);
 		
 		
 #######################################################################################################
@@ -773,7 +784,8 @@ app = webapp2.WSGIApplication([
 	('/delete-graph',DeleteGraphHandler),
 	('/add-new-machine',AddNewMachineHandler),
 	('/add-new-service',AddNewServiceHandler),
-	('/add-new-path',AddNewPathHandler)
+	('/add-new-path',AddNewPathHandler),
+	('/maplist', MapListHandler)
 
 	
 ], debug=True,config=config)
