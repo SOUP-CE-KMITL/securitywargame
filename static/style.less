@@ -1,0 +1,266 @@
+//////////////////////////////////////////////////reset css//////////////////////////////////////////////////
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+
+textarea:focus, input:focus{
+    outline: 0;
+}
+// prevent chrome text hilight
+*:focus {
+    outline: 0;
+}
+///////////////////////////////////////////////////color//////////////////////////////////////////////////////
+@facebook_color: #3b5998;
+@twitter_color: #4099FF;
+@googleplus_color: #d34836;
+@instagram_color: #517fa4;
+@gray_border: #e2e2e2;
+@gray_background: #eaeaea;
+@dashboard_color: #77C5D2;
+@footer_color: #1A1D24;
+@red-menu_color : #EA2D49;
+@warning_color: #f0ad4e;
+@warning-hover_color: #f2cf71;
+@success_color: #5cb85c;
+@info_color: #5bc0de;
+@default-blue_color: #428bca;
+@fav_green: #6FC152;
+/////////////////////////////////////////////////wrapper//////////////////////////////////////////////////////
+
+.map-content {
+	display:block;
+	width:1080px;
+	margin:0px auto;
+	box-sizing:border-box;
+	overflow:auto;
+
+}
+
+
+
+
+.map-detail {
+	
+}
+
+.dashboard {
+	display:block;
+	width:1080px;
+	margin:0px auto;
+	box-sizing:border-box;
+	overflow:auto;
+
+}
+
+.dashboard-create-map {
+	width:100%;
+	height:270px;
+	background-color:@fav_green;
+	color:white;
+	margin-bottom:30px;
+	text-align:center;
+	box-sizing:border-box;
+	padding:20px;
+}
+
+.dashboard-input {
+	text-align:center;
+	margin:0px auto;
+	margin-bottom:10px;
+	color:@fav_green;
+	background-color:white;
+	height:30px;
+	line-height:30px;
+	width:500px;
+	clear:both;
+	display:block;
+}
+
+#map-submit-button {
+	width:500px;
+	box-sizing:border-box;
+	line-height:30px;
+	height:30px;
+	text-align:center;
+	color:@fav_green;
+	background-color:white;
+	margin:0px auto;
+}
+
+#attacker-submit-button {
+	width:500px;
+	box-sizing:border-box;
+	line-height:30px;
+	height:30px;
+	text-align:center;
+	color:@warning_color;
+	background-color:white;
+	margin:0px auto;
+}
+
+#attacker-submit-button:hover {
+	cursor:pointer;
+	border:3px solid white;
+	color:white;
+	background-color:@warning_color;
+	line-height:24px;
+}
+
+.dashboard-available-map{
+	width:100%;
+	overflow:auto;
+	background-color:@fav_green;
+	color:white;
+	box-sizing:border-box;
+	padding:20px;
+	margin-top:30px;
+
+}
+
+.map-display-box {
+	width:330px;
+	float:left;
+	height:200px;
+	padding:10px;
+	box-sizing:border-box;
+	border:3px solid white;
+	border-radius:5px;
+	margin-right:10px;
+	margin-bottom:10px;
+}
+
+.attacker-content {
+	display:block;
+	width:1080px;
+	margin:0px auto;
+	box-sizing:border-box;
+	overflow:auto;
+
+}
+
+.create-attacker {
+	width:100%;
+	height:410px;
+	background-color:@warning_color;
+	color:white;
+	margin-bottom:30px;
+	text-align:center;
+	box-sizing:border-box;
+	padding:20px;
+}
+
+.available-attacker {
+
+
+}
+
+.imageHolder {
+	float:left;
+	width:70px;
+	height:70px;
+	overflow:hidden;
+	padding:10px;
+	border-radius:100%;
+	background-color:@warning_color;
+}
+
+.attacker-information-box {
+	float:left;
+	width:350px;
+	margin-right:20px;
+	margin-left:10px;
+}
+
+.attacker-display-box {
+	float:left;
+	width:500px;
+	border:2px solid @warning_color;
+	padding:10px;
+	margin-right:10px;
+	
+}
+
+.fetch-profile-wrapper {
+	display:block;
+	width:1080px;
+	margin:0px auto;
+	box-sizing:border-box;
+	overflow:auto;
+	
+}
+
+.fetch-profile-inner {
+	width:1080px;
+	height:500px;
+	padding:20px;
+	box-sizing:border-box;
+	background-color:#49AFCD;
+	color:white;
+	text-align:center;
+}
+
+.fetch-profile-input {
+	margin:0px auto;
+
+}
+
+.display-profile-inner {
+	display:block;
+	width:100%;
+	margin:0px auto;
+	box-sizing:border-box;
+	overflow:auto;
+	
+}
+
+.profile-table {
+	padding:20px;
+	border:2px solid #49AFCD;
+	margin-top:5px;
+}
+
+.profile-info {
+	margin-right:80px;
+}
+
+.profile-option {
+	width:50%;
+	box-sizing:border-box;
+	color:white;
+	height:40px;
+	line-height:40px;
+	background-color:#49AFCD;
+	text-align:center;
+	border-radius:2px;
+	margin:3px auto;
+	margin-top:5px;
+	
+}
+
+.profile-option:hover {
+	cursor:pointer;
+	color:#49AFCD;
+	background-color:white;
+	border:2px solid #49AFCD;
+	box-sizing:border-box;
+}
+
+

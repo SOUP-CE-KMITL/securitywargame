@@ -1,0 +1,58 @@
+{% extends "home.html" %}
+{% block bodycontent %}
+	<div class="fetch-profile-wrapper">
+		<div class="fetch-profile-inner">
+			<form method="post" id="create-profile" action="/fetch-profile">	
+				Selected vulnerability types:<br/>
+				{% for key, value in options.iteritems() %}
+					<input type="checkbox" name="{{ key }}" /> {{ value }}
+					<br/>
+				{% endfor %}
+				<br/>
+				MINIMUM CVSS SCORE:<br/>
+				<select class="fetch-profile-input" name="cvssscoremin" >
+					{% for score in scores %}
+						<option value="{{ score }}">{{ score }}</option>
+					{% endfor %}
+				</select><br/>
+				ORDER BY:<br/>
+				<select class="fetch-profile-input" name="orderby" >
+					{% for order in orders %}
+						<option value="{{ loop.index }}">{{ order }}</option>
+					{% endfor %}
+				</select><br/>
+				Number of Profiles<br/>
+				<select class="fetch-profile-input" name="numrows" >
+					{% for row in rows %}
+						<option value="{{ row }}">{{ row }}</option>
+					{% endfor %}
+				</select><br/><br/>
+				<input class="fetch-profile-input" type="submit" value="Create Profile">
+			</form>
+		</div>
+		
+		<div class="display-profile-inner">
+			{% if profiles %}
+				{% for profile in profiles %}
+				<div class="profile-table">
+					<a href="{{profile.cve_url}}"><span class="profile-info">CVE ID : {{ profile.cve_id}}</span></a>
+					<span class="profile-info">CWE ID : {{ profile.cwe_id}}</span>
+					<span class="profile-info">CWE Mapping : {{ profile.cwe_name}}</span>
+					<span class="profile-info">CVSS Score : <span style="color:red;">{{ profile.cvss_score }}</span></span>
+					<br/>
+					Summary:<br/>
+					{{ profile.summary }}
+					<br/><br/>
+					<span class="profile-info">Exploits Count : {{ profile.exploit_count }}</span>
+					<span class="profile-info">Publish Date : {{ profile.publish_date }}</span>
+					<span class="profile-info">Update Date : {{ profile.update_date }}</span>
+					
+					<div class="profile-option">Create Game Object from this profile</div>
+				</div>
+				{% endfor %}
+			{% else %}
+				No Profile Available
+			{% endif %}
+		</div>
+	</div>
+{% endblock %}

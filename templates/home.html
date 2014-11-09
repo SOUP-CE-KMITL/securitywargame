@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+
+	<title>Cyber Security War Game</title>
+	<meta http-equiv="Content-type" content="text/html; charset=UTF-8">
+	<html xmlns="http://www.w3.org/1999/xhtml">
+	<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.1.js"></script> 
+	<link rel="stylesheet" href="/static/owl.carousel.2.0.0-beta.2.4/assets/owl.carousel.css">
+	<link rel="stylesheet" href="/static/fontLibrary.css">
+	<!-- bootstrap CDN -->
+		
+	<script src="/static/owl.carousel.2.0.0-beta.2.4/owl.carousel.js"></script>	
+	
+	<!-- setup less css -->
+	<link rel="stylesheet/less" type="text/css" href="/static/style.less" />
+	<link rel="stylesheet/less" type="text/css" href="/static/add-graph.less" />
+	<script src="/static/less.js" type="text/javascript"></script>
+
+	<!-- font awesome-->
+	<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+	
+	<!-- google font api -->
+				<!-- Karla -->
+	<link href='http://fonts.googleapis.com/css?family=Karla:400,400italic,700,700italic' rel='stylesheet' type='text/css'>
+				<!-- Mystery+Quest -->
+	<link href='http://fonts.googleapis.com/css?family=Mystery+Quest' rel='stylesheet' type='text/css'>
+				<!-- Lemon font -->
+	<link href='http://fonts.googleapis.com/css?family=Lemon' rel='stylesheet' type='text/css'>
+</head>
+<body>
+<header>
+</header>
+	{% block bodycontent %}
+
+
+
+	{% endblock %}
+<footer>
+</footer>
+</body>
+<script type="text/javascript" src="/static/myscript.js"></script>
+<script>
+      window.fbAsyncInit = function() {
+        FB.init({appId: '{{ facebook_app_id }}', status: true, cookie: true,
+                 xfbml: true});
+        FB.Event.subscribe('{% if fb_user %}auth.logout{% else %}auth.login{% endif %}', function(response) {
+          {% if current_user %} window.location = "/logout" {% else %} window.location.reload(); {% endif %}
+        });
+      };
+      (function() {
+        var e = document.createElement('script');
+        e.type = 'text/javascript';
+        e.src = document.location.protocol + '//connect.facebook.net/en_US/all.js';
+        e.async = true;
+        document.getElementById('fb-root').appendChild(e);
+      }());
+</script>
+</body>

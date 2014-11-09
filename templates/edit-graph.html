@@ -1,0 +1,168 @@
+{% extends "home.html" %}
+{% block bodycontent %}
+	<div class="edit-graph-container">
+		<div class="edit-graph-inner">
+			<div id="edit-graph-info">
+				 GraphID : {{ graph.graphID }}, &nbsp;&nbsp;&nbsp;&nbsp;Name : {{ graph.name }}
+			</div>
+			<div id="edit-graph-form">
+				<div id="graph-machine-container">
+					<div class="add-machine-header">
+						<div class="add-machine-header-info">
+							Add Machine
+						</div>
+						<div class="add-machine-header-button">
+							<i class="fa fa-plus-circle"></i>
+						</div>
+					</div>
+					<div class="add-machine-form">
+						<form id="addNewMachineForm" method="post" action="/add-new-machine?GraphID={{ graph.graphID }}">
+							Machine ID:<br/>
+							<input class="graph-input" type="text" name="machineID" /><br/>
+							Name:<br/>
+							<input class="graph-input" type="text" name="machineName" /><br/>
+							Status:<br/>
+							<select class="graph-input" name="machineStatus" >
+								{% for status in machine_status %}
+									<option value="{{ status }}">{{ status }}</option>
+								{% endfor %}
+							</select><br/>
+							Impact:<br/>
+							<input class="graph-input" type="text" name="machineImpact" /><br/>
+							<input type="text" value="/edit-graph?id={{graph.graphID}}" id="target_url" style="display:none;">
+						</form>
+						<div class="add-new-machine-button">
+							Add New Machine
+						</div>
+					</div>
+				</div>
+				<div id="graph-service-container">
+					<div class="add-service-header">
+						<div class="add-service-header-info">
+							Add Service
+						</div>
+						<div class="add-service-header-button">
+							<i class="fa fa-plus-circle"></i>
+						</div>
+					</div>
+					<div class="add-service-form">
+						<form id="addNewServiceForm" method="post" action="/add-new-service?GraphID={{ graph.graphID }}">
+							Service ID:<br/>
+							<input class="graph-input" type="text" name="serviceID" /><br/>
+							Name:<br/>
+							<input class="graph-input" type="text" name="serviceName" /><br/>
+							Status:<br/>
+							<select class="graph-input" name="serviceStatus" >
+								{% for status in service_status %}
+									<option value="{{ status }}">{{ status }}</option>
+								{% endfor %}
+							</select><br/>
+							Impact:<br/>
+							<input class="graph-input" type="text" name="serviceImpact" /><br/>
+							MachineID:<br/>
+							<select id="serviceMachineID" class="graph-input" name="serviceMachineID" >
+								{% for machine in graph.machines %}
+									<option value="{{ machine.machineID }}">{{ machine.machineID }}</option>
+								{% endfor %}
+							</select><br/>
+							<input type="text" value="/edit-graph?id={{graph.graphID}}" id="target_url" style="display:none;">
+						</form>
+						<div class="add-new-service-button">
+							Add New Service
+						</div>
+					</div>
+				</div>
+				<div id="graph-path-container">
+					<div class="add-path-header">
+						<div class="add-path-header-info">
+							Add Path
+						</div>
+						<div class="add-path-header-button">
+							<i class="fa fa-plus-circle"></i>
+						</div>
+					</div>
+					<div class="add-path-form">
+						<form id="addNewPathForm" method="post" action="/add-new-path?GraphID={{ graph.graphID }}">
+							Path ID:<br/>
+							<input class="graph-input" type="text" name="pathID" /><br/>
+							Name:<br/>
+							<select class="graph-input" name="pathName" >
+								{% for profile in profiles %}
+									<option value="{{ profile.cve_id }}">{{ profile.cve_id }}</option>
+								{% endfor %}
+							</select><br/>
+							Source:<br/>
+							<select class="graph-input" name="pathSrc" >
+								{% for service in graph.services %}
+									<option value="{{ service.serviceID }}">{{ service.serviceID }}</option>
+								{% endfor %}
+							</select><br/>
+							Destination:<br/>
+							<select class="graph-input" name="pathDest" >
+								{% for service in graph.services %}
+									<option value="{{ service.serviceID }}">{{ service.serviceID }}</option>
+								{% endfor %}
+							</select><br/>
+							Status:<br/>
+							<select class="graph-input" name="pathStatus" >
+								{% for status in path_status %}
+									<option value="{{ status }}">{{ status }}</option>
+								{% endfor %}
+							</select><br/>
+
+							<input type="text" value="/edit-graph?id={{graph.graphID}}" id="target_url" style="display:none;">
+						</form>
+						<div class="add-new-path-button">
+							Add New Path
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<div id="edit-graph-preview">
+			Machine:<br/>
+			{% if graph.machines %}			
+				{% for machine in graph.machines %}
+					<div class="machine-info-box">
+						MachineID : {{ machine.machineID }}<br/>				
+						Name : {{ machine.name }}<br/>
+						Status : {{ machine.status }}<br/>
+						Impact : {{ machine.impact }}<br/>
+					</div>
+				{% endfor %}
+			{% endif %}
+			
+			Service:<br/>
+			{% if graph.services %}		
+				{% for service in graph.services %}
+					<div class="service-info-box">
+						service ID : {{ service.serviceID }}<br/>				
+						Name : {{ service.name }}<br/>
+						Status : {{ service.status }}<br/>
+						Impact : {{ service.impact }}<br/>
+						Machine ID : {{ service.machineID }}<br/>
+					</div>
+				{% endfor %}
+			{% endif %}
+			
+			Path:<br/>
+			{% if graph.paths %}		
+				{% for path in graph.paths %}
+					<div class="path-info-box">
+						Path ID : {{ path.pathID }}<br/>				
+						Name : {{ path.name }}<br/>
+						Source : {{ path.src }}<br/>
+						Destination : {{ path.dest }}<br/>
+						Status : {{ path.status }}<br/>
+					</div>
+				{% endfor %}
+			{% endif %}
+			
+			
+			</div>
+		</div>
+		
+	</div>
+
+<script src="/static/edit-graph.js"></script>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "home.html" %}
+{% block bodycontent %}
+	<div class="create-graph-container">
+		<div class="create-graph-inner">
+			<div class="create-graph-box">
+				CREATE NEW GRAPH<br/><br/>
+				<form id="createGraphForm" method="post" action="/create-graph">
+					<input class="graph-input" type="text" name="graph-name" />
+					<br/>
+					<div id="submitNewGraph">
+						Create New Graph
+					</div>
+				</form>
+			</div>
+			
+			{% if graphs %}
+			<div class="graph-details-box">
+				
+				{% for graph in graphs %}
+				<div class="graph-info-box">
+					<div class="graph-info-text">
+						Graph ID : {{ graph.graphID }}<br/>
+						Graph Name : {{ graph.name }}
+					</div>
+					<div class="graph-info-menu">
+						<a style="text-decoration:none;color:white;" href="/edit-graph?id={{ graph.graphID }}">
+							<i class="fa fa-pencil-square-o">
+							</i> 
+						</a>
+						<form id="deleteGraphForm{{ graph.graphID }}" method="post" action="/delete-graph?id={{ graph.graphID }}">
+							<i value="deleteGraphForm{{ graph.graphID }}" id="deleteGraphButton{{ graph.graphID }}" class="fa fa-trash"></i>
+						</form>
+					</div>					
+				</div>
+				
+				{% endfor %}
+			</div>
+			{% endif %}
+
+				
+		</div>		
+	</div>
+
+<script src="/static/create-graph.js"></script>
+{% endblock %}

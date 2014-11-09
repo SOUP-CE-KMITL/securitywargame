@@ -1,0 +1,391 @@
+//////////////////////////////////////////////////reset css//////////////////////////////////////////////////
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, editress, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	pediting: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+
+textarea:focus, input:focus{
+    outline: 0;
+}
+// prevent chrome text hilight
+*:focus {
+    outline: 0;
+}
+///////////////////////////////////////////////////color//////////////////////////////////////////////////////
+@facebook_color: #3b5998;
+@twitter_color: #4099FF;
+@googleplus_color: #d34836;
+@instagram_color: #517fa4;
+@gray_border: #e2e2e2;
+@gray_background: #eaeaea;
+@dashboard_color: #77C5D2;
+@footer_color: #1A1D24;
+@red-menu_color : #EA2D49;
+@warning_color: #f0ad4e;
+@warning-hover_color: #f2cf71;
+@success_color: #5cb85c;
+@info_color: #5bc0de;
+@default-blue_color: #428bca;
+@fav_green: #6FC152;
+@graph-bg: #1D69A7;
+@create-graph-bg:#F47264;
+/////////////////////////////////////////////////wrapper//////////////////////////////////////////////////////
+.create-graph-container {
+	display:block;
+	position:absolute;
+	background-color:@create-graph-bg;
+	width:100%;
+	overflow:auto;
+	min-height:100px;	
+}
+
+.create-graph-inner {
+	text-align:center;
+	height:auto;	
+	color:white;
+	width:1024px;
+	margin:0px auto;
+	pediting-top:20px;
+}
+
+
+
+.create-graph-box {
+	width:100%;
+	box-sizing:border-box;
+	float:left;
+	margin-bottom:20px;
+}
+
+.graph-details-box {
+	width:100%;
+	box-sizing:border-box;
+	float:left;
+
+}
+
+
+.edit-graph-container {
+	display:block;
+	position:absolute;
+	background-color:@graph-bg;
+	width:100%;
+	overflow:auto;
+	min-height:100px;
+
+}
+
+.edit-graph-inner {
+	text-align:center;
+	height:auto;	
+	color:white;
+	width:1024px;
+	margin:0px auto;
+	pediting-top:20px;
+}
+
+.graph-input {
+	width:300px;
+	height:30px;
+	line-height:30px;
+	text-align:center;
+	margin-bottom:15px;
+}
+
+#submitNewGraph {
+	width:300px;
+	height:30px;
+	line-height:30px;
+	text-align:center;
+	border:2px solid white;
+	border-radius:5px;
+	margin:0px auto;	
+}
+
+.graph-info-box {
+	width:500px;
+	margin:0px auto;
+	pediting:20px;
+	box-sizing:border-box;
+	border:2px solid white;
+	margin-top:10px;
+	margin-bottom:10px;
+	text-align:left;
+	overflow:auto;
+}
+
+.graph-info-text {
+	width:280px;
+	box-sizing:border-box;
+	float:left;
+	height:auto;
+
+	
+}
+
+.graph-info-menu {
+	width:160px;
+	box-sizing:border-box;
+	float:left;
+	height:auto;
+	font-size:30px;
+	
+}
+
+#edit-graph-info {
+	width:100%;
+	float:left;
+	height:30px;
+	line-height:30px;
+	text-align:center;
+	color:white;
+	margin-top:20px;
+	
+}
+
+#edit-graph-form {
+	width:650px;
+	float:left;
+	height:auto;
+	margin-right:10px;
+}
+
+#edit-graph-preview {
+	width:300px;
+	float:left;
+	height:auto;
+	border:1px solid white;
+	padding:10px;
+}
+
+#graph-machine-container {
+	width:100%;
+	height:auto;
+
+}
+
+#graph-machine-container {
+	width:100%;
+	height:auto;
+	margin-top:20px;
+}
+
+.add-machine-header {
+	width:100%;
+	float:left;
+	height:30px;
+	line-height:30px;
+	text-align:center;
+	border:1px solid white;
+}
+
+.add-machine-header-info {
+	width:90%;
+	float:left;
+	height:30px;
+
+}
+
+.add-machine-header-button {
+	width:10%;
+	float:left;
+	height:30px;
+	line-height:30px;
+}
+
+.add-machine-form {
+	width:100%;
+	float:left;
+	height:auto;
+	text-align:center;
+	margin-bottom:10px;
+	display:none;
+	box-sizing:border-box;
+	padding:10px;
+}
+
+.add-new-machine-button {
+	width:80%;
+	border:1px solid white;
+	height:30px;
+	line-height:30px;
+	text-align:center;
+	margin:0px auto;
+}
+
+.machine-info-box {
+	width:100%;
+	height:auto;
+	box-sizing:border-box;
+	padding:10px;
+	margin-bottom:5px;
+	border:1px solid white;
+	background-color:white;
+	color:@graph-bg;
+}
+
+/// service
+
+.add-service-header {
+	width:100%;
+	float:left;
+	height:30px;
+	line-height:30px;
+	text-align:center;
+	border:1px solid white;
+}
+
+.add-service-header-info {
+	width:90%;
+	float:left;
+	height:30px;
+}
+
+.add-service-header-button {
+	width:10%;
+	float:left;
+	height:30px;
+	line-height:30px;
+}
+
+.add-service-form {
+	width:100%;
+	float:left;
+	height:auto;
+	text-align:center;
+	margin-bottom:10px;
+	display:none;
+	box-sizing:border-box;
+	padding:10px;
+}
+
+.add-new-service-button {
+	width:80%;
+	border:1px solid white;
+	height:30px;
+	line-height:30px;
+	text-align:center;
+	margin:0px auto;
+}
+
+.service-info-box {
+	width:100%;
+	height:auto;
+	box-sizing:border-box;
+	padding:10px;
+	margin-bottom:5px;
+	border:1px solid white;
+	background-color:@fav_green;
+}
+
+///path
+
+.add-path-header {
+	width:100%;
+	float:left;
+	height:30px;
+	line-height:30px;
+	text-align:center;
+	border:1px solid white;
+}
+
+.add-path-header-info {
+	width:90%;
+	float:left;
+	height:30px;
+}
+
+.add-path-header-button {
+	width:10%;
+	float:left;
+	height:30px;
+	line-height:30px;
+}
+
+.add-path-form {
+	width:100%;
+	float:left;
+	height:auto;
+	text-align:center;
+	margin-bottom:10px;
+	display:none;
+	box-sizing:border-box;
+	padding:10px;
+}
+
+.add-new-path-button {
+	width:80%;
+	border:1px solid white;
+	height:30px;
+	line-height:30px;
+	text-align:center;
+	margin:0px auto;
+}
+
+.path-info-box {
+	width:100%;
+	height:auto;
+	box-sizing:border-box;
+	padding:10px;
+	margin-bottom:5px;
+	border:1px solid white;
+	background-color:#f0ad4e;
+}
+
+///////////////////////////////////////////////////hover//////////////////////////////////////////////////////
+
+
+#submitNewGraph:hover {
+	cursor:pointer;
+}
+
+.add-machine-header-button:hover {
+	cursor:pointer;
+}
+
+.add-new-machine-button:hover {
+	cursor:pointer;
+	background-color:white;
+	color:@graph-bg;
+}
+
+.add-service-header-button:hover {
+	cursor:pointer;
+}
+
+.add-new-service-button:hover {
+	cursor:pointer;
+	background-color:white;
+	color:@graph-bg;
+}
+
+.add-path-header-button:hover {
+	cursor:pointer;
+}
+
+.add-new-path-button:hover {
+	cursor:pointer;
+	background-color:white;
+	color:@graph-bg;
+}
+
+
+
+
+

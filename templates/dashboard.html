@@ -1,0 +1,34 @@
+{% extends "home.html" %}
+{% block bodycontent %}
+<div class="dashboard">
+	<div class="dashboard-create-map">
+		Create Map:
+		<br/>
+		<br/>
+		<form id="create-map-form" method="post" action="create-map">
+		Map Name:<br/>
+		<input class="dashboard-input" type="text" name="map" placeholder="Map Name"/>
+		Description <br/>
+		<input class="dashboard-input" type="text" name="desc" placeholder="Description">
+		<br/>
+		</form>
+		<div id="map-submit-button">CREATE
+		</div>
+		
+		
+	</div>
+{% if maps %}
+	<div class="dashboard-available-map">
+		{% for map in maps %}
+			<div class="map-display-box">
+				#{{ loop.index }}: 
+				Name :<br/> {{ map.name }}<br/>
+				Description :<br/> {{ map.desc }}<br/>
+				Number of Node: {{ map.number_of_node }}<br/>
+			
+			</div>
+		{% endfor %}
+	</div>
+{% endif %}
+</div>
+{% endblock %}

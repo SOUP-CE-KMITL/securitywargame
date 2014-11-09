@@ -1,0 +1,48 @@
+{% extends "home.html" %}
+{% block bodycontent %}
+<div class="attacker-content">
+	<div class="create-attacker">
+		<form id="create-attacker-form" action="{{ upload_url }}" method="post" enctype="multipart/form-data">
+			Create Attacker:<br/><br/>
+			Alias:<br/>
+			<input class="dashboard-input" type="text" name="alias" />
+			CVE:<br/>
+			<input class="dashboard-input" type="text" name="cve" />
+			Description:<br/>
+			<input class="dashboard-input" type="text" name="desc" />
+			Vulnerability Type:
+			<select class="dashboard-input" name="flawtype" >
+			{% for vul in vuls %}
+				<option value="{{vul}}">{{vul}}</option>
+			{% endfor %}
+			</select>
+			Image (50x50 px):
+			<input type="file" name="upload" id="upload" multiple="true" /><br />	<br/>
+		</form>	
+				<div id="attacker-submit-button">CREATE
+				</div>
+	</div>
+	
+	{% if attackers %}
+	<div class="available-attacker">
+		{% for attacker in attackers %}
+			<div class="attacker-display-box">
+				<div class="imageHolder">
+					<div style="padding:10px;">
+					<img width="50px" height="50px" src="/displayImage?acc={{ attacker.access_params }}"></img>
+					</div>
+				</div>
+				<div class="attacker-information-box">
+				#{{ loop.index }}: <br/>
+				Alias : {{ attacker.alias }}<br/>
+				Description : {{ attacker.desc }}<br/>
+				CVE : {{ attacker.cve }}<br/>
+				Vulnerability Type : {{ attacker.flawtype }}<br/>
+				</div>
+			</div>
+		{% endfor %}
+	</div>
+{% endif %}
+	
+</div>
+{% endblock %}

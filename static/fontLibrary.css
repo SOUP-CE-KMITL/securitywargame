@@ -1,0 +1,145 @@
+@font-face {
+	font-family:Charmonman;
+	src: url("/static/fontLibrary/TH/01-TH-Charmonman/TH Charmonman.ttf");
+}
+
+.CharmonmanFont {
+	font-family:Charmonman;
+}
+
+@font-face {
+	font-family:Krub;
+	src: url("/static/fontLibrary/TH/02-TH-Krub/TH Krub.ttf");
+}
+
+.Consolas{
+	font-family:Consolas ,monospace;
+	font-size:14px;}
+
+.KrubFont {
+	font-family:Krub;
+}
+
+@font-face {
+	font-family: BeautifulEs;
+	src: url("/static/fontLibrary/EN/beautiful_es/BeautifulEs.ttf");
+	
+}
+
+.BeautifulEs {
+	font-family: BeautifulEs;
+
+}
+
+@font-face {
+	font-family: Cabin-Regular;
+	src: url("/static/fontLibrary/EN/cabin/Cabin-Regular.otf");
+	
+}
+
+.Cabin-Regular {
+	font-family: Cabin-Regular;
+
+}
+
+@font-face {
+	font-family: Cabin-Bold;
+	src: url("/static/fontLibrary/EN/cabin/Cabin-Bold.otf");
+	
+}
+
+.Cabin-Bold {
+	font-family: Cabin-Bold;
+
+}
+
+@font-face {
+	font-family: Gessele;
+	src: url("/static/fontLibrary/EN/gessele/GESSELE.ttf");
+	
+}
+
+.Gessele {
+	font-family: Gessele;
+}
+
+@font-face {
+	font-family: Glametrix;
+	src: url("/static/fontLibrary/EN/glametrix/glametrix.otf");
+	
+}
+
+.Glametrix {
+	font-family: Glametrix;
+}
+
+@font-face {
+	font-family: Glametrix;
+	src: url("/static/fontLibrary/EN/glametrix/glametrix.otf");
+	
+}
+
+.Glametrix {
+	font-family: Glametrix;
+}
+
+
+@font-face {
+	font-family: Sofia;
+	src: url("/static/fontLibrary/EN/sofia/Sofia-Regular.otf");
+	
+}
+
+.Sofia {
+	font-family: Sofia;
+}
+
+@font-face {
+	font-family: LittleDays;
+	src: url("/static/fontLibrary/EN/west-wind-fonts_little-days/Little_Days.ttf");
+	
+}
+
+.LittleDays {
+	font-family: LittleDays;
+}
+
+@font-face {
+	font-family: AlexBrush;
+	src: url("/static/fontLibrary/EN/alex-brush/AlexBrush-Regular.ttf");
+	
+}
+
+.AlexBrush {
+	font-family: AlexBrush;
+}
+
+@font-face {
+	font-family: Allura;
+	src: url("/static/fontLibrary/EN/allura/Allura-Regular.otf");
+	
+}
+
+.Allura {
+	font-family: Allura;
+}
+
+@font-face {
+	font-family: BlackJack;
+	src: url("/static/fontLibrary/EN/black_jack/BLACKJAR.ttf");
+	
+}
+
+.BlackJack {
+	font-family: BlackJack;
+}
+
+@font-face {
+	font-family: CalendasPlus;
+	src: url("/static/fontLibrary/EN/CalendasPlus/CalendasPlus.otf");
+	
+}
+
+.CalendasPlus {
+	font-family: CalendasPlus;
+}
