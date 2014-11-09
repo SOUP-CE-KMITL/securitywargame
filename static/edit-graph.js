@@ -51,8 +51,9 @@ var main = function(){
 
 			alert( "Add new Machine" );
 			$( "#edit-graph-preview" ).load( target_url+" #edit-graph-preview", function( html ) {
-				
+				//
 			});
+			
 
 			
 		});

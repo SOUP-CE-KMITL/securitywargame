@@ -656,8 +656,10 @@ class CreateGraphHandler(Handler,FacebookHandler):
 	def post(self):
 		name = escape_html(self.request.get('graph-name'))
 		graphs = Graph.query().order(-Graph.graphID).get()
-		graphID = graphs.graphID + 1
-
+		if graphs:
+			graphID = graphs.graphID + 1
+		else:
+			graphID = 1
 		u = Graph(	graphID		= 	graphID,
 					name		=	name)
 		u.put()
