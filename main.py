@@ -641,10 +641,8 @@ class CVSScoreHandler(Handler,FacebookHandler):
 class GetGraphHandler(Handler,FacebookHandler):	
 	def get(self):
 		id = int(escape_html(self.request.get('id')))
-		u = Graph.query().filter(Graph.graphID == id).get()
-
-			
-		self.write(u)
+		u = Graph.query().filter(Graph.graphID == id).get()		
+		self.render_json(u)
 		
 class CreateGraphHandler(Handler,FacebookHandler):	
 	def get(self):
