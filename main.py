@@ -729,19 +729,26 @@ class AddNewPathHandler(Handler,FacebookHandler):
 		name = escape_html(self.request.get('pathName'))
 		cve_id = name
 		v = CVEProfile.query().filter(CVEProfile.cve_id == cve_id).get()
-		cvss = v.access_params
+		#ASSIGN SCORE
+		c_imp = v.confidentiality_impact
+		i_imp = v.integrity_impact
+		a_imp = v.availability_impact 
+		acc_com = v.access_complexity
+		g_acc = v.gained_access
+		auth = v.authentication
+
 		#STATUS???
 		status = escape_html(self.request.get('pathStatus'))
 		#SERVICE STATUS
 		src = int(escape_html(self.request.get('pathSrc')))
-		dest = int(escape_html(self.request.get('pathDest')))
-		w = Path.add_new_path(pathID,name,status,src,dest,cvss)
+		dest = int(escape_html(self.request.get('pathDest')))	
+		w = Path.add_new_path(pathID,name,status,src,dest,c_imp,i_imp,a_imp,acc_com,g_acc,auth)
 		if u.paths:
 			u.paths.append(w)
 		else:
 			u.paths = [ w ]
 		u.put()
-
+		
 class MapListHandler(webapp2.RequestHandler):
 	def post(self):
 		graphs = Graph.query()
@@ -752,7 +759,6 @@ class MapListHandler(webapp2.RequestHandler):
 
 		output = json.dumps(output);
 		self.response.write(output);
-		
 		
 #######################################################################################################
 #######################################################################################################
@@ -871,16 +877,27 @@ class Path(ndb.Model):
 	status=ndb.StringProperty()
 	src=ndb.IntegerProperty()
 	dest=ndb.IntegerProperty()
-	cvss=ndb.StringProperty()
+	#cvss=ndb.StringProperty()
+	confidentiality_impact = ndb.IntegerProperty()
+	integrity_impact = ndb.IntegerProperty()
+	availability_impact = ndb.IntegerProperty()
+	access_complexity = ndb.IntegerProperty()
+	gained_access = ndb.IntegerProperty()
+	authentication = ndb.IntegerProperty()
 	
 	@classmethod
-	def add_new_path(cls,pathID,name,status,src,dest,cvss):
-		return Path(		pathID 		= 	pathID,
-							name 		= 	name,
-							status 		=	status,
-							src 		= 	src,
-							dest		=	dest,
-							cvss		=	cvss)	
+	def add_new_path(cls,pathID,name,status,src,dest,c_imp,i_imp,a_imp,acc_com,g_acc,auth):
+		return Path(		pathID 						= 	pathID,
+							name 						= 	name,
+							status 						=	status,
+							src 						= 	src,
+							dest						=	dest,
+							confidentiality_impact 		= 	c_imp,
+							integrity_impact 			= 	i_imp,
+							availability_impact 		= 	a_imp,
+							access_complexity 			= 	acc_com,
+							gained_access 				= 	g_acc,
+							authentication 				= 	auth )
 
 class Graph(ndb.Model):
 	name=ndb.StringProperty(required=True)

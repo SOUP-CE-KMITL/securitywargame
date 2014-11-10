@@ -141,8 +141,10 @@ City.prototype.Spread=function(){
 	console.log(PlayScene.graph.machines)
 	for(var j=0; j<this.to.length; j++){
 		var c = getCityById(this.to[j])
-		c.machine.status="found";
-		c.sprite.visible=true;
+		if(c.machine.status=="hidden"){
+			c.machine.status="found";
+			c.sprite.visible=true;
+		}
 
 		var g = createjs.Graphics;
 		var road = new g().beginStroke("#FFFFFF").moveTo(this.sprite.x, this.sprite.y).lineTo(c.sprite.x, c.sprite.y).endStroke();

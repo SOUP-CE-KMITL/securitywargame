@@ -1,5 +1,7 @@
 
 function Soldier(sol){
+	/*
+	console.log(sol);
 	this.edge = sol;
 	this.name = "John Doe";
 	this.vector = 2
@@ -9,15 +11,16 @@ function Soldier(sol){
 	this.integrity = 2
 	this.availability = 2
 	this.cwe = "buffer overflow"
-	/*
-	this.vector = sol.cvss.av;
-	this.complex = sol.cvss.ac;
-	this.authen = sol.cvss.au;
-	this.confident = sol.cvss.c;
-	this.integrity = sol.cvss.i;
-	this.availability = sol.cvss.a;
-	this.cwe = sol.cvss.cwe;
 	*/
+	this.vector = sol.gained_access;
+	this.level = sol.access_complexity;
+	this.keyheld = 0;
+	this.authen = sol.authentication;
+	this.confident = sol.confidentiality_impact;
+	this.integrity = sol.integrity_impact;
+	this.availability = sol.availability_impact;
+	this.name = sol.name;
+	
 }
 
 Soldier.prototype.Draw = function (parent,x,y){
@@ -65,10 +68,10 @@ Soldier.Action = function (e){
 Soldier.ShowInfo = function(e){
 	var t=e.target;
 	PlayScene.inspecWin.stat.text = 
-		"name: "+t.ref.cwe+"\n"+
+		"name: "+t.ref.name+"\n"+
 		"range: "+t.ref.vector+"\n"+
 		"level: "+t.ref.level+"\n"+
-		"key: "+t.ref.authen+"\n"+
+		"key: "+t.ref.keyheld+"/"+(t.ref.authen-1)+"\n"+
 		"occupiable: "+t.ref.confident+"\n"+
 		"capacity: "+t.ref.integrity+"\n"+
 		"damage: "+t.ref.availability+"\n";
