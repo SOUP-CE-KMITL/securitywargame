@@ -12,6 +12,8 @@ function Soldier(sol){
 	this.availability = 2
 	this.cwe = "buffer overflow"
 	*/
+
+	this.edge = sol;
 	this.vector = sol.gained_access;
 	this.level = sol.access_complexity;
 	this.keyheld = 0;
@@ -20,7 +22,10 @@ function Soldier(sol){
 	this.integrity = sol.integrity_impact;
 	this.availability = sol.availability_impact;
 	this.name = sol.name;
-	
+	this.op = sol.cwe || "unknown";
+	this.from  = getServiceById(sol.src).machineID;
+	this.to = getServiceById(sol.dest).machineID;
+	this.pathId = sol.pathID;
 }
 
 Soldier.prototype.Draw = function (parent,x,y){
@@ -63,6 +68,8 @@ Soldier.Action = function (e){
 	QueueList.Add(t.ref.name, atkObj.dur);
 	PlayScene.atkQueue.push(atkObj);
 	ActionPane.container.removeAllChildren();
+
+	addStep(atkObj);
 }
 
 Soldier.ShowInfo = function(e){
@@ -81,6 +88,9 @@ function Explorer(city){
 	this.name="explorer";
 	this.city=city;
 	this.level=2;
+	this.op = "scan";
+	this.from = PlayScene.base && PlaScene.base.machineID || 0;
+	this.to = city.machine.machineID;
 }
 
 Explorer.Draw=function(parent, x, y){
@@ -129,4 +139,34 @@ Explorer.Action=function(e){
 	QueueList.Add(t.ref.name, atkObj.dur);
 	PlayScene.atkQueue.push(atkObj);
 	ActionPane.container.removeAllChildren();
+
+	addStep(atkObj)
+}
+
+function addStep(atkObj){
+
+	//fake variable
+	var playerID = 1; var playID=1
+	//
+	var params = 
+		"playerid="+playerID+"&"+
+		"playid="+playID+"&"+
+		"startturn="+atkObj.start+"&"+
+		"finturn="+(atkObj.start+atkObj.dur)+"&"+
+		"soltype="+atkObj.soldier.op+"&"+
+		"cost="+atkObj.soldier.level+"&"+
+		"pathid="+(atkObj.soldier.pathId || 0) +"&"+
+		"from="+atkObj.soldier.from +"&"+
+		"to="+atkObj.soldier.to;
+	console.log(params);
+
+	var req;
+	if (window.XMLHttpRequest){
+	  req=new XMLHttpRequest();
+	}else{
+	  req=new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	req.open("GET","/add-step?"+params,false);
+	req.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+	req.send();
 }
