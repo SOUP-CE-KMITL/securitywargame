@@ -139,6 +139,15 @@ def string_normalize(s):
 	s = re.sub('[^0-9a-zA-Z]+', '', s)
 	s = s.lower()
 	return s
+	
+def assign_graph_ID():
+	graphID = 0
+	graphs = Graph.query().order(-Graph.graphID).get()
+	if graphs:
+		graphID = graphs.graphID + 1
+	else:
+		graphID = 1
+	return graphID
 
 #######################################################################################################
 #######################################################################################################
@@ -653,11 +662,7 @@ class CreateGraphHandler(Handler,FacebookHandler):
 		
 	def post(self):
 		name = escape_html(self.request.get('graph-name'))
-		graphs = Graph.query().order(-Graph.graphID).get()
-		if graphs:
-			graphID = graphs.graphID + 1
-		else:
-			graphID = 1
+		graphID = assign_graph_ID()
 		u = Graph(	graphID		= 	graphID,
 					name		=	name)
 		u.put()
@@ -749,6 +754,89 @@ class AddNewPathHandler(Handler,FacebookHandler):
 			u.paths = [ w ]
 		u.put()
 		
+class PostJSONGraphHandler(Handler,FacebookHandler):
+	def post(self):
+		#SETUP GRAPH
+		name = escape_html(self.request.get('name'))
+		graphID = assign_graph_ID()
+		#ADD GRAPH FIRST
+		u = Graph(	graphID		= 	graphID,
+					name		=	name)
+		u.put()
+		#MAKE SURE GRAPH IS SUBMITTED
+		time.sleep(2)		
+		#PREPARED OBJECT
+		machine_objects = json.loads(self.request.get('machines'))
+		service_objects = json.loads(self.request.get('services'))
+		path_objects = json.loads(self.request.get('paths'))
+		#FLASHING
+		#self.write(machine_objects)
+		#self.write(service_objects)
+		#self.write(path_objects)
+		#ITERATE
+		#for object in machine_objects:
+		uv = Graph.query().filter(Graph.graphID == graphID).get()
+		for key, value in machine_objects.iteritems():
+			for i, item in enumerate(value): 
+				machineID = value[i]['machineID']
+				name = value[i]['name']
+				status = value[i]['status']
+				impact = value[i]['impact']
+				v = Machine.add_new_machine(int(machineID),name,status,int(impact))
+				if uv.machines:
+					uv.machines.append(v)
+				else:
+					uv.machines = [ v ]
+				uv.put()
+		#FLASH
+		#self.write(uv)
+		
+		uw = Graph.query().filter(Graph.graphID == graphID).get()
+		for key, value in service_objects.iteritems():
+			for i, item in enumerate(value):
+				serviceID = value[i]['serviceID']
+				name = value[i]['name']
+				status = value[i]['status']
+				impact = value[i]['impact']
+				machineID = value[i]['machineID']
+				w = Service.add_new_service(int(serviceID),name,status,int(impact),int(machineID))
+				if uw.services:
+					uw.services.append(w)
+				else:
+					uw.services = [ w ]	
+				uw.put()
+		#FLASH
+		#self.write(uv)
+		
+		ux = Graph.query().filter(Graph.graphID == graphID).get()
+		for key, value in path_objects.iteritems():
+			for i, item in enumerate(value):
+				pathID = value[i]['pathID']
+				name = value[i]['name']
+				status = value[i]['status']
+				src = value[i]['src']
+				dest = value[i]['dest']
+				g_acc = value[i]['av']
+				auth = value[i]['au']
+				c_imp = value[i]['ci']
+				acc_com = value[i]['ac']
+				i_imp = value[i]['ii']
+				a_imp = value[i]['ai']
+				x = Path.add_new_path(int(pathID),name,status,int(src),int(dest),int(c_imp),int(i_imp),int(a_imp),int(acc_com),int(g_acc),int(auth))
+				if ux.paths:
+					ux.paths.append(x)
+				else:
+					ux.paths = [ x ]
+				ux.put()				
+		#FLASH
+		#self.write(ux)		
+
+		json_graph = Graph.query().filter(Graph.graphID == graphID).get()		
+		self.render_json(json_graph)				
+	
+
+
+		
 class MapListHandler(webapp2.RequestHandler):
 	def post(self):
 		graphs = Graph.query()
@@ -791,7 +879,9 @@ app = webapp2.WSGIApplication([
 	('/add-new-machine',AddNewMachineHandler),
 	('/add-new-service',AddNewServiceHandler),
 	('/add-new-path',AddNewPathHandler),
-	('/maplist', MapListHandler)
+	('/maplist', MapListHandler),
+	('/postGraph',PostJSONGraphHandler),
+	#('/updateGraph',UpdateJSONGraphHandler)
 
 	
 ], debug=True,config=config)
