@@ -149,13 +149,12 @@ function addStep(atkObj){
 	var playerID = 1; var playID=1
 	//
 	var params = 
-		"playerid="+playerID+"&"+
-		"playid="+playID+"&"+
-		"startturn="+atkObj.start+"&"+
-		"finturn="+(atkObj.start+atkObj.dur)+"&"+
-		"soltype="+atkObj.soldier.op+"&"+
+		"waypoint="+PlayScene.wayKey+"&"+
+		"startTurn="+atkObj.start+"&"+
+		"endTurn="+(atkObj.start+atkObj.dur)+"&"+
+		"solType="+atkObj.soldier.op+"&"+
 		"cost="+atkObj.soldier.level+"&"+
-		"pathid="+(atkObj.soldier.pathId || 0) +"&"+
+		"pathID="+(atkObj.soldier.pathId || 0) +"&"+
 		"from="+atkObj.soldier.from +"&"+
 		"to="+atkObj.soldier.to;
 	console.log(params);
@@ -166,7 +165,7 @@ function addStep(atkObj){
 	}else{
 	  req=new ActiveXObject("Microsoft.XMLHTTP");
 	}
-	req.open("GET","/add-step?"+params,false);
+	req.open("POST","/add-step",false);
 	req.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-	req.send();
+	req.send(params);
 }

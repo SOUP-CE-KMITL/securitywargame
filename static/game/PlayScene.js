@@ -58,7 +58,6 @@ PlayScene.prototype.Init = function(){
 	this.moneyText.x = 10;
 	this.moneyText.y = 10;
 
-	
 
 	ActionPane.Init(this.inspecWin);
 	QueueList.Init(this.guiLayer);
@@ -80,6 +79,18 @@ PlayScene.prototype.Show = function(stage, params){
 	stage.addChild(this.scene);
 	PlayScene.turnText.text = "0"
 	new XMLLoader(SceneManager.params, this);
+
+	var req;
+	if (window.XMLHttpRequest){
+	  req=new XMLHttpRequest();
+	}else{
+	  req=new ActiveXObject("Microsoft.XMLHTTP");
+	}
+
+	req.open("POST","/create-waypoint",false);
+	req.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+	req.send("mapID="+SceneManager.params);
+	PlayScene.wayKey = req.responseText
 }
 
 PlayScene.prototype.OnLoadComplete = function(jGraph, p){

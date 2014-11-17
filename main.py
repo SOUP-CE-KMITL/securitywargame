@@ -847,6 +847,34 @@ class MapListHandler(webapp2.RequestHandler):
 
 		output = json.dumps(output);
 		self.response.write(output);
+
+class CreateWayPointsHandler(webapp2.RequestHandler):
+	def post(self):
+		waypointsID = 1 #shoud be generated somehow
+		playerID = 1 #should get this from session
+		mapID = int(escape_html(self.request.get('mapID')))
+		waypoints = WayPoints(waypointsID=waypointsID, playerID=playerID, mapID=mapID)
+		key = waypoints.put()
+		self.response.write(waypointsID);
+
+class AddStepHandler(webapp2.RequestHandler):
+	def post(self):
+		waypointsKey = int(self.request.get('waypoint'))
+		waypoint = WayPoints.query().filter(WayPoints.waypointsID == waypointsKey).get()
+		startTurn = int(self.request.get('startTurn'))
+		endTurn = int(self.request.get('endTurn'))
+		solType = self.request.get('solType')
+		cost = int(self.request.get('cost'))
+		fromCity = int(self.request.get('from'))
+		toCity = int(self.request.get('to'))
+		pathID = int(self.request.get('pathID'))
+		step = Step(startTurn=startTurn, endTurn=endTurn, solType=solType, cost=cost, fromCity=fromCity, toCity=toCity, pathID=pathID)
+		if waypoint.step:
+			waypoint.step.append(step)
+		else:
+			waypoint.step = [step]
+		waypoint.put();
+
 		
 #######################################################################################################
 #######################################################################################################
@@ -881,6 +909,8 @@ app = webapp2.WSGIApplication([
 	('/add-new-path',AddNewPathHandler),
 	('/maplist', MapListHandler),
 	('/postGraph',PostJSONGraphHandler),
+	('/create-waypoint', CreateWayPointsHandler),
+	('/add-step', AddStepHandler),
 	#('/updateGraph',UpdateJSONGraphHandler)
 
 	
@@ -1077,5 +1107,20 @@ class User(ndb.Model):
 		u = cls.by_username(username)
 		if u and valid_pw(username, password, u.pw_hash):
 			return u
-	
+
+class Step(ndb.Model):
+	startTurn = ndb.IntegerProperty()
+	endTurn = ndb.IntegerProperty()
+	solType = ndb.StringProperty()
+	cost = ndb.IntegerProperty()
+	fromCity = ndb.IntegerProperty()
+	toCity = ndb.IntegerProperty()
+	pathID = ndb.IntegerProperty()
+
+class WayPoints(ndb.Model):
+	waypointsID = ndb.IntegerProperty()
+	playerID = ndb.IntegerProperty()
+	mapID = ndb.IntegerProperty()
+	step = ndb.StructuredProperty(Step, repeated=True)
+
 
