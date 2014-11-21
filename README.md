@@ -1,5 +1,5 @@
 #ADD TEST USER
-Method : GET
+Method : GET<br/>
 Url : /create-dummy-user
 Parameter : 
 user_id -> int(required)
