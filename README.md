@@ -1,20 +1,20 @@
 #ADD TEST USER
 Method : GET<br/>
-Url : /create-dummy-user
-Parameter : 
-user_id -> int(required)
-username -> string
+Url : /create-dummy-user<br/>
+Parameter : <br/>
+user_id -> int(required)<br/>
+username -> string<br/>
 
-Result should look like this
+Result should look like this<br/>
 http://puu.sh/cZgRy/c1b4e67480.jpg
 
 #LOGIN TEST USER
-Method : GET
-Url : /bypass-login
-Parameter :
-user_id -> int(required)
+Method : GET<br/>
+Url : /bypass-login<br/>
+Parameter :<br/>
+user_id -> int(required)<br/>
 
-Result should look like this
+Result should look like this<br/>
 http://puu.sh/cZgOx/2eac4598e4.jpg
 
 #UI Graph-> CRETAE -> EDIT -> GET
