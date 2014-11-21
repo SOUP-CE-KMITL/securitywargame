@@ -1,4 +1,23 @@
-Graph-> CRETAE -> EDIT -> GET
+#ADD TEST USER
+Method : GET
+Url : /create-dummy-user
+Parameter : 
+user_id -> int(required)
+username -> string
+
+Result should look like this
+http://puu.sh/cZgRy/c1b4e67480.jpg
+
+#LOGIN TEST USER
+Method : GET
+Url : /bypass-login
+Parameter :
+user_id -> int(required)
+
+Result should look like this
+http://puu.sh/cZgOx/2eac4598e4.jpg
+
+#UI Graph-> CRETAE -> EDIT -> GET
 
 create graph using url => /create-graph full path-> http://cyber-security-war-game.appspot.com/create-graph
 
