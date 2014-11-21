@@ -19,6 +19,13 @@
 		<script>
 			//cg from "five-archers@opengameart.org"
 			function init(){
+				function getCookie(name) {
+				  var value = "; " + document.cookie;
+				  var parts = value.split("; " + name + "=");
+				  if (parts.length == 2) return parts.pop().split(";").shift();
+				}
+				window.getCookie = getCookie;
+				
 				var stage=new createjs.Stage("demo");
 				stage.enableMouseOver();
 				createjs.Ticker.addEventListener("tick", stage);

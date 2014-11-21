@@ -852,8 +852,8 @@ class MapListHandler(webapp2.RequestHandler):
 
 class CreateWayPointsHandler(webapp2.RequestHandler):
 	def post(self):
-		waypointsID = 1 #shoud be generated somehow
-		playerID = 1 #should get this from session
+		waypointsID = WayPoints.query().count()+1 #shoud be generated somehow
+		playerID = int(self.request.get('playerID')) #should get this from session
 		mapID = int(escape_html(self.request.get('mapID')))
 		waypoints = WayPoints(waypointsID=waypointsID, playerID=playerID, mapID=mapID)
 		key = waypoints.put()

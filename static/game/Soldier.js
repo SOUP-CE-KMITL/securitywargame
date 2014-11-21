@@ -146,7 +146,7 @@ Explorer.Action=function(e){
 function addStep(atkObj){
 
 	//fake variable
-	var playerID = 1; var playID=1
+	var playerID = getCookie("user_id"); var playID=getCookie("play_id");
 	//
 	var params = 
 		"waypoint="+PlayScene.wayKey+"&"+

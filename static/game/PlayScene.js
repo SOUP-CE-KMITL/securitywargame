@@ -87,9 +87,10 @@ PlayScene.prototype.Show = function(stage, params){
 	  req=new ActiveXObject("Microsoft.XMLHTTP");
 	}
 
+	console.log("mapID="+SceneManager.params+"&playerID="+window.getCookie("userID"));
 	req.open("POST","/create-waypoint",false);
 	req.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-	req.send("mapID="+SceneManager.params);
+	req.send("mapID="+SceneManager.params+"&playerID="+getCookie("user_id"));
 	PlayScene.wayKey = req.responseText
 }
 
