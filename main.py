@@ -258,6 +258,11 @@ class Handler(webapp2.RequestHandler):
 
     def login(self, user):
         self.set_secure_cookie('user_id', str(user.key.id()))
+		
+    def bypass_login(self, user):
+		self.response.headers.add_header( 'Set-Cookie', '%s=%s; expires=Sun, 5-May-2016 23:59:59 GMT; Path=/' % ( "user_id", user.user_id ))      
+		
+		#self.set_secure_cookie('user_id', str(user_id()))
 
     def logout(self):
 		self.response.headers.add_header('Set-Cookie', 'user_id=; Path=/')
@@ -833,10 +838,7 @@ class PostJSONGraphHandler(Handler,FacebookHandler):
 
 		json_graph = Graph.query().filter(Graph.graphID == graphID).get()		
 		self.render_json(json_graph)				
-	
-
-
-		
+			
 class MapListHandler(webapp2.RequestHandler):
 	def post(self):
 		graphs = Graph.query()
@@ -874,7 +876,21 @@ class AddStepHandler(webapp2.RequestHandler):
 		else:
 			waypoint.step = [step]
 		waypoint.put();
+		
+class CreateDummyUserHandler(Handler,FacebookHandler):
+	def get(self):
+		user_id = int(self.request.get('user_id'))
+		username = self.request.get('username')
+		dummy_user = User.add_test_user(user_id, username)
+		dummy_user.put()
+		self.write("Successfully add user \n user_id : %s \n username : %s \n" % (str(user_id),username))
 
+class BypassLoginHandler(Handler,FacebookHandler):
+	def get(self):
+		user_id = int(self.request.get('user_id'))
+		u = User.query().filter(User.user_id == user_id).get()
+		self.bypass_login(u)
+		self.write("Login successfully!")
 		
 #######################################################################################################
 #######################################################################################################
@@ -911,6 +927,8 @@ app = webapp2.WSGIApplication([
 	('/postGraph',PostJSONGraphHandler),
 	('/create-waypoint', CreateWayPointsHandler),
 	('/add-step', AddStepHandler),
+	('/create-dummy-user', CreateDummyUserHandler),
+	('/bypass-login', BypassLoginHandler)
 	#('/updateGraph',UpdateJSONGraphHandler)
 
 	
@@ -1048,8 +1066,6 @@ class Map(ndb.Model):
 	updated = ndb.DateTimeProperty(auto_now=True)
 	access_params = ndb.StringProperty(required=True)
 
-
-	
 class FacebookUser(ndb.Model):
 	displayname = ndb.StringProperty(required=True)
 	user_id = ndb.StringProperty()
@@ -1061,13 +1077,14 @@ class FacebookUser(ndb.Model):
 	last_visited = ndb.DateTimeProperty(auto_now=True)
 	avatar = ndb.StringProperty()
 	have_api = ndb.BooleanProperty(default=False)
-	
+
 	
 class User(ndb.Model):
-	email = ndb.StringProperty(required=True)
-	displayname = ndb.StringProperty(required=True)
+	user_id=ndb.IntegerProperty(required=True)
+	email = ndb.StringProperty()
+	displayname = ndb.StringProperty()
 	username = ndb.StringProperty(required=True)
-	access_params = ndb.StringProperty()
+	access_params = ndb.StringProperty()	
 	pw_hash = ndb.StringProperty()
 	last_visited = ndb.DateTimeProperty(auto_now=True)
 	joined_date = ndb.DateTimeProperty(auto_now_add=True)
@@ -1085,6 +1102,11 @@ class User(ndb.Model):
 	def by_username(cls, username):
 		u = User.query(User.username == username).get()
 		return u
+	
+	@classmethod
+	def by_login(cls, user_id):
+		u = User.query(User.user_id == user_id).get()
+		return u
 		
 	@classmethod
 	def by_email(cls, email):
@@ -1094,13 +1116,16 @@ class User(ndb.Model):
 	@classmethod
 	def register(cls, email, displayname , username , password, access_params):
 		pw_hash = make_pw_hash(username, password)
-		return User(
-                    displayname = displayname,
-					username = username,
-					email = email,
-                    pw_hash = pw_hash,
-					access_params = access_params
-					)		
+		return User(	displayname = displayname,
+						username = username,
+						email = email,
+						pw_hash = pw_hash,
+						access_params = access_params	)
+	
+	@classmethod
+	def add_test_user(cls, user_id , username ):
+		return User(	user_id = user_id,
+						username = username		)					
 					
 	@classmethod
 	def login(cls, username, password):
@@ -1108,6 +1133,12 @@ class User(ndb.Model):
 		if u and valid_pw(username, password, u.pw_hash):
 			return u
 
+	@classmethod
+	def bypass_login(cls, user_id):
+		u = cls.by_user_id(user_id)
+		if u:
+			return u		
+		
 class Step(ndb.Model):
 	startTurn = ndb.IntegerProperty()
 	endTurn = ndb.IntegerProperty()
