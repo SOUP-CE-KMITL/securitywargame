@@ -1,0 +1,27 @@
+{% extends "home.html" %}
+{% block bodycontent %}
+REPORT:<br/> MAP ID=> {{ map_id }}<br/>
+Unique Player Count: {{ players }}<br/>
+<br/>
+TURN TAKE:<br/>
+MIN: {{ min_turn }}<br/>
+MAX: {{ max_turn }}<br/>
+AVERAGE_TURN: {{ average_turn }}<br/>
+<br/>
+COST:<br/>	
+MIN: {{ min_cost }}<br/>
+MAX: {{ max_cost }}<br/>
+AVERAGE: {{ average_cost }}<br/><br/>
+
+Number of Unique Paths : {{ paths }}	<br/>
+Path Occurances : <br/>
+{% for key, value in path_occur.iteritems() %}
+ {{ key }} was taken {{ value }} time(s)<br/>
+{% endfor %}<br/>
+Player / Cost :<br/>
+{% for key, value in player_cost.iteritems() %}
+{{ key }} : {{ value }}<br/>
+{% endfor %}
+
+<script src="/static/add-graph.js"></script>
+{% endblock %}

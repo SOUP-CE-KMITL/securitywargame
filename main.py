@@ -892,6 +892,102 @@ class BypassLoginHandler(Handler,FacebookHandler):
 		self.bypass_login(u)
 		self.write("Login successfully!")
 		
+class ReportHandler(Handler,FacebookHandler):
+	def get(self):
+		map_id = int(self.request.get('map_id'))
+		if map_id == None:
+			self.write("MAP ID PLEASE")
+		data = {}
+		player_list = [] # number of participants
+		turn_list = [] # time take
+		cost_list = [] # cost
+		path_list = [] # available
+		path_dict = {} # favor
+		player_dict = {} # player dict
+		map_winner = {} # who win
+		#FYI
+		number_of_turn = 0		
+		#remind graph=map
+		waypoints = WayPoints.query().filter(WayPoints.mapID == map_id).fetch()	
+		#count list -> Len(MyList)
+		#report this -> totals number of player used to play this map
+		#players
+		if waypoints:
+			for waypoint in waypoints:
+				#iterate step
+				for step in waypoint.step:
+					if len(player_list) != 0: #player existed
+						if waypoint.playerID not in player_list:
+							player_list.append(waypoint.playerID)
+					else:
+						player_list.append(waypoint.playerID)
+					#-1 get number of turns -sum,average,min,max
+					#iterate player list					
+					number_of_turn = step.endTurn - step.startTurn
+					if len(turn_list) != 0:
+						turn_list.append(number_of_turn)
+					else:
+						turn_list.append(number_of_turn)
+					#-2 get number of cost -sum,average,min,max				
+					if len(cost_list) != 0:
+						cost_list.append(step.cost)
+					else:
+						cost_list.append(step.cost)
+					#2.5 cost per each player
+					if len(player_dict) != 0:
+						if waypoint.playerID not in player_dict:
+							player_dict.update({"playerID"+str(waypoint.playerID):step.cost})
+					else:
+						player_dict.update({"playerID"+str(waypoint.playerID):step.cost})				
+					#-3 get number of path -sum,number of attempts in each path
+					if len(path_dict) != 0:
+						if step.pathID not in path_dict:
+							path_dict.update({"pathID"+str(step.pathID):1})
+						else: #pathID existed
+							path_dict["pathID"+str(step.pathID)] = path_dict["pathID"+str(step.pathID)] + 1
+					else:
+						path_dict.update({"pathID"+str(step.pathID):1})
+					#release				
+					number_of_turn = 0					
+			#end of loop
+			#time for analyze
+			#turn
+			min_turn = min(turn_list)
+			max_turn = max(turn_list)
+			turns = sum(turn_list)
+			average_turn = round(turns*1.0/len(turn_list),2)
+			#cost
+			min_cost = min(cost_list)
+			max_cost = max(cost_list)
+			costs = sum(cost_list)
+			average_cost = round(costs*1.0/len(cost_list),2)
+			#player
+			players = len(player_list)
+			#path 
+			paths = len(path_dict)
+			path_occur = path_dict
+			player_cost = player_dict
+			#prepared
+			data['min_turn'] = min_turn
+			data['max_turn'] = max_turn
+			data['turns'] = turns
+			data['average_turn'] = average_turn
+			
+			data['min_cost'] = min_cost
+			data['max_cost'] = max_cost
+			data['costs'] = costs
+			data['average_cost'] = average_cost
+			
+			data['players'] = players
+			data['paths'] = paths
+			data['path_occur'] = path_occur
+			data['player_cost'] = player_cost
+			data['map_id'] = map_id
+			#render
+			self.render("report.html",**data)
+		else:
+			self.write("Map not found!")
+		
 #######################################################################################################
 #######################################################################################################
 #######################################################################################################
@@ -928,7 +1024,9 @@ app = webapp2.WSGIApplication([
 	('/create-waypoint', CreateWayPointsHandler),
 	('/add-step', AddStepHandler),
 	('/create-dummy-user', CreateDummyUserHandler),
-	('/bypass-login', BypassLoginHandler)
+	('/bypass-login', BypassLoginHandler),
+	('/report', ReportHandler)
+	
 	#('/updateGraph',UpdateJSONGraphHandler)
 
 	
@@ -1058,14 +1156,6 @@ class CharacterImage(ndb.Model):
 	owner = ndb.StringProperty()
 	access_params = ndb.StringProperty()	
 
-class Map(ndb.Model):
-	name = ndb.StringProperty(required=True)
-	desc = ndb.StringProperty(required=True)
-	created = ndb.DateTimeProperty(auto_now_add=True)
-	number_of_node = ndb.IntegerProperty(default=0)
-	updated = ndb.DateTimeProperty(auto_now=True)
-	access_params = ndb.StringProperty(required=True)
-
 class FacebookUser(ndb.Model):
 	displayname = ndb.StringProperty(required=True)
 	user_id = ndb.StringProperty()
@@ -1147,11 +1237,13 @@ class Step(ndb.Model):
 	fromCity = ndb.IntegerProperty()
 	toCity = ndb.IntegerProperty()
 	pathID = ndb.IntegerProperty()
+	
 
 class WayPoints(ndb.Model):
-	waypointsID = ndb.IntegerProperty()
-	playerID = ndb.IntegerProperty()
+	waypointsID = ndb.IntegerProperty()	
+	#just a graph
 	mapID = ndb.IntegerProperty()
+	playerID = ndb.IntegerProperty()
 	step = ndb.StructuredProperty(Step, repeated=True)
 
 
