@@ -1,3 +1,7 @@
+#Reportv1
+result:<br/>
+http://puu.sh/d3waS/c9e4480a68.jpg
+
 #ADD TEST USER
 Method : GET<br/>
 Url : /create-dummy-user<br/>
