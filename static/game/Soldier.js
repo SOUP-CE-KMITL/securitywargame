@@ -54,22 +54,31 @@ Soldier.prototype.Draw = function (parent,x,y){
 
 Soldier.Action = function (e){
 	var t = e.target;
-	PlayScene.moneyText.text = PlayScene.moneyText.text-t.ref.level;
-	var atkObj = {
-		"start": parseInt(PlayScene.turnText.text, 10),
-		"soldier": t.ref,
-		"dur": 3,
-	};
-	t.ref.edge.status="using";
-	var dstMachine = getMachineById(getServiceById(t.ref.edge.dest).machineID)
-	dstMachine.status="attacking";
-	dstMachine.atkCount += 1;
-	t.ref.Draw(PlayScene.cityMap, PlayScene.cursor.x, PlayScene.cursor.y);
-	QueueList.Add(t.ref.name, atkObj.dur);
-	PlayScene.atkQueue.push(atkObj);
-	ActionPane.container.removeAllChildren();
+	if(PlayScene.base.machineID != t.ref.from){
+		PlayScene.comment.text = "I can't attack from here."
+		return;
+	}
 
-	addStep(atkObj);
+	if(PlayScene.moneyText.text-t.ref.level > 0){
+		PlayScene.moneyText.text = PlayScene.moneyText.text-t.ref.level;
+		var atkObj = {
+			"start": parseInt(PlayScene.turnText.text, 10),
+			"soldier": t.ref,
+			"dur": 3,
+		};
+		t.ref.edge.status="using";
+		var dstMachine = getMachineById(getServiceById(t.ref.edge.dest).machineID)
+		dstMachine.status="attacking";
+		dstMachine.atkCount += 1;
+		t.ref.Draw(PlayScene.cityMap, PlayScene.cursor.x, PlayScene.cursor.y);
+		QueueList.Add(t.ref.name, atkObj.dur);
+		PlayScene.atkQueue.push(atkObj);
+		ActionPane.container.removeAllChildren();
+
+		addStep(atkObj);
+	}else{
+		PlayScene.comment.text = "Insufficient funds.";
+	}
 }
 
 Soldier.ShowInfo = function(e){
@@ -89,7 +98,7 @@ function Explorer(city){
 	this.city=city;
 	this.level=2;
 	this.op = "scan";
-	this.from = PlayScene.base && PlaScene.base.machineID || 0;
+	this.from = PlayScene.base.machineID;
 	this.to = city.machine.machineID;
 }
 
@@ -126,21 +135,25 @@ Explorer.ShowInfo=function(e){
 
 Explorer.Action=function(e){
 	var t=e.target;
-	PlayScene.moneyText.text = PlayScene.moneyText.text-t.ref.level;
-	var atkObj = {
-		"start": parseInt(PlayScene.turnText.text, 10),
-		"soldier": t.ref,
-		"dur": 2,
-	};
-	t.ref.city.machine.status="using";
-	var dstMachine = t.ref.city.machine;
-	dstMachine.status="attacking";
-	dstMachine.atkCount += 1;
-	QueueList.Add(t.ref.name, atkObj.dur);
-	PlayScene.atkQueue.push(atkObj);
-	ActionPane.container.removeAllChildren();
+	if(PlayScene.moneyText.text-t.ref.level > 0){
+		PlayScene.moneyText.text = PlayScene.moneyText.text-t.ref.level;
+		var atkObj = {
+			"start": parseInt(PlayScene.turnText.text, 10),
+			"soldier": t.ref,
+			"dur": 2,
+		};
+		t.ref.city.machine.status="using";
+		var dstMachine = t.ref.city.machine;
+		dstMachine.status="attacking";
+		dstMachine.atkCount += 1;
+		QueueList.Add(t.ref.name, atkObj.dur);
+		PlayScene.atkQueue.push(atkObj);
+		ActionPane.container.removeAllChildren();
 
-	addStep(atkObj)
+		addStep(atkObj)
+	}else{
+		PlayScene.comment.text = "Insufficient fund.";
+	}
 }
 
 function addStep(atkObj){

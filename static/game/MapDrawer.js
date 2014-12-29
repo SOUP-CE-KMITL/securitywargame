@@ -97,9 +97,11 @@ MapDrawer.prototype.DrawWorldMap=function(layer){
 	cities[0].sprite.visible=true;
 
 	for(var i=0; i<this.graph.paths.length; i++){
-		var a = getCityById(getServiceById(this.graph.paths[i].src).machineID).sprite;
+		var a = getCityById(getServiceById(this.graph.paths[i].src).machineID)
+		if(a!=null) a=a.sprite;
 		var b = getCityById(getServiceById(this.graph.paths[i].dest).machineID).sprite;
-		if(a.visible==true && b.visible==true){
+		if(b!=null) b=b.sprite;
+		if(a!=null && b!=null && a.visible==true && b.visible==true){
 			var g = createjs.Graphics;
 			var road = new g().beginStroke("#FFFFFF").moveTo(a.x, a.y).lineTo(b.x, b.y).endStroke();
 			var shape = new createjs.Shape(road);

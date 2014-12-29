@@ -4,6 +4,13 @@ function PlayScene(){
 }
 
 
+PlayScene.CAMP = {
+	"name":"camp",
+	"machineID":0,
+	"service":{"serviceID":0, "name":"os", "machineID":0}
+}
+
+
 PlayScene.prototype.Init = function(){
 	this.inited = true;
 	this.scene = new createjs.Container();
@@ -58,21 +65,29 @@ PlayScene.prototype.Init = function(){
 	this.moneyText.x = 10;
 	this.moneyText.y = 10;
 
+	this.comment = new createjs.Text("This is comment.", "18px arial", "#FFFFFF");
+	this.guiLayer.addChild(this.comment);
+	this.comment.x = 10;
+	this.comment.y = 558;
 
 	ActionPane.Init(this.inspecWin);
 	QueueList.Init(this.guiLayer);
 	
 	PlayScene.objLayer = this.objLayer;
+	PlayScene.guiLayer = this.guiLayer;
 	PlayScene.cityMap = null;
 	PlayScene.inspecWin = this.inspecWin;
 	PlayScene.baseView = this.baseView;
 	PlayScene.turnText = this.turnText;
 	PlayScene.cursor = this.cursor;
-	PlayScene.base = null;
+	PlayScene.base = PlayScene.CAMP;
 	PlayScene.moneyText = this.moneyText;
 	PlayScene.queueList = this.queueList;
 	PlayScene.atkQueue = [];
 	PlayScene.currentCity = null;
+	PlayScene.comment = this.comment;
+
+	
 }
 
 PlayScene.prototype.Show = function(stage, params){
@@ -87,7 +102,6 @@ PlayScene.prototype.Show = function(stage, params){
 	  req=new ActiveXObject("Microsoft.XMLHTTP");
 	}
 
-	console.log("mapID="+SceneManager.params+"&playerID="+window.getCookie("userID"));
 	req.open("POST","/create-waypoint",false);
 	req.setRequestHeader("Content-type","application/x-www-form-urlencoded");
 	req.send("mapID="+SceneManager.params+"&playerID="+getCookie("user_id"));
@@ -128,11 +142,29 @@ PlayScene.Launch = function(e){
 				p.atkQueue.splice(i,1);
 				i-=1;
 				sol.city.sprite.gotoAndStop("level1");
-				sol.city.Spread();
-			}else{
+				//sol.city.Spread();
+			}else if(sol.name=="occupier" || sol.name=="occupy"){
+				var c = sol.city;
+				c.status = "occupied";
+				c.Spread();
+				console.log("occupied!");
+			}else{ //attacker
 				var dstMachine = getMachineById(getServiceById(sol.edge.dest).machineID);
 				var im = excImpact(dstMachine.impact);
 				
+				//Occupy
+				if(sol.integrity > 0){
+					var w1 = WindowManager.NewWindow(PlayScene.guiLayer, 512, 384, 200, 100);
+					w1.NewLabel("Do you want to occupy "+sol.edge.dest.name, 100, 20);
+					w1.NewButton("yes", 10, 50, 80, 60, function(){
+						PlayScene.guiLayer.removeChild(w1.winGroup);
+						occupy(sol);
+					});
+					w1.NewButton("no", 100, 50, 80, 60, function(){
+						PlayScene.guiLayer.removeChild(w1.winGroup);
+					});
+				}
+
 				//Check if it has better impact
 				dstMachine.status = "ready";
 				sol.edge.status = "used";
@@ -141,7 +173,7 @@ PlayScene.Launch = function(e){
 					PlayScene.moneyText.text = parseInt(PlayScene.moneyText.text, 10) + value;
 					dstMachine.impact += value*9
 				}
-				if(dstMachine.impact.i%3 < sol.confident){
+				if(dstMachine.impact.i%3 < sol.integrity){
 					var value = sol.confident - im.i;
 					PlayScene.moneyText.text = parseInt(PlayScene.moneyText.text, 10) + value;
 					dstMachine.impact += value*3
@@ -161,7 +193,27 @@ PlayScene.Launch = function(e){
 	QueueList.Remove();
 }
 
+function occupy(sol){
+	var atkObj = {
+		"start": parseInt(PlayScene.turnText.text, 10),
+		"soldier": {
+			name:"occupier",
+			city: getCityById(getServiceById(sol.edge.dest).machineID),
+			level: 1,
+			op: "occupy",
+			from: PlayScene.base && PlayScene.base.machineID || 0,
+			to: getServiceById(sol.edge.dest).machineID,
+		},
+		"dur": 5,
+	};
+	QueueList.Add(atkObj.soldier.name, atkObj.dur);
+	PlayScene.atkQueue.push(atkObj);
+}
+
 function getServiceById(id){
+	if(id==0){
+		return PlayScene.CAMP.service;
+	}
 	for(var i=0; i<PlayScene.graph.services.length; i++){
 		if(PlayScene.graph.services[i].serviceID==id){
 			return PlayScene.graph.services[i];

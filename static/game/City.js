@@ -118,7 +118,7 @@ City.ClickHandler=function(event){
 		back.graphics.f("red").r(900,500, 50,50);
 		back.addEventListener("click", function(e) {
 			PlayScene.objLayer.removeChild(cityMap);
-			PlayScene.citymap = null;
+			PlayScene.cityMap = null;
 			PlayScene.cursor.x = -100;
 			ActionPane.container.removeAllChildren();
 		});
@@ -150,5 +150,7 @@ City.prototype.Spread=function(){
 		var road = new g().beginStroke("#FFFFFF").moveTo(this.sprite.x, this.sprite.y).lineTo(c.sprite.x, c.sprite.y).endStroke();
 		var shape = new createjs.Shape(road);
 		PlayScene.objLayer.addChild(shape);
+		if(PlayScene.cityMap != null)
+			PlayScene.objLayer.setChildIndex(PlayScene.cityMap, PlayScene.objLayer.getChildIndex(shape));
 	}
 }
