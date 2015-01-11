@@ -7,7 +7,8 @@ function PlayScene(){
 PlayScene.CAMP = {
 	"name":"camp",
 	"machineID":0,
-	"service":{"serviceID":0, "name":"os", "machineID":0}
+	"captured": true,
+	"service":{"serviceID":0, "name":"os", "machineID":0, "captured":true}
 }
 
 
@@ -44,10 +45,19 @@ PlayScene.prototype.Init = function(){
 	this.inspecWin.stat.x = 400;
 	this.inspecWin.stat.y = 620;
 
+	this.topBar = new createjs.Shape();
+	this.topBar.graphics.beginStroke("#DDD").f("#111").r(0,0,1024,50).ef().es();
+	this.guiLayer.addChild(this.topBar);
+
+	this.turnIcon = new createjs.Bitmap("resource/icon/TimeIcon.png");
+	this.guiLayer.addChild(this.turnIcon);
+	this.turnIcon.x = 920;
+	this.turnIcon.y = 10;
+
 	this.turnText = new createjs.Text("0", "18px arial", "#FFFFFF");
 	this.guiLayer.addChild(this.turnText);
-	this.turnText.x = 980;
-	this.turnText.y = 20;
+	this.turnText.x = 970;
+	this.turnText.y = 15;
 
 	this.cursor = new createjs.Bitmap("resource/target.png")
 	this.guiLayer.addChild(this.cursor);
@@ -60,10 +70,12 @@ PlayScene.prototype.Init = function(){
 	this.launch.y = 668;
 	this.launch.addEventListener("click", PlayScene.Launch);
 
+	/*
 	this.moneyText = new createjs.Text("10", "18px arial", "#FFFFFF");
-	this.guiLayer.addChild(this.moneyText);
+	//this.guiLayer.addChild(this.moneyText);
 	this.moneyText.x = 10;
 	this.moneyText.y = 10;
+	*/
 
 	this.comment = new createjs.Text("This is comment.", "18px arial", "#FFFFFF");
 	this.guiLayer.addChild(this.comment);
@@ -72,6 +84,23 @@ PlayScene.prototype.Init = function(){
 
 	ActionPane.Init(this.inspecWin);
 	QueueList.Init(this.guiLayer);
+
+	this.activeLevel = 0;
+	this.activeLevelText = new createjs.Text("0", "18px arial", "#0F0");
+	this.guiLayer.addChild(this.activeLevelText);
+	this.activeLevelText.x = 512;
+	this.activeLevelText.y = 10;
+
+	this.moneyIcon = new createjs.Bitmap("resource/icon/MoneyIcon.png")
+	this.guiLayer.addChild(this.moneyIcon);
+	this.moneyIcon.x = 10;
+	this.moneyIcon.y = 10;
+
+	this.score = 0;
+	this.scoreText = new createjs.Text("0", "18px arial", "#FFF");
+	this.guiLayer.addChild(this.scoreText);
+	this.scoreText.x = 60;
+	this.scoreText.y = 15;
 	
 	PlayScene.objLayer = this.objLayer;
 	PlayScene.guiLayer = this.guiLayer;
@@ -86,8 +115,10 @@ PlayScene.prototype.Init = function(){
 	PlayScene.atkQueue = [];
 	PlayScene.currentCity = null;
 	PlayScene.comment = this.comment;
-
-	
+	PlayScene.activeLevelText = this.activeLevelText;
+	PlayScene.activeLevel = 0;
+	PlayScene.score = this.score;
+	PlayScene.scoreText = this.scoreText;
 }
 
 PlayScene.prototype.Show = function(stage, params){
@@ -139,21 +170,43 @@ PlayScene.Launch = function(e){
 			if(sol.name=="explorer"){
 				var dstMachine=sol.city.machine;
 				dstMachine.status="ready";
-				p.atkQueue.splice(i,1);
 				i-=1;
 				sol.city.sprite.gotoAndStop("level1");
-				//sol.city.Spread();
 			}else if(sol.name=="occupier" || sol.name=="occupy"){
-				var c = sol.city;
-				c.status = "occupied";
+				if(sol.integrity<2){
+					var b = getServiceById(sol.city);
+					b.captured = true;
+					c = getCityById(b.machineID);
+				}else{
+					var c = getCityById(sol.to);
+					for(var i=0; i<c.services.length; i++){
+						getServiceById(c.services[i]).captured = true;
+					}
+				}
 				c.Spread();
-				console.log("occupied!");
+			}else if(sol.name=="Picklocker"){
+				var r = Math.random();
+				if (r < 0.25){
+					sol.forPath.keyheld += 1;
+					PlayScene.comment.text = "Picklocking success.";
+				}else{
+					PlayScene.comment.text = "Picklocking fails.";
+				}
+			}else if(sol.name=="Hypnotist"){
+				var r = Math.random();
+				if (r < 0.45){
+					sol.forPath.keyheld += 1;
+					PlayScene.comment.text = "Hypnotist success.";
+				}else{
+					PlayScene.comment.text = "Hypnotist fails.";
+				}
 			}else{ //attacker
-				var dstMachine = getMachineById(getServiceById(sol.edge.dest).machineID);
-				var im = excImpact(dstMachine.impact);
+				var dstService = getServiceById(sol.edge.dest);
+				var dstMachine = getMachineById(dstService.machineID);
+				var im = excImpact(dstService.impact);
 				
 				//Occupy
-				if(sol.integrity > 0){
+				if(sol.integrity > 1){
 					var w1 = WindowManager.NewWindow(PlayScene.guiLayer, 512, 384, 200, 100);
 					w1.NewLabel("Do you want to occupy "+sol.edge.dest.name, 100, 20);
 					w1.NewButton("yes", 10, 50, 80, 60, function(){
@@ -168,22 +221,36 @@ PlayScene.Launch = function(e){
 				//Check if it has better impact
 				dstMachine.status = "ready";
 				sol.edge.status = "used";
+				var score = 0;
 				if(im.c < sol.confident){
 					var value = sol.confident - im.c;
 					PlayScene.moneyText.text = parseInt(PlayScene.moneyText.text, 10) + value;
 					dstMachine.impact += value*9
+					score += SCORE_SYSTEM.ci[value-1];
 				}
-				if(dstMachine.impact.i%3 < sol.integrity){
+				if(im.i < sol.integrity){
 					var value = sol.confident - im.i;
 					PlayScene.moneyText.text = parseInt(PlayScene.moneyText.text, 10) + value;
 					dstMachine.impact += value*3
+					score += SCORE_SYSTEM.ii[value-1];
 				}
-				if(dstMachine.impact.a < sol.availability){
+				if(im.a < sol.availability){
 					var value = sol.confident - im.a;
 					PlayScene.moneyText.text = parseInt(PlayScene.moneyText.text, 10) + value;
 					dstMachine.impact += value
+					score += SCORE_SYSTEM.ai[value-1];
 				}
+
+				score+= SCORE_SYSTEM.av[sol.vector-1];
+				score+= SCORE_SYSTEM.ac[sol.level-1];
+				score+= SCORE_SYSTEM.au[sol.authen-1];
+
+				PlayScene.score += score;
+				PlayScene.scoreText.text = PlayScene.score;
 			}
+
+			//dequeue
+			p.atkQueue.splice(i,1);
 		}
 	}
 
@@ -194,11 +261,18 @@ PlayScene.Launch = function(e){
 }
 
 function occupy(sol){
+	var dest;
+	if(sol.integrity<2){
+		dest = sol.edge.dest;
+	}else{
+		dest = 0;
+	}
+
 	var atkObj = {
 		"start": parseInt(PlayScene.turnText.text, 10),
 		"soldier": {
 			name:"occupier",
-			city: getCityById(getServiceById(sol.edge.dest).machineID),
+			city: dest,
 			level: 1,
 			op: "occupy",
 			from: PlayScene.base && PlayScene.base.machineID || 0,
@@ -247,4 +321,16 @@ function getCityById(id){
 		}
 	}
 	return null;
+}
+
+var SCORE_SYSTEM = {
+	//accessibility
+	"av": [100, 64, 39],
+	"ac": [35, 61, 71],
+	"au": [45, 56, 70],
+
+	//impact
+	"ci": [0, 27, 66],
+	"ii": [0, 27, 66],
+	"ai": [0, 27, 66]
 }

@@ -8,7 +8,8 @@ MapDrawer.prototype.Format = function(){
 	for(var i=0; i<this.graph.services.length; i++){
 		var s = this.graph.services[i];
 		s.status = s.status || "found";
-		s.impact = s.impact || 0;
+		s.impact = {"a":0, "i":0, "c":0}; //s.impact || 0;
+		s.captured = false;
 
 		var m = getMachineById(s.machineID);
 		m.services = m.services || [];

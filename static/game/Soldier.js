@@ -54,12 +54,48 @@ Soldier.prototype.Draw = function (parent,x,y){
 
 Soldier.Action = function (e){
 	var t = e.target;
-	if(PlayScene.base.machineID != t.ref.from){
+	if( !getServiceById(t.ref.edge.src).captured ){
 		PlayScene.comment.text = "I can't attack from here."
 		return;
 	}
 
-	if(PlayScene.moneyText.text-t.ref.level > 0){
+	if( t.ref.keyheld < t.ref.authen-1){
+		var atkObj = {
+			"start": parseInt(PlayScene.turnText.text, 10),
+			"soldier": {
+				forPath: t.ref,
+				name: undefined,
+				city: getCityById(getServiceById(t.ref.to).machineID),
+				level: 1,
+				op: undefined,
+				from: PlayScene.base && PlayScene.base.machineID || 0,
+				to: getServiceById(t.ref.to).machineID,
+			},
+			"dur": undefined,
+		};
+
+		var w1 = WindowManager.NewWindow(PlayScene.guiLayer, 512, 384, 200, 100);
+		w1.NewLabel("You need key to perform this action.\nSend someone to get a key.", 100, 20);
+		w1.NewButton("Picklocker", 10, 50, 80, 60, function(){
+			PlayScene.guiLayer.removeChild(w1.winGroup);
+			atkObj.soldier.name = "Picklocker";
+			atkObj.soldier.op = "brute-force P/W crack";
+			atkObj.dur = 1;
+			QueueList.Add(atkObj.soldier.name, atkObj.dur);
+			PlayScene.atkQueue.push(atkObj);
+		});
+		w1.NewButton("Hypnotist", 100, 50, 80, 60, function(){
+			PlayScene.guiLayer.removeChild(w1.winGroup);
+			atkObj.soldier.name = "Hypnotist";
+			atkObj.soldier.op = "Phishing P/W crack";
+			atkObj.dur = 3;
+			QueueList.Add(atkObj.soldier.name, atkObj.dur);
+			PlayScene.atkQueue.push(atkObj);
+		});
+		return;
+	}
+
+	//if(PlayScene.moneyText.text-t.ref.level > 0){
 		PlayScene.moneyText.text = PlayScene.moneyText.text-t.ref.level;
 		var atkObj = {
 			"start": parseInt(PlayScene.turnText.text, 10),
@@ -76,9 +112,9 @@ Soldier.Action = function (e){
 		ActionPane.container.removeAllChildren();
 
 		addStep(atkObj);
-	}else{
-		PlayScene.comment.text = "Insufficient funds.";
-	}
+	//}else{
+	//	PlayScene.comment.text = "Insufficient funds.";
+	//}
 }
 
 Soldier.ShowInfo = function(e){

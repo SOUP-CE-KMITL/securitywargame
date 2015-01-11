@@ -4,6 +4,7 @@ function City(machine, paths){
 	this.cityID = machine.machineID;
 	this.name = machine.name;
 	this.to=[];
+	this.services=[];
 
 	for(var i=0; i<paths.length; i++){
 		var s = getServiceById(paths[i].src).machineID
@@ -12,6 +13,13 @@ function City(machine, paths){
 			this.to.push(d);
 		}
 	}
+
+	/*for(var i=0; i<PlayScene.graph.services.length; i++){
+		var a = PlayScene.graph.services[i];
+		if(a.machineID==this.cityID){
+			this.services.push(a);
+		}
+	}*/
 }
 
 City.prototype.Draw = function(parent, x, y){

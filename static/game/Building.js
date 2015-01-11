@@ -2,6 +2,7 @@
 function Building(service, city){
 	var s = getServiceById(service)
 	this.service=s;
+	s.captured = false;  //TODO: this should be in datastore too.
 	this.name=s.name;
 	this.buildingID = s.serviceID;
 	if (Building.supportedServices.indexOf(this.name) >= 0){

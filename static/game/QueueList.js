@@ -22,6 +22,12 @@ QueueList.Add = function(text, turn){
 	QueueList.remTurns.push(num);
 	QueueList.container.addChild(num);
 
+	PlayScene.activeLevel += 1;
+	PlayScene.activeLevelText.text = PlayScene.activeLevel;
+	typeof(PlayScene.activeLevelText.color);
+	//PlayScene.activeLevelText.color.charAt(2) = PlayScene.activeLevelText.color.charAt(2)-1;
+	//PlayScene.activeLevelText.color.charAt(3) = PlayScene.activeLevelText.color.charAt(3)+1;
+
 	var a=false;
 	for(var i=0; i<QueueList.names.length; i++){
 		console.log(QueueList.remTurns[i].text==turn && !a);
