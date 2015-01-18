@@ -67,6 +67,8 @@ secret = "you-will-never-guess"
 config = {}
 config['webapp2_extras.sessions'] = dict(secret_key='slhflsnhflsgkfgvsdbfksdhfksdhfkjs')
 #slhflsnhflsgkfgvsdbfksdhfksdhfkjs
+FACEBOOK_APP_ID = "566537650156899"
+FACEBOOK_APP_SECRET = "27ca20aee5a7af959a26157b3ddf2dc6"
 
 #######################################################################################################
 #######################################################################################################
@@ -89,6 +91,12 @@ def split_by_colon(str):
 def create_params():
 	length = 10
 	return ''.join(random.choice(letters) for x in xrange(length))
+
+def checkPassword(password,re_password):
+	if password == re_password:
+		return True
+	else:
+		return False
 		
 ##html input escape
 def escape_html(s):
@@ -314,7 +322,12 @@ class FacebookLogoutHandler(Handler,FacebookHandler):
 			
 class HubHandler(Handler,FacebookHandler):
 	def get(self):
-		self.render('home.html')
+		self.write("working in progress")
+
+class AdminHandler(Handler,FacebookHandler):
+	def get(self):
+		data = init_data(self)
+		self.render('home.html',**data)
 				
 class MapHandler(Handler,FacebookHandler):
 	def get(self):
@@ -323,9 +336,7 @@ class MapHandler(Handler,FacebookHandler):
 class DashboardHandler(Handler,FacebookHandler):
 	def get(self):
 		data = {}
-		maps = Map.query()
-		data['maps'] = maps
-		self.render('dashboard.html',**data)
+		self.render('dashboard2.html',**data)
 
 class CreateMapHandler(Handler,FacebookHandler):
 	def post(self):
@@ -891,7 +902,16 @@ class BypassLoginHandler(Handler,FacebookHandler):
 		u = User.query().filter(User.user_id == user_id).get()
 		self.bypass_login(u)
 		self.write("Login successfully!")
+
+class OverallReportHandler(Handler,FacebookHandler):
+	def get(self):
+		data = {}
+		graphs = Graph.query().order(-Graph.graphID)
 		
+		data['graphs'] = graphs
+		self.render("report2.html",**data)
+
+
 class ReportHandler(Handler,FacebookHandler):
 	def get(self):
 		map_id = int(self.request.get('map_id'))
@@ -987,6 +1007,47 @@ class ReportHandler(Handler,FacebookHandler):
 			self.render("report.html",**data)
 		else:
 			self.write("Map not found!")
+
+#quick validate! 
+#error result not show yet!
+class AdminRegisterHandler(Handler,FacebookHandler):
+	def post(self):
+		username = escape_html(self.request.get('username'))
+		email = escape_html(self.request.get('email'))
+		password = escape_html(self.request.get('password'))
+		re_password = escape_html(self.request.get('re_password'))
+		org = escape_html(self.request.get('org'))
+		regis_able = False
+		if valid_username(username) and valid_email(email) and valid_password(password) and checkPassword(password,re_password) and org:
+			regis_able = True
+		if regis_able:
+			user_id = User.query().count() + 1
+			u = User.register(username,email,password,org, user_id)
+			u.put()
+			time.sleep(2)
+			self.login(u)
+			self.redirect('/admin?acc='+u.access_params)
+		else:
+			self.write("something went wrong please try again")
+
+class AdminLoginHandler(Handler,FacebookHandler):
+	def post(self):
+		username = escape_html(self.request.get('username'))
+		password = escape_html(self.request.get('password'))
+		u = User.login(username,password)
+		if u:
+			self.login(u)
+			self.redirect('/admin?acc='+u.access_params)
+		else:
+			self.write("something went wrong please try again")
+
+class PlayerLoginHandler(Handler,FacebookHandler):
+	def post(self):
+		pass
+
+class PlayerRegisterHandler(Handler,FacebookHandler):
+	def post(self):
+		pass
 		
 #######################################################################################################
 #######################################################################################################
@@ -997,7 +1058,8 @@ class ReportHandler(Handler,FacebookHandler):
 #######################################################################################################
 	
 app = webapp2.WSGIApplication([
-    ('/', HubHandler),
+    ('/', AdminHandler),
+    ('/admin',AdminHandler),
 	('/logout',LogOutHandler),
 	('/pleaselogin',PleaseLoginHandler),
 	('/connectWithFacebook',FacebookLoginHandler),
@@ -1025,7 +1087,13 @@ app = webapp2.WSGIApplication([
 	('/add-step', AddStepHandler),
 	('/create-dummy-user', CreateDummyUserHandler),
 	('/bypass-login', BypassLoginHandler),
-	('/report', ReportHandler)
+	('/report', ReportHandler),
+	('/overall-report',OverallReportHandler),
+	('/admin-login',AdminLoginHandler),
+	('/admin-regis',AdminRegisterHandler),
+	('/player-regis',PlayerRegisterHandler),
+	('/player-login',PlayerLoginHandler)
+
 	
 	#('/updateGraph',UpdateJSONGraphHandler)
 
@@ -1166,14 +1234,14 @@ class FacebookUser(ndb.Model):
 	joined_date = ndb.DateTimeProperty(auto_now_add=True)
 	last_visited = ndb.DateTimeProperty(auto_now=True)
 	avatar = ndb.StringProperty()
-	have_api = ndb.BooleanProperty(default=False)
 
 	
 class User(ndb.Model):
 	user_id=ndb.IntegerProperty(required=True)
 	email = ndb.StringProperty()
-	displayname = ndb.StringProperty()
+	#displayname = ndb.StringProperty()
 	username = ndb.StringProperty(required=True)
+	org = ndb.StringProperty()
 	access_params = ndb.StringProperty()	
 	pw_hash = ndb.StringProperty()
 	last_visited = ndb.DateTimeProperty(auto_now=True)
@@ -1183,10 +1251,6 @@ class User(ndb.Model):
 	def by_id(cls, uid):
 		return User.get_by_id(uid)
 	
-	@classmethod
-	def by_displayname(cls, displayname):
-		u = User.query(User.displayname == displayname).get()
-		return u
 		
 	@classmethod
 	def by_username(cls, username):
@@ -1204,12 +1268,14 @@ class User(ndb.Model):
 		return u
 
 	@classmethod
-	def register(cls, email, displayname , username , password, access_params):
+	def register(cls, username,email, password, org, user_id):
 		pw_hash = make_pw_hash(username, password)
-		return User(	displayname = displayname,
+		access_params = create_params()
+		return User(	user_id = user_id,
 						username = username,
 						email = email,
 						pw_hash = pw_hash,
+						org = org,
 						access_params = access_params	)
 	
 	@classmethod

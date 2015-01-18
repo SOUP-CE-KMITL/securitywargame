@@ -1,0 +1,9 @@
+<section class="header">
+	<div class="header-inner">
+		{% if user %} 
+			Welcome Back! {{ user.username }} 
+		{% else %}
+			You need to login first!
+		{% endif %}
+	</div>
+</section>

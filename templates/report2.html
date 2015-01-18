@@ -1,0 +1,22 @@
+{% extends "home.html" %}
+{% block bodycontent %}
+	<div id="content-holder" class="container-fluid" data-page="report">
+	 <h1>Graph</h1>
+	 <p>Available graph</p>
+	 	<table class="table table-hover">
+		<tr class="info">
+			<td>ID</td>
+			<td>name</td>
+		</tr>
+	 {% for graph in graphs %} 	
+		
+	 	<tr>
+		 	<td>{{ graph.graphID }}</td>
+		 	<td> <a href="/report?map_id={{ graph.graphID }}">{{ graph.name }}</a></td>
+	 	</tr>
+	
+	 {% endfor %}
+
+	 	</table>
+	</div>
+{% endblock %}

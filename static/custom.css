@@ -1,0 +1,17 @@
+.jumbotron {
+	background-color:#428bca;
+	color:white;
+	border-radius:5px;
+
+}
+
+.input-group {
+	margin-bottom:5px;
+
+}
+
+.white {
+	background-color:black;
+	color:white;
+	border-radius:0;
+}

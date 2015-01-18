@@ -6,19 +6,17 @@
 	<meta http-equiv="Content-type" content="text/html; charset=UTF-8">
 	<html xmlns="http://www.w3.org/1999/xhtml">
 	<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.1.js"></script> 
-	<link rel="stylesheet" href="/static/owl.carousel.2.0.0-beta.2.4/assets/owl.carousel.css">
 	<link rel="stylesheet" href="/static/fontLibrary.css">
 	<!-- bootstrap CDN -->
-		
-	<script src="/static/owl.carousel.2.0.0-beta.2.4/owl.carousel.js"></script>	
-	
+			
 	<!-- setup less css -->
 	<link rel="stylesheet/less" type="text/css" href="/static/style.less" />
 	<link rel="stylesheet/less" type="text/css" href="/static/add-graph.less" />
 	<link rel="stylesheet/less" type="text/css" href="/static/report.less" />
+	<link rel="stylesheet/less" type="text/css" href="/static/dashboard.less" />
 	<script src="/static/less.js" type="text/javascript"></script>
 
-	<!-- font awesome-->
+	<link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css" />
 	<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 	
 	<!-- google font api -->
@@ -38,35 +36,55 @@
 	<script type="text/javascript" src="/static/js/fullPage.js/jquery.fullPage.min.js"></script>	
 	
 	<!-- Sweet Alert-->
-	<script src="/static/js/sweetAlert/lib/sweet-alert.min.js"></script>
-	<link rel="stylesheet" type="text/css" href="/static/js/sweetAlert/lib/sweet-alert.css" />		
+	<script src="/static/js/sweetalert/lib/sweet-alert.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="/static/js/sweetalert/lib/sweet-alert.css" />
+	<link rel="stylesheet" type="text/css" href="/static/custom.css" />
+
 </head>
 <body>
-<header>
-</header>
-	{% block bodycontent %}
+	{% include "partial/header.html" %}
+	{% if user %}
+		<div class="dashboard-wrapper">
+			<div class="dashboard-main">
+				<div class="container-fluid menu-holder">
+					<div class="row">
+						<a href="/dashboard">
+							<div id="dashboard-home" class="col-md-2 dashboard-menu">
+								<i class="fa fa-home fa-3x"></i><br/>
+								Home
+							</div>
+						</a>
+						<a href="/overall-report">
+							<div id="dashboard-report" class="col-md-2 dashboard-menu">
+								<i class="fa fa-bar-chart-o fa-3x"></i><br/>
+								Report
+							</div>
+						</a>
+					</div>
+				</div>
+		{% block bodycontent %}
 
 
 
-	{% endblock %}
-<footer>
-</footer>
+		{% endblock %}
+	{% else %}
+		<div class="content-wrapper">
+			<div class="content-inner">
+				{% include "page/login.html" %}
+			</div>
+		</div>
+	{% endif %}
+		</div>
+		<div class="dashboard-footer">
+			<div class="footer-text">
+			Cyber Security War Game...
+			</div>
+		</div>
+
+	</div>
 </body>
-<script type="text/javascript" src="/static/myscript.js"></script>
-<script>
-      window.fbAsyncInit = function() {
-        FB.init({appId: '{{ facebook_app_id }}', status: true, cookie: true,
-                 xfbml: true});
-        FB.Event.subscribe('{% if fb_user %}auth.logout{% else %}auth.login{% endif %}', function(response) {
-          {% if current_user %} window.location = "/logout" {% else %} window.location.reload(); {% endif %}
-        });
-      };
-      (function() {
-        var e = document.createElement('script');
-        e.type = 'text/javascript';
-        e.src = document.location.protocol + '//connect.facebook.net/en_US/all.js';
-        e.async = true;
-        document.getElementById('fb-root').appendChild(e);
-      }());
-</script>
+
+<script type="text/javascript" src="/static/dashboard.js"></script>
+
+
 </body>

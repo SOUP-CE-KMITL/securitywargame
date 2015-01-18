@@ -1,0 +1,57 @@
+<section class="login-box">
+	<div class="jumbotron txt-center">
+		<h2>Already have account?</h2>
+		Please login using your credentials...<br/>
+		<br/>
+		<form id="admin-login" method="post" action="/admin-login">
+			<div class="login-form">	
+				<div class="input-group">
+					<span class="input-group-addon" id="form1"><i class="fa fa-user"></i></span>
+					<input name="username" type="text" class="form-control" placeholder="Username" aria-describedby="form1">
+				</div>
+				<div class="input-group">
+					<span class="input-group-addon" id="form2"><i class="fa fa-key"></i></span>
+					<input name="password" type="password" class="form-control" placeholder="Password" aria-describedby="form2">
+				</div>
+				<button id="admin-login-button" type="button" class="btn btn-success btn-lg btn-block">Let me in</button>
+			</div>
+		</form>
+	</div>
+</section>
+
+<section class="register-box">
+	<div class="jumbotron txt-center">
+		<h2>Doesn't have account?</h2>
+		Register a new one.<br/>
+		<br/>
+		<form id="admin-regis" method="post" action="/admin-regis">
+			<div class="register-form">
+				<div class="input-group">
+					<span class="input-group-addon" id="form1"><i class="fa fa-user"></i></span>
+					<input name="username" type="text" class="form-control" placeholder="Username" aria-describedby="form1">
+				</div>
+				<div class="input-group">
+					<span class="input-group-addon" id="form2"><i class="fa fa-envelope"></i></span>
+					<input name="email" type="text" class="form-control" placeholder="Email" aria-describedby="form2">
+				</div>
+				<div class="input-group">
+					<span class="input-group-addon" id="form3"><i class="fa fa-key"></i></span>
+					<input name="password" type="password" class="form-control" placeholder="Password" aria-describedby="form3">
+				</div>
+				<div class="input-group">
+					<span class="input-group-addon" id="form4"><i class="fa fa-key"></i></span>
+					<input name="re_password" type="password" class="form-control" placeholder="Password Again" aria-describedby="form4">
+				</div>
+				<div class="input-group">
+					<span class="input-group-addon" id="form5"><i class="fa fa-briefcase"></i></span>
+					<input name="org" type="text" class="form-control" placeholder="Organization" aria-describedby="form5">
+				</div>				
+				<button id="admin-regis-button" type="button" class="btn btn-success btn-lg btn-block">Okay I'm ready!</button>				
+			</div>
+		</form>
+	</div>
+</section>
+
+
+
+
