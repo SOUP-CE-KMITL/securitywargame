@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 import sys
 reload(sys)
@@ -66,7 +65,7 @@ secret = "you-will-never-guess"
 
 config = {}
 config['webapp2_extras.sessions'] = dict(secret_key='slhflsnhflsgkfgvsdbfksdhfksdhfkjs')
-#slhflsnhflsgkfgvsdbfksdhfksdhfkjs
+#Cyber Security War Game
 FACEBOOK_APP_ID = "566537650156899"
 FACEBOOK_APP_SECRET = "27ca20aee5a7af959a26157b3ddf2dc6"
 
@@ -216,7 +215,7 @@ class FacebookHandler(webapp2.RequestHandler):
 								## fetch user key for further usage.
 								user_key=user.key.id()
 							)
-
+				self.response.headers.add_header( 'Set-Cookie', '%s=%s; expires=Sun, 5-May-2016 23:59:59 GMT; Path=/' % ( "user_id", str(user.user_id) ))
 				return self.session.get("user")
 				#return user
 		return None
@@ -288,10 +287,6 @@ def init_data(self):
 	if self.fb_user:
 		data = { 'fb_user':self.fb_user }
 		fb_user = self.fb_user
-		user = FacebookUser.get_by_id(fb_user["user_key"])
-		topology = Topology.query().filter(Topology.owner == user.key ).get()
-		status = Status.query().filter(Status.owner == user.key ).get()
-		data['status'] = status
 	data['facebook_app_id'] = FACEBOOK_APP_ID	
 	return data	
 
@@ -319,10 +314,13 @@ class FacebookLogoutHandler(Handler,FacebookHandler):
         if self.fb_user is not None:
             self.session['user'] = None
         self.redirect('/')
-			
+
+#Silly Name		
 class HubHandler(Handler,FacebookHandler):
 	def get(self):
-		self.write("working in progress")
+		data = init_data(self)
+		data['fb_user'] = self.fb_user
+		self.render("/page/hub.html",**data)
 
 class AdminHandler(Handler,FacebookHandler):
 	def get(self):
@@ -905,9 +903,8 @@ class BypassLoginHandler(Handler,FacebookHandler):
 
 class OverallReportHandler(Handler,FacebookHandler):
 	def get(self):
-		data = {}
-		graphs = Graph.query().order(-Graph.graphID)
-		
+		data = init_data(self)
+		graphs = Graph.query().order(-Graph.graphID)		
 		data['graphs'] = graphs
 		self.render("report2.html",**data)
 
@@ -1058,11 +1055,11 @@ class PlayerRegisterHandler(Handler,FacebookHandler):
 #######################################################################################################
 	
 app = webapp2.WSGIApplication([
-    ('/', AdminHandler),
+    ('/', HubHandler),
     ('/admin',AdminHandler),
 	('/logout',LogOutHandler),
-	('/pleaselogin',PleaseLoginHandler),
-	('/connectWithFacebook',FacebookLoginHandler),
+	#('/pleaselogin',PleaseLoginHandler),
+	#('/connectWithFacebook',FacebookLoginHandler),
 	('/logout_with_facebook',FacebookLogoutHandler),
 	('/map',MapHandler),
 	('/dashboard',DashboardHandler),
@@ -1205,7 +1202,9 @@ class Path(ndb.Model):
 
 class Graph(ndb.Model):
 	name=ndb.StringProperty(required=True)
-	graphID=ndb.IntegerProperty(required=True)
+	graphID=ndb.IntegerProperty(required=True)	
+	owner=ndb.KeyProperty(kind='User') #GUI push	
+	owner_id=ndb.IntegerProperty(required=True) #JSON push
 	machines=ndb.StructuredProperty(Machine, repeated=True)
 	services=ndb.StructuredProperty(Service, repeated=True)
 	paths=ndb.StructuredProperty(Path, repeated=True)							
