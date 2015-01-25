@@ -1,6 +1,10 @@
-#Reportv1
-result:<br/>
-http://puu.sh/d3waS/c9e4480a68.jpg
+### user : { player -> ('/'), admin -> ('/admin') }
+player will be force to login with their facebook account to play game.
+admin need to be regis for a new one. to access graph management dashboard.
+
+http://puu.sh/eSa1V/b7c0fe1939.jpg
+
+### renovate all user's tools and report document
 
 #ADD TEST USER
 Method : GET<br/>
