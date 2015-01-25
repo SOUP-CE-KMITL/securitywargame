@@ -27,6 +27,17 @@ indexes:
   - name: created
     direction: desc
 
+- kind: Graph
+  properties:
+  - name: owner
+  - name: graphID
+
+- kind: Graph
+  properties:
+  - name: owner
+  - name: graphID
+    direction: desc
+
 - kind: IndoorAP
   ancestor: yes
   properties:

@@ -48,6 +48,58 @@
 			<div class="dashboard-main">
 				{% include "partial/dashboard-menu.html" %}
 		{% block bodycontent %}
+			<div id="home-content" class="container-fluid">
+				<div class="col-md-12">
+		          <ul class='nav nav-tabs'>
+		            <li class='active'><a href='#graph'>Available Graph</a></li>
+		            <li><a href='#manage-graph'>Manage Graph</a></li>
+		            <li><a href='#statistics'>Statistics</a></li>
+		          </ul>
+			
+					<div class='tab-content'>
+						<div class='tab-pane fade in active' id='graph'>
+							{% if graphs %}
+							<div class="alert alert-info" role="alert">
+								You have created {{ user.graph_created }} graph(s).
+							</div>
+							<table class="table table-striped table-hover">
+								
+								<tr>
+									<td>ID#</td>
+									<td>Name</td>
+									<td>number of paths</td>
+									<td>number of machines</td>
+									<td>number of services</td>
+								</tr>
+								
+								{% for graph in graphs %}
+								
+									<tr>
+										<td>{{ graph.graphID }}</td>
+										<td><a href="#">{{ graph.name }}</a></td>
+										<td>{{ graph.path_hold }}</td>
+										<td>{{ graph.machine_hold }}</td>
+										<td>{{ graph.service_hold }}</td>												
+									</tr>
+								
+								{% endfor %}
+							</table>
+							{% else %}
+								<div class="alert alert-info" role="alert">You don't have any graphs!
+								</div>
+							{% endif %}
+						</div>
+						<div class='tab-pane fade' id='manage-graph'>
+							<div class="alert alert-danger" role="alert">Under Construction!
+							</div>
+						</div>
+						<div class='tab-pane fade' id='statistics'>
+							<div class="alert alert-danger" role="alert">Under Construction!
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 		{% endblock %}
 	{% else %}
 		<div class="content-wrapper">
@@ -66,6 +118,14 @@
 	</div>
 </body>
 
-<script type="text/javascript" src="/static/dashboard.js"></script>
-
+<script src="/static/dashboard.js"></script>
+<script src='/static/js/bootstrap.min.js'></script>
+<script>
+  $(function() {
+    $('.nav-tabs a').click(function (e) {
+      e.preventDefault();
+      $(this).tab('show');
+    });
+  });
+</script>
 </body>

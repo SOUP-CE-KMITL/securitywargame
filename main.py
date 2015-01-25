@@ -331,6 +331,9 @@ class HubHandler(Handler,FacebookHandler):
 class AdminHandler(Handler,FacebookHandler):
 	def get(self):
 		data = init_data(self)
+		user = self.user
+		graphs = Graph.query().filter(Graph.owner == user.key).order(Graph.graphID).fetch()
+		data['graphs'] = graphs
 		#check validate first
 		data['url'] = "home"
 		self.render('home.html',**data)
@@ -1264,17 +1267,8 @@ class Graph(ndb.Model):
 	# keep track for reporting
 	machine_hold = ndb.IntegerProperty(default=0)
 	service_hold = ndb.IntegerProperty(default=0)
-	machine_hold = ndb.IntegerProperty(default=0)							
+	path_hold = ndb.IntegerProperty(default=0)							
 														
-class Attacker(ndb.Model):
-	alias = ndb.StringProperty(required=True)
-	desc = ndb.StringProperty()
-	cve = ndb.StringProperty(required=True)
-	flawtype = ndb.StringProperty(required=True)
-	access_params = ndb.StringProperty(required=True)
-	created = ndb.DateTimeProperty(auto_now_add=True)
-	updated = ndb.DateTimeProperty(auto_now=True)
-
 class CharacterImage(ndb.Model):
 	blob = ndb.BlobKeyProperty()
 	owner = ndb.StringProperty()

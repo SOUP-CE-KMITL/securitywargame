@@ -22,4 +22,10 @@ $(document).ready(function(){
 		$("#admin-regis").submit();
 
 	});
+
+	$("#doc").click(function(){
+		$().fadeIn();
+
+	});
+	
 });

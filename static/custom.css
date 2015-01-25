@@ -15,3 +15,7 @@
 	color:white;
 	border-radius:0;
 }
+
+.tab-pane {
+	padding:10px;
+}
