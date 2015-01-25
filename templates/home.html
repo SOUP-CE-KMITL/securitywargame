@@ -20,13 +20,12 @@
 	<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 	
 	<!-- google font api -->
-				<!-- Karla -->
+	<!-- Karla -->
 	<link href='http://fonts.googleapis.com/css?family=Karla:400,400italic,700,700italic' rel='stylesheet' type='text/css'>
-				<!-- Mystery+Quest -->
+	<!-- Mystery+Quest -->
 	<link href='http://fonts.googleapis.com/css?family=Mystery+Quest' rel='stylesheet' type='text/css'>
-				<!-- Lemon font -->
+	<!-- Lemon font -->
 	<link href='http://fonts.googleapis.com/css?family=Lemon' rel='stylesheet' type='text/css'>
-	
 	
 	<script src="/static/js/Chart.js/Chart.js"></script>
 
@@ -42,30 +41,13 @@
 
 </head>
 <body>
+	
 	{% include "partial/header.html" %}
 	{% if user %}
 		<div class="dashboard-wrapper">
 			<div class="dashboard-main">
-				<div class="container-fluid menu-holder">
-					<div class="row">
-						<a href="/dashboard">
-							<div id="dashboard-home" class="col-md-2 dashboard-menu">
-								<i class="fa fa-home fa-3x"></i><br/>
-								Home
-							</div>
-						</a>
-						<a href="/overall-report">
-							<div id="dashboard-report" class="col-md-2 dashboard-menu">
-								<i class="fa fa-bar-chart-o fa-3x"></i><br/>
-								Report
-							</div>
-						</a>
-					</div>
-				</div>
+				{% include "partial/dashboard-menu.html" %}
 		{% block bodycontent %}
-
-
-
 		{% endblock %}
 	{% else %}
 		<div class="content-wrapper">
@@ -85,6 +67,5 @@
 </body>
 
 <script type="text/javascript" src="/static/dashboard.js"></script>
-
 
 </body>

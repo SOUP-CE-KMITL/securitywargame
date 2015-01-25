@@ -146,6 +146,12 @@ def string_normalize(s):
 	s = re.sub('[^0-9a-zA-Z]+', '', s)
 	s = s.lower()
 	return s
+
+
+def generate_key():
+	length = 20
+	api_key = ''.join(random.choice(letters) for x in xrange(length))		
+	return api_key
 	
 def assign_graph_ID():
 	graphID = 0
@@ -325,6 +331,8 @@ class HubHandler(Handler,FacebookHandler):
 class AdminHandler(Handler,FacebookHandler):
 	def get(self):
 		data = init_data(self)
+		#check validate first
+		data['url'] = "home"
 		self.render('home.html',**data)
 				
 class MapHandler(Handler,FacebookHandler):
@@ -333,8 +341,17 @@ class MapHandler(Handler,FacebookHandler):
 
 class DashboardHandler(Handler,FacebookHandler):
 	def get(self):
-		data = {}
+		data = init_data(self)
 		self.render('dashboard2.html',**data)
+
+class APIHandler(Handler,FacebookHandler):
+	def get(self):
+		data = init_data(self)
+		data['url'] = "api"
+		user = self.user
+
+		#data['key'] = 
+		self.render('/page/api.html',**data)
 
 class CreateMapHandler(Handler,FacebookHandler):
 	def post(self):
@@ -767,15 +784,48 @@ class AddNewPathHandler(Handler,FacebookHandler):
 		else:
 			u.paths = [ w ]
 		u.put()
+
+def check_api_key(api_key):
+	u = User.query().filter(User.APIkey == api_key).get()
+	if u:
+		return True
+	else:
+		return False
+
+class post_graph_v2Handler(Handler,FacebookHandler):
+	def post(self):
+		#SETUP GRAPH
+		name = escape_html(self.request.get('name'))
+		api_key = escape_html(self.request.get('api_key'))
+		graphID = assign_graph_ID()
+		owner = User.query().filter(User.APIkey == api_key).get()
+		owner_id = owner.user_id
+		if check_api_key(api_key):
+			u = Graph(	graphID		= 	graphID,
+						name		=	name,
+						owner = owner.key,
+						owner_id = owner_id)
+			u.put()
+			self.write("put owner successfully")
+			number_of_graph = owner.graph_created + 1
+			owner.graph_created = number_of_graph
+			owner.put()
+			self.write("put graph successfully")
+		else:
+			self.write("Invalid API key")
 		
 class PostJSONGraphHandler(Handler,FacebookHandler):
 	def post(self):
 		#SETUP GRAPH
 		name = escape_html(self.request.get('name'))
+		api_key = escape_html(self.request.get('api_key'))
 		graphID = assign_graph_ID()
+		owner = User.query().filter(User.APIkey == api_key).get()
+		owner_id = owner.user_id
 		#ADD GRAPH FIRST
 		u = Graph(	graphID		= 	graphID,
-					name		=	name)
+					name		=	name,
+					owner = owner_id)
 		u.put()
 		#MAKE SURE GRAPH IS SUBMITTED
 		time.sleep(2)		
@@ -906,6 +956,7 @@ class OverallReportHandler(Handler,FacebookHandler):
 		data = init_data(self)
 		graphs = Graph.query().order(-Graph.graphID)		
 		data['graphs'] = graphs
+		data['url'] = "report"
 		self.render("report2.html",**data)
 
 
@@ -1089,7 +1140,9 @@ app = webapp2.WSGIApplication([
 	('/admin-login',AdminLoginHandler),
 	('/admin-regis',AdminRegisterHandler),
 	('/player-regis',PlayerRegisterHandler),
-	('/player-login',PlayerLoginHandler)
+	('/player-login',PlayerLoginHandler),
+	('/api',APIHandler),
+	('/post_graph_v2',post_graph_v2Handler)
 
 	
 	#('/updateGraph',UpdateJSONGraphHandler)
@@ -1207,7 +1260,11 @@ class Graph(ndb.Model):
 	owner_id=ndb.IntegerProperty(required=True) #JSON push
 	machines=ndb.StructuredProperty(Machine, repeated=True)
 	services=ndb.StructuredProperty(Service, repeated=True)
-	paths=ndb.StructuredProperty(Path, repeated=True)							
+	paths=ndb.StructuredProperty(Path, repeated=True)	
+	# keep track for reporting
+	machine_hold = ndb.IntegerProperty(default=0)
+	service_hold = ndb.IntegerProperty(default=0)
+	machine_hold = ndb.IntegerProperty(default=0)							
 														
 class Attacker(ndb.Model):
 	alias = ndb.StringProperty(required=True)
@@ -1245,6 +1302,8 @@ class User(ndb.Model):
 	pw_hash = ndb.StringProperty()
 	last_visited = ndb.DateTimeProperty(auto_now=True)
 	joined_date = ndb.DateTimeProperty(auto_now_add=True)
+	APIkey = ndb.StringProperty()
+	graph_created = ndb.IntegerProperty(default=0)
 	
 	@classmethod
 	def by_id(cls, uid):
@@ -1270,12 +1329,14 @@ class User(ndb.Model):
 	def register(cls, username,email, password, org, user_id):
 		pw_hash = make_pw_hash(username, password)
 		access_params = create_params()
+		api_key = generate_key()
 		return User(	user_id = user_id,
 						username = username,
 						email = email,
 						pw_hash = pw_hash,
 						org = org,
-						access_params = access_params	)
+						access_params = access_params,
+						APIkey = api_key	)
 	
 	@classmethod
 	def add_test_user(cls, user_id , username ):
