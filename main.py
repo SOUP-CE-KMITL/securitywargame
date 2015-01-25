@@ -332,11 +332,14 @@ class AdminHandler(Handler,FacebookHandler):
 	def get(self):
 		data = init_data(self)
 		user = self.user
-		graphs = Graph.query().filter(Graph.owner == user.key).order(Graph.graphID).fetch()
-		data['graphs'] = graphs
-		#check validate first
-		data['url'] = "home"
-		self.render('home.html',**data)
+		if user:
+			graphs = Graph.query().filter(Graph.owner_id == user.user_id).order(Graph.graphID).fetch()
+			data['graphs'] = graphs
+			#check validate first
+			data['url'] = "home"
+			self.render('home.html',**data)
+		else:
+			self.render('home.html',**data)
 				
 class MapHandler(Handler,FacebookHandler):
 	def get(self):
@@ -450,7 +453,7 @@ def setOrderOption(option):
 				
 class CVEProfileFetchHandler(Handler,FacebookHandler):
 	def get(self):
-		data = {}
+		data = init_data(self)
 		scores = [ 0,1,2,3,4,5,6,7,8,9,10 ]
 		rows = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
 		orders = [ "Publish Date", "Last Update Date", "CVE ID"]
@@ -725,45 +728,66 @@ class DeleteGraphHandler(Handler,FacebookHandler):
 		u.delete()
 		time.sleep(2)
 		self.redirect('/create-graph')
+
+def valid_api_key(api_key):
+	u = APIDatabase.query().filter(APIDatabase.api_key == api_key)
+	if u:
+		return True
+	else:
+		return False
 		
 class AddNewMachineHandler(Handler,FacebookHandler):
 	def post(self):
 		id = int(self.request.get('GraphID'))
 		u = Graph.query().filter(Graph.graphID == id).get()
-		machineID = int(escape_html(self.request.get('machineID')))
+		machineID = u.machine_hold + 1
+		#auto generate machine ID
+		#machineID = int(escape_html(self.request.get('machineID')))
 		name = escape_html(self.request.get('machineName'))
 		status = escape_html(self.request.get('machineStatus'))
 		impact = int(escape_html(self.request.get('machineImpact')))
-		v = Machine.add_new_machine(machineID,name,status,impact)
-		#v.put()
-		if u.machines:
-			u.machines.append(v)
-		else:
-			u.machines = [ v ]
-		u.put()
-		#self.write("success!")
+		api_key = escape_html(self.request.get('api_key'))
+		if valid_api_key(api_key):
+			#check if api_key is existed?	
+			v = Machine.add_new_machine(machineID,name,status,impact)
+			#v.put()
+			if u.machines:
+				u.machines.append(v)
+				u.machine_hold = machineID
+			else:
+				u.machines = [ v ]
+				u.machine_hold = machineID
+			u.put()
+			self.write("success!")
 		
 class AddNewServiceHandler(Handler,FacebookHandler):
 	def post(self):
 		id = int(self.request.get('GraphID'))
 		u = Graph.query().filter(Graph.graphID == id).get()
-		serviceID = int(escape_html(self.request.get('serviceID')))
+		serviceID = u.service_hold + 1
+		#serviceID = int(escape_html(self.request.get('serviceID')))
 		name = escape_html(self.request.get('serviceName'))
 		status = escape_html(self.request.get('serviceStatus'))
 		impact = int(escape_html(self.request.get('serviceImpact')))
-		machineID = int(escape_html(self.request.get('serviceMachineID')))
-		v = Service.add_new_service(serviceID,name,status,impact,machineID)
-		if u.services:
-			u.services.append(v)
-		else:
-			u.services = [ v ]
-		u.put()
+		machineName = escape_html(self.request.get('serviceMachineName'))
+		api_key = escape_html(self.request.get('api_key'))
+		if valid_api_key(api_key):
+			v = Service.add_new_service(serviceID,name,status,impact,machineName)
+			if u.services:
+				u.services.append(v)
+				u.service_hold = serviceID
+			else:
+				u.services = [ v ]
+				u.service_hold = serviceID
+			u.put()
+			self.write("success!")
 		
 class AddNewPathHandler(Handler,FacebookHandler):
 	def post(self):
 		id = int(self.request.get('GraphID'))
 		u = Graph.query().filter(Graph.graphID == id).get()
-		pathID = int(escape_html(self.request.get('pathID')))
+		#pathID = int(escape_html(self.request.get('pathID')))
+		pathID = u.path_hold + 1
 		#GET CVSS FROM PROFILE
 		name = escape_html(self.request.get('pathName'))
 		cve_id = name
@@ -780,13 +804,18 @@ class AddNewPathHandler(Handler,FacebookHandler):
 		status = escape_html(self.request.get('pathStatus'))
 		#SERVICE STATUS
 		src = int(escape_html(self.request.get('pathSrc')))
-		dest = int(escape_html(self.request.get('pathDest')))	
-		w = Path.add_new_path(pathID,name,status,src,dest,c_imp,i_imp,a_imp,acc_com,g_acc,auth)
-		if u.paths:
-			u.paths.append(w)
-		else:
-			u.paths = [ w ]
-		u.put()
+		dest = int(escape_html(self.request.get('pathDest')))
+		api_key = escape_html(self.request.get('api_key'))	
+		if valid_api_key(api_key):
+			w = Path.add_new_path(pathID,name,status,src,dest,c_imp,i_imp,a_imp,acc_com,g_acc,auth)
+			if u.paths:
+				u.paths.append(w)
+				u.path_hold = pathID
+			else:
+				u.paths = [ w ]
+				u.path_hold = pathID
+			u.put()
+			self.write("success!")
 
 def check_api_key(api_key):
 	u = User.query().filter(User.APIkey == api_key).get()
@@ -806,7 +835,7 @@ class post_graph_v2Handler(Handler,FacebookHandler):
 		if check_api_key(api_key):
 			u = Graph(	graphID		= 	graphID,
 						name		=	name,
-						owner = owner.key,
+						#owner = owner.key,
 						owner_id = owner_id)
 			u.put()
 			self.write("put owner successfully")
@@ -825,11 +854,16 @@ class PostJSONGraphHandler(Handler,FacebookHandler):
 		graphID = assign_graph_ID()
 		owner = User.query().filter(User.APIkey == api_key).get()
 		owner_id = owner.user_id
+		#revision here
+		graph_amount = owner.graph_created + 1
+		owner.graph_created = graph_amount
+
 		#ADD GRAPH FIRST
 		u = Graph(	graphID		= 	graphID,
 					name		=	name,
-					owner = owner_id)
+					owner_id = owner_id)
 		u.put()
+		owner.put()
 		#MAKE SURE GRAPH IS SUBMITTED
 		time.sleep(2)		
 		#PREPARED OBJECT
@@ -845,15 +879,20 @@ class PostJSONGraphHandler(Handler,FacebookHandler):
 		uv = Graph.query().filter(Graph.graphID == graphID).get()
 		for key, value in machine_objects.iteritems():
 			for i, item in enumerate(value): 
-				machineID = value[i]['machineID']
+				#machineID = value[i]['machineID']
+				temp = Graph.query().filter(Graph.graphID == graphID).get()
+				machineID = temp.machine_hold + 1
+				#automated new machineID
 				name = value[i]['name']
 				status = value[i]['status']
 				impact = value[i]['impact']
 				v = Machine.add_new_machine(int(machineID),name,status,int(impact))
 				if uv.machines:
 					uv.machines.append(v)
+					uv.machine_hold = machineID
 				else:
 					uv.machines = [ v ]
+					uv.machine_hold = machineID
 				uv.put()
 		#FLASH
 		#self.write(uv)
@@ -861,16 +900,20 @@ class PostJSONGraphHandler(Handler,FacebookHandler):
 		uw = Graph.query().filter(Graph.graphID == graphID).get()
 		for key, value in service_objects.iteritems():
 			for i, item in enumerate(value):
-				serviceID = value[i]['serviceID']
+				#serviceID = value[i]['serviceID']
+				temp = Graph.query().filter(Graph.graphID == graphID).get()
+				serviceID = temp.service_hold + 1				
 				name = value[i]['name']
 				status = value[i]['status']
 				impact = value[i]['impact']
-				machineID = value[i]['machineID']
-				w = Service.add_new_service(int(serviceID),name,status,int(impact),int(machineID))
+				machineName = value[i]['machineName']
+				w = Service.add_new_service(int(serviceID),name,status,int(impact),machineName)
 				if uw.services:
 					uw.services.append(w)
+					uw.service_hold = serviceID
 				else:
-					uw.services = [ w ]	
+					uw.services = [ w ]
+					uw.service_hold = serviceID	
 				uw.put()
 		#FLASH
 		#self.write(uv)
@@ -878,7 +921,9 @@ class PostJSONGraphHandler(Handler,FacebookHandler):
 		ux = Graph.query().filter(Graph.graphID == graphID).get()
 		for key, value in path_objects.iteritems():
 			for i, item in enumerate(value):
-				pathID = value[i]['pathID']
+				#pathID = value[i]['pathID']
+				temp = Graph.query().filter(Graph.graphID == graphID).get()
+				pathID = temp.path_hold + 1
 				name = value[i]['name']
 				status = value[i]['status']
 				src = value[i]['src']
@@ -892,8 +937,10 @@ class PostJSONGraphHandler(Handler,FacebookHandler):
 				x = Path.add_new_path(int(pathID),name,status,int(src),int(dest),int(c_imp),int(i_imp),int(a_imp),int(acc_com),int(g_acc),int(auth))
 				if ux.paths:
 					ux.paths.append(x)
+					ux.path_hold = pathID
 				else:
 					ux.paths = [ x ]
+					ux.path_hold = pathID
 				ux.put()				
 		#FLASH
 		#self.write(ux)		
@@ -1075,6 +1122,11 @@ class AdminRegisterHandler(Handler,FacebookHandler):
 			user_id = User.query().count() + 1
 			u = User.register(username,email,password,org, user_id)
 			u.put()
+			#Update Database API Key
+			api_id = APIDatabase.query().count() + 1
+			v = APIDatabase.add_new_key(api_id,u.APIkey)
+			v.put()
+
 			time.sleep(2)
 			self.login(u)
 			self.redirect('/admin?acc='+u.access_params)
@@ -1159,7 +1211,8 @@ app = webapp2.WSGIApplication([
 ###############  						Data Structure Section						###################
 #######################################################################################################
 #######################################################################################################
-#######################################################################################################	
+#######################################################################################################
+
 class CVEProfile(ndb.Model):
 	profile_name = ndb.StringProperty(default="N/A")
 	cve_id = ndb.StringProperty(required=True)
@@ -1205,15 +1258,15 @@ class Service(ndb.Model):
 	name=ndb.StringProperty()
 	status=ndb.StringProperty()
 	impact=ndb.IntegerProperty()
-	machineID=ndb.IntegerProperty()
+	machineName=ndb.StringProperty()
 	
 	@classmethod
-	def add_new_service(cls,serviceID,name,status,impact,machineID):
+	def add_new_service(cls,serviceID,name,status,impact,machineName):
 		return Service(		serviceID 	= 	serviceID,
 							name 		= 	name,
 							status 		=	status,
 							impact 		= 	impact,
-							machineID	=	machineID)
+							machineName	=	machineName)
 
 class Machine(ndb.Model):
 	machineID=ndb.IntegerProperty(required=True)
@@ -1259,7 +1312,7 @@ class Path(ndb.Model):
 class Graph(ndb.Model):
 	name=ndb.StringProperty(required=True)
 	graphID=ndb.IntegerProperty(required=True)	
-	owner=ndb.KeyProperty(kind='User') #GUI push	
+	#owner=ndb.KeyProperty(kind='User') #GUI push	
 	owner_id=ndb.IntegerProperty(required=True) #JSON push
 	machines=ndb.StructuredProperty(Machine, repeated=True)
 	services=ndb.StructuredProperty(Service, repeated=True)
@@ -1348,7 +1401,16 @@ class User(ndb.Model):
 		u = cls.by_user_id(user_id)
 		if u:
 			return u		
-		
+
+#check unauthorized post
+class APIDatabase(ndb.Model):
+	api_id = ndb.IntegerProperty(required=True)
+	api_key = ndb.StringProperty(required=True)
+
+	@classmethod
+	def add_new_key(cls,api_id,api_key):
+		return APIDatabase(api_id = api_id, api_key = api_key)
+	
 class Step(ndb.Model):
 	startTurn = ndb.IntegerProperty()
 	endTurn = ndb.IntegerProperty()

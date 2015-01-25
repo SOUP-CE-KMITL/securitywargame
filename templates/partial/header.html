@@ -1,9 +1,22 @@
-<section class="header">
-	<div class="header-inner">
-		{% if user %} 
-			Welcome Back! {{ user.username }} 
-		{% else %}
-			You need to login first!
-		{% endif %}
+<div class="header">
+	<div id="header-menu"  class='navbar navbar-inverse navbar-static-top'>
+	  <div class='container'>
+	    <a href='/' class='navbar-brand'>Cyber Security War Game</a>
+{% if user%}
+	    <ul class='nav navbar-nav navbar-right'>
+	      	<li>
+	      		<a href='#' data-toggle="dropdown">{{ user.username }}&nbsp;<span class='caret' ></span></a>
+				<ul class="dropdown-menu">
+					<li><a href="/profile?acc={{ user.access_params }}">Profile</a></li>
+					<li class="divider"></li>
+					<li><a href="/logout">Log out</a></li>
+
+				</ul>				
+			</li>
+
+	    </ul>
+{% endif %}
+	  </div>
 	</div>
-</section>
+</div>
+

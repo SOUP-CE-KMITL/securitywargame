@@ -19,3 +19,8 @@
 .tab-pane {
 	padding:10px;
 }
+
+.nav .dropdown-menu {
+	z-index:9999;
+
+}
