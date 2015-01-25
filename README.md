@@ -1,3 +1,12 @@
+### postGraph update ###
+postGraph not required any machineID , serviceID, and PathID but api_key
+machineID in { services } was changed to -> machineName
+
+example was here...
+https://www.getpostman.com/collections/56d025ad6cd5e8206f1b
+result will be like this...
+http://puu.sh/f0euV/2ac2c203cf.jpg
+
 ### api key is needed when adding new graph ###
 get one from /api (afte register new admin account)
 
