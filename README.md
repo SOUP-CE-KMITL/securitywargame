@@ -1,3 +1,8 @@
+### api key is needed when adding new graph ###
+get one from /api (afte register new admin account)
+
+example : http://puu.sh/eZJVP/0dfd8405af.jpg
+
 ### user : { player -> ('/'), admin -> ('/admin') }
 player will be force to login with their facebook account to play game.
 admin need to be regis for a new one. to access graph management dashboard.
