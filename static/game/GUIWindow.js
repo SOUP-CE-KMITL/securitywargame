@@ -50,3 +50,25 @@ GUIWindow.prototype.NewButton=function(label, x, y, w, h, callback){
 	b.addEventListener("click", callback);
 	this.items.push(b);
 }
+
+GUIWindow.prototype.NewImgButton=function(img, x, y, clickHandler, scope){
+	var g = new createjs.Bitmap(img);
+	g.x = x;
+	g.y = y;
+	g.regX = 32;
+	g.regY = 32;
+	console.log(g.regX + " , " + g.regY);
+	g.on("click", clickHandler, scope);
+	g.on("mouseover", function(){
+		createjs.Tween.removeTweens(g);
+		g.scaleX = 1;
+		g.scaleY = 1;
+		createjs.Tween.get(g).to({"scaleX":1.1, "scaleY":1.1}, 300, createjs.Ease.backOut);
+	})
+	g.on("mouseout", function(){
+		createjs.Tween.removeTweens(g);
+		createjs.Tween.get(g).to({"scaleX":1, "scaleY":1}, 300, createjs.Ease.backOut);
+	})
+	this.winGroup.addChild(g);
+	this.items.push(g);
+}
