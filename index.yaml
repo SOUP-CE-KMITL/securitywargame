@@ -43,6 +43,12 @@ indexes:
   - name: owner_id
   - name: graphID
 
+- kind: Graph
+  properties:
+  - name: owner_id
+  - name: graphID
+    direction: desc
+
 - kind: IndoorAP
   ancestor: yes
   properties:

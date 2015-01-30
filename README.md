@@ -1,3 +1,14 @@
+### report update
+/overall-report <br/>
+after login with admin account
+
+result should be like this ->
+http://puu.sh/fda0F/a0762b578e.jpg
+
+note: 
+1. module for calculate impact and score not found.
+2. map name not found.
+
 ### postGraph update ###
 postGraph not required any machineID , serviceID, and PathID but api_key
 machineID in { services } was changed to -> machineName

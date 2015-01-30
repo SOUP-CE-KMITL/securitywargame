@@ -50,6 +50,7 @@ from google.appengine.api import mail
 from xml.dom.minidom import parse, parseString
 from HTMLParser import HTMLParser
 from BeautifulSoup import BeautifulSoup
+from random import randint
 #from Graph import *
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -81,6 +82,9 @@ class DateEncoder(JSONEncoder):
         if isinstance(obj, datetime.date):
             return obj.isoformat()
         return JSONEncoder.default(self, obj)
+
+def calculate_impact():
+	return randint(1,9)
 
 def split_by_colon(str):
 	result = []
@@ -948,7 +952,7 @@ class PostJSONGraphHandler(Handler,FacebookHandler):
 		json_graph = Graph.query().filter(Graph.graphID == graphID).get()		
 		self.render_json(json_graph)				
 			
-class MapListHandler(webapp2.RequestHandler):
+class MapListHandler(Handler,FacebookHandler):
 	def post(self):
 		graphs = Graph.query()
 		output=[];
@@ -959,19 +963,20 @@ class MapListHandler(webapp2.RequestHandler):
 		output = json.dumps(output);
 		self.response.write(output);
 
-class CreateWayPointsHandler(webapp2.RequestHandler):
+class CreateWayPointsHandler(Handler,FacebookHandler):
 	def post(self):
 		waypointsID = WayPoints.query().count()+1 #shoud be generated somehow
 		playerID = int(self.request.get('playerID')) #should get this from session
 		mapID = int(escape_html(self.request.get('mapID')))
 		waypoints = WayPoints(waypointsID=waypointsID, playerID=playerID, mapID=mapID)
 		key = waypoints.put()
-		self.response.write(waypointsID);
+		self.response.write(waypointsID)
 
-class AddStepHandler(webapp2.RequestHandler):
+class AddStepHandler(Handler,FacebookHandler):
 	def post(self):
 		waypointsKey = int(self.request.get('waypoint'))
 		waypoint = WayPoints.query().filter(WayPoints.waypointsID == waypointsKey).get()
+
 		startTurn = int(self.request.get('startTurn'))
 		endTurn = int(self.request.get('endTurn'))
 		solType = self.request.get('solType')
@@ -984,8 +989,62 @@ class AddStepHandler(webapp2.RequestHandler):
 			waypoint.step.append(step)
 		else:
 			waypoint.step = [step]
-		waypoint.put();
-		
+		waypoint.put()
+		#1 generate waypoint report
+		#generate report when step is added
+		graph = Graph.query().filter(Graph.graphID == waypoint.mapID).get()
+		if graph:
+			owner_id = graph.owner_id
+			graph_id = graph.graphID
+		else:
+			return self.write("no graph available")
+		waypointID = waypoint.waypointsID
+
+		play_by = waypoint.playerID
+		#no module for score calculate yet
+		score = cost*100
+		total_turn = endTurn - startTurn
+		#no module for calculate impact
+		total_impact = calculate_impact()
+
+		### query waypoint with user id
+		u = WaypointReport.query().filter(WaypointReport.play_by == play_by).get()
+		if u:
+			#waypoint for this player is already existed just update
+			u.score = u.score + score
+			u.total_turn = u.total_turn + total_turn
+			u.total_impact = u.total_impact + total_impact
+			u.play_count = u.play_count + 1
+			u.put()
+		else:
+			#create a new one
+			new_waypoint = WaypointReport.add_new_waypoint_report(waypointID,play_by,score,total_turn,total_impact,owner_id,graph_id)
+			new_waypoint.put()
+		#create new map report
+		mapID = waypoint.mapID
+		v = MapReport.query().filter(MapReport.mapID == mapID).get()
+		if v:
+			v.play_count = v.play_count + 1
+			play_count = v.play_count
+			v.score = v.score + score
+			v.avg_score = v.score / ( play_count*1.000 )
+			v.total_turn = v.total_turn + total_turn
+			v.avg_total_turn = v.total_turn / ( play_count*1.000 )
+			v.total_impact = v.total_impact + total_impact
+			v.avg_total_impact = v.total_impact / ( play_count*1.000 )
+			v.put()
+		else:
+			#create a new one
+			#play_count,avg_score,avg_total_turn,avg_total_impact,owner_id,graph_id)
+			play_count = 1
+			avg_score = score
+			avg_total_turn = total_turn
+			avg_total_impact = total_impact
+			new_map_report = MapReport.add_new_map_report(mapID,play_count,score,avg_score,total_turn,avg_total_turn,total_impact,avg_total_impact,owner_id,graph_id)
+			new_map_report.put()
+		self.write("successfully update step")
+		## working here ##
+
 class CreateDummyUserHandler(Handler,FacebookHandler):
 	def get(self):
 		user_id = int(self.request.get('user_id'))
@@ -1004,11 +1063,15 @@ class BypassLoginHandler(Handler,FacebookHandler):
 class OverallReportHandler(Handler,FacebookHandler):
 	def get(self):
 		data = init_data(self)
-		graphs = Graph.query().order(-Graph.graphID)		
+		user = self.user
+		graphs = Graph.query().filter(Graph.owner_id == user.user_id).order(-Graph.graphID)
+		waypoint_reports = WaypointReport.query().filter(WaypointReport.owner_id == user.user_id).fetch()
+		map_reports = MapReport.query().filter(MapReport.owner_id == user.user_id).fetch()
+		data['waypoint_reports'] = waypoint_reports
+		data['map_reports'] = map_reports		
 		data['graphs'] = graphs
 		data['url'] = "report"
-		self.render("report2.html",**data)
-
+		self.render("/page/report.html",**data)
 
 class ReportHandler(Handler,FacebookHandler):
 	def get(self):
@@ -1427,5 +1490,57 @@ class WayPoints(ndb.Model):
 	mapID = ndb.IntegerProperty()
 	playerID = ndb.IntegerProperty()
 	step = ndb.StructuredProperty(Step, repeated=True)
+
+class WaypointReport(ndb.Model):
+	waypointID = ndb.IntegerProperty(required=True)
+	play_by = ndb.IntegerProperty(required=True)
+	score = ndb.IntegerProperty(required=True)
+	total_turn = ndb.IntegerProperty(required=True)
+	total_impact = ndb.IntegerProperty(required=True)
+	# query without exhausted joining
+	graph_id = ndb.IntegerProperty(required=True)
+	owner_id = ndb.IntegerProperty(required=True)
+	play_count = ndb.IntegerProperty(default=0)
+
+	@classmethod
+	def add_new_waypoint_report(cls,waypointID,play_by,score,total_turn,total_impact,owner_id,graph_id):
+		return WaypointReport(	waypointID = waypointID, 
+								play_by = play_by,
+								score = score,
+								total_turn = total_turn,
+								total_impact = total_impact,
+								graph_id = graph_id,
+								owner_id = owner_id,
+								play_count = 1 )
+
+class MapReport(ndb.Model):
+	mapID = ndb.IntegerProperty(required=True)
+	# map name doesn't exist?
+	#map_name = ndb.IntegerProperty(required=True)
+	play_count = ndb.IntegerProperty(required=True)
+	score = ndb.IntegerProperty(required=True)
+	avg_score = ndb.FloatProperty(required=True)
+	total_turn = ndb.IntegerProperty(required=True)
+	avg_total_turn = ndb.FloatProperty(required=True)
+	total_impact = ndb.IntegerProperty(required=True)
+	avg_total_impact = ndb.FloatProperty(required=True)
+	# query without exhausted joining
+	graph_id = ndb.IntegerProperty(required=True)
+	owner_id = ndb.IntegerProperty(required=True)
+
+	@classmethod
+	def add_new_map_report(cls,mapID,play_count,score,avg_score,total_turn,avg_total_turn,total_impact,avg_total_impact,owner_id,graph_id):
+		return MapReport(	mapID = mapID, 
+								play_count = play_count,
+								score = score,
+								avg_score = avg_score,
+								total_turn = total_turn,
+								avg_total_turn = avg_total_turn,
+								total_impact = total_impact,
+								avg_total_impact = avg_total_impact,
+								graph_id = graph_id,
+								owner_id = owner_id)
+
+#class WayPointSummary(ndb.Model): -> just a list of step!
 
 

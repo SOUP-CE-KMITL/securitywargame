@@ -1,0 +1,101 @@
+{% extends "home.html" %}
+{% block bodycontent %}	
+
+<div id="report-content" class="container-fluid">
+	{% if graphs %}
+	<div class="alert alert-info" role="alert">
+	You have created {{ user.graph_created }} graph(s).
+	</div>
+	<div class="panel-group">
+		{% for graph in graphs %}
+		<div class='panel panel-info'>
+			<div class="panel-heading">
+				<h4 class='panel-title'>
+					<a data-toggle='collapse' data-parent='.panel-group' href='#panels{{ graph.graphID }}'>
+<table class="text-center table table-striped table-hover">	
+	<tr>
+		<td>ID#</td>
+		<td>Name</td>
+		<td>number of paths</td>
+		<td>number of machines</td>
+		<td>number of services</td>
+	</tr>
+	<tr>
+		<td>{{ graph.graphID }}</td>
+		<td>{{ graph.name }}</td>
+		<td>{{ graph.path_hold }}</td>
+		<td>{{ graph.machine_hold }}</td>
+		<td>{{ graph.service_hold }}</td>
+	</tr>
+</table>
+					</a>
+				</h4>
+			</div>
+		</div>
+		<div id='panels{{ graph.graphID }}' class='panel-collapse collapse'>
+			<div class='panel-body'>
+				<h1 class="text-center">Statistics <i class="glyphicon glyphicon-th-list"></i></h1>
+				<h3>Waypoint summerize</h3>
+				<table class="text-center table table-bordered">
+<tr>
+	<td>Waypoint ID</td>
+	<td>play_by</td>
+	<td>score</td>
+	<td>play count</td>
+	<td>total turn</td>
+	<td>total impact</td>
+
+</tr>
+{% for waypoint_report in waypoint_reports %}
+	{% if waypoint_report.graph_id == graph.graphID %}
+<tr>
+	<td>{{ waypoint_report.waypointID }}</td>
+	<td>{{ waypoint_report.play_by }}</td>
+	<td>{{ waypoint_report.score }}</td>
+	<td>{{ waypoint_report.play_count }}</td>
+	<td>{{ waypoint_report.total_turn }}</td>
+	<td>{{ waypoint_report.total_impact }}</td>
+</tr>
+	{% endif %}							
+{% endfor %}
+				</table>
+
+<h3>Map summerize</h3>
+				<table class="text-center table table-bordered">
+<tr>
+	<td>Map ID</td>
+	<td>play count</td>
+	<td>average score</td>
+	<td>average total turn</td>
+	<td>average total impact</td>
+</tr>
+<!-- Iterate map report her -->
+{% for map_report in map_reports %}
+	{% if map_report.graph_id == graph.graphID %}
+<tr>
+	<td>{{ map_report.mapID }}</td>
+	<td>{{ map_report.play_count }}</td>
+	<td>{{ map_report.avg_score|round(2, 'floor') }}</td>
+	<td>{{ map_report.avg_total_turn|round(2, 'floor') }}</td>
+	<td>{{ map_report.avg_total_impact|round(2, 'floor') }}</td>
+</tr>
+	{% endif %}							
+{% endfor %}	
+				</table>
+			</div>
+		</div>
+		{% endfor %}
+
+	</div>
+	{% else %}
+	<div class="alert alert-danger" role="alert">
+		You don't have any graph.
+	</div>
+	{% endif %}
+</div>
+
+{% endblock %}
+
+
+
+
