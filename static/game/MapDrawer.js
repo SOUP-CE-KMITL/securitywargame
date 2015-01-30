@@ -42,7 +42,7 @@ MapDrawer.prototype.DrawWorldMap=function(layer){
 	var cities = [];
 	for(var i=0; i<this.graph.machines.length; i++){
 		cities[i] = new City(this.graph.machines[i], this.graph.paths);
-		cities[i].Draw(layer, Math.random()*924, Math.random()*568);
+		cities[i].Draw(layer, 512, 334);
 	}
 	PlayScene.cities = cities;
 

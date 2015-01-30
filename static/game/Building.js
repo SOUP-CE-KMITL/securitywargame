@@ -25,8 +25,8 @@ Building.prototype.Draw=function(parent, x, y){
 		"frames":{
 			"width": 512,
 			"height": 512,
-			"regX": 0,
-			"regY": 0,
+			"regX": 256,
+			"regY": 256,
 			"count": 1
 		}
 	});
@@ -64,15 +64,16 @@ Building.ShowActions=function(event){
 		var actions = [];
 		for(var i=0; i<soldier.length; i++){
 			actions[i]={};
-			actions[i].img="resource/btn.png";
+			actions[i].img="resource/icon/Icon-Soldier.png";
 			actions[i].soldier= new Soldier(soldier[i]);
+			actions[i].actionOf=t;
 		}
 		ActionPane.SetActions(actions);
 	}
 
 	//set cursor position
-	PlayScene.cursor.x = t.sprite.x+32;
-	PlayScene.cursor.y = t.sprite.y+24;
+	PlayScene.cursor.x = t.sprite.x;
+	PlayScene.cursor.y = t.sprite.y;
 
 	//Change base
 	/*

@@ -11,8 +11,14 @@ PlayScene.CAMP = {
 	"service":{"serviceID":0, "name":"os", "machineID":0, "captured":true}
 }
 
-
 PlayScene.prototype.Init = function(){
+	var preload = new createjs.LoadQueue();
+	var plc = this.PreloadComplete;
+  preload.on("fileload", this.PreloadComplete, this);
+  preload.loadFile("resource/bg/bg-grass.png");
+}
+
+PlayScene.prototype.PreloadComplete = function(event){
 	this.inited = true;
 	this.scene = new createjs.Container();
 	this.objLayer = new createjs.Container();
@@ -20,12 +26,26 @@ PlayScene.prototype.Init = function(){
 	this.scene.addChild(this.objLayer);
 	this.scene.addChild(this.guiLayer);
 
-	this.objLayer.addChild(new createjs.Bitmap("resource/bg.png"));
+	var shape = new createjs.Shape();
+	shape.graphics.bf(event.result).r(0,0,1024,768);
+	this.objLayer.addChild(shape);
+
+	var mountains = [];
+	for(var i=0; i<4; i++){
+		var imgNum = Math.floor(Math.random()*2+1);
+		mountains[i] = new createjs.Bitmap("resource/bg/bg-mountain"+imgNum+".png");
+		mountains[i].regX = 100;
+		mountains[i].regY = 100;
+		mountains[i].x = Math.random()*568+100;
+		mountains[i].y = Math.random()*500+100;
+		mountains[i].rotation = Math.random()*360;
+		this.objLayer.addChild(mountains[i]);
+	}
 
 
 	this.inspecWin = new createjs.Container();
 	this.guiLayer.addChild(this.inspecWin);
-	var bg = new createjs.Bitmap("resource/inspecWin.png")
+	var bg = new createjs.Bitmap("resource/UI/InspecWin.png")
 	bg.y = 600;
 	this.inspecWin.addChild(bg);
 	this.baseView = new createjs.Container();
@@ -45,14 +65,28 @@ PlayScene.prototype.Init = function(){
 	this.inspecWin.stat.x = 400;
 	this.inspecWin.stat.y = 620;
 
-	this.topBar = new createjs.Shape();
-	this.topBar.graphics.beginStroke("#DDD").f("#111").r(0,0,1024,50).ef().es();
+	this.topBar = new createjs.Bitmap("resource/UI/TopBar.png");
+	this.topBar.x = 0;
+	this.topBar.y = 0;
 	this.guiLayer.addChild(this.topBar);
+
+
+	this.comment = new createjs.Text("this is comment.", "18px arial", "#FFFFFF");
+	this.guiLayer.addChild(this.comment);
+	this.comment.x = 10;
+	this.comment.y = 558;
+
+	this.detectIcon = new createjs.Bitmap("resource/icon/DetectIcon.png");
+	this.detectIcon.x = 487;
+	this.detectIcon.y = 0;
+	this.guiLayer.addChild(this.detectIcon);
+	this.detectIcon.addEventListener("mouseover", function(){PlayScene.comment.text="Detection level."});
 
 	this.turnIcon = new createjs.Bitmap("resource/icon/TimeIcon.png");
 	this.guiLayer.addChild(this.turnIcon);
 	this.turnIcon.x = 920;
 	this.turnIcon.y = 10;
+	this.turnIcon.addEventListener("mouseover", function(){PlayScene.comment.text="Turn."});
 
 	this.turnText = new createjs.Text("0", "18px arial", "#FFFFFF");
 	this.guiLayer.addChild(this.turnText);
@@ -63,12 +97,18 @@ PlayScene.prototype.Init = function(){
 	this.guiLayer.addChild(this.cursor);
 	this.cursor.x = -100;
 	this.cursor.y = -100;
+	this.cursor.regX = 32;
+	this.cursor.regY = 32;
+	createjs.Tween.get(this.cursor, {"loop":true})
+		.to({"scaleX":1.2, "scaleY":1.2}, 500)
+		.to({"scaleX":1, "scaleY":1}, 500);
 
-	this.launch = new createjs.Bitmap("resource/launch.png")
+	this.launch = new createjs.Bitmap("resource/UI/NextTurn.png")
 	this.guiLayer.addChild(this.launch);
-	this.launch.x = 1000;
-	this.launch.y = 668;
+	this.launch.x = 980;
+	this.launch.y = 620;
 	this.launch.addEventListener("click", PlayScene.Launch);
+	this.launch.addEventListener("mouseover", function(){PlayScene.comment.text = "Next step."})
 
 	/*
 	this.moneyText = new createjs.Text("10", "18px arial", "#FFFFFF");
@@ -76,11 +116,6 @@ PlayScene.prototype.Init = function(){
 	this.moneyText.x = 10;
 	this.moneyText.y = 10;
 	*/
-
-	this.comment = new createjs.Text("This is comment.", "18px arial", "#FFFFFF");
-	this.guiLayer.addChild(this.comment);
-	this.comment.x = 10;
-	this.comment.y = 558;
 
 	ActionPane.Init(this.inspecWin);
 	QueueList.Init(this.guiLayer);
@@ -95,6 +130,7 @@ PlayScene.prototype.Init = function(){
 	this.guiLayer.addChild(this.moneyIcon);
 	this.moneyIcon.x = 10;
 	this.moneyIcon.y = 10;
+	this.moneyIcon.addEventListener("mouseover", function(){PlayScene.comment.text="Score."});
 
 	this.score = 0;
 	this.scoreText = new createjs.Text("0", "18px arial", "#FFF");
@@ -119,6 +155,9 @@ PlayScene.prototype.Init = function(){
 	PlayScene.activeLevel = 0;
 	PlayScene.score = this.score;
 	PlayScene.scoreText = this.scoreText;
+
+	this.Show(SceneManager.stage, SceneManager.params);
+	SceneManager.currentScene = this;
 }
 
 PlayScene.prototype.Show = function(stage, params){
@@ -171,7 +210,9 @@ PlayScene.Launch = function(e){
 				var dstMachine=sol.city.machine;
 				dstMachine.status="ready";
 				i-=1;
-				sol.city.sprite.gotoAndStop("level1");
+				console.log(dstMachine);
+				sol.city.sprite.gotoAndPlay("level"+ (Math.ceil(sol.city.to.length/2)));
+				sol.Erase();
 			}else if(sol.name=="occupier" || sol.name=="occupy"){
 				if(sol.integrity<2){
 					var b = getServiceById(sol.city);
@@ -282,6 +323,7 @@ function occupy(sol){
 	};
 	QueueList.Add(atkObj.soldier.name, atkObj.dur);
 	PlayScene.atkQueue.push(atkObj);
+	addStep(atkObj);
 }
 
 function getServiceById(id){

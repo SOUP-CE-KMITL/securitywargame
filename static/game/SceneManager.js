@@ -22,8 +22,6 @@ SceneManager.ChangeScene=function(dest, effect, dur){
 		if(this.currentScene!=null){
 			this.currentScene.Hide(this.stage);
 		}
-		newScene.Show(this.stage, this.params);
-		this.currentScene = newScene;
 	}
 }
 
@@ -36,6 +34,7 @@ function LevelScene(){
 LevelScene.prototype.Init=function(){
 	this.inited=true;
 	this.scene = new createjs.Container();
+	this.Show(SceneManager.stage);
 }
 LevelScene.prototype.Show=function(stage){
 

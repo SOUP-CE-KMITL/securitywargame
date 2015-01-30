@@ -32,24 +32,34 @@ Soldier.prototype.Draw = function (parent,x,y){
 	if(parent==null){return}
 	this.sheet = new createjs.SpriteSheet({
 		"animations":{
-			"default":[0,15,"default"]
+			"default":{
+				"frames":[0,1,2,3,2,1]
+			},
+			"run":{
+				"frames":[0,1,2,3,2,1]
+			},
 		},
-		"images":["resource/ninja.png"],
+		"images":["resource/char/char-scout-test.png"],
 		"frames":{
 			"width": 128,
 			"height": 128,
 			"regX": 64,
 			"regY": 64,
-			"count": 16
+			"count": 4
 		}
 	});
-
+	
 	this.sprite = new createjs.Sprite(this.sheet, "default");
 	this.sprite.x = x;
 	this.sprite.y = y;
 	this.sprite.ref = this;
 	parent.addChild(this.sprite);
 	this.sprite.gotoAndStop("default");
+
+	createjs.Tween.get(this.sprite, {"loop":true})
+		.to({"rotation":10}, 1000)
+		.to({"rotation":-10}, 2000)
+		.to({"rotation":0}, 1000);
 };
 
 Soldier.Action = function (e){
@@ -74,29 +84,33 @@ Soldier.Action = function (e){
 			"dur": undefined,
 		};
 
-		var w1 = WindowManager.NewWindow(PlayScene.guiLayer, 512, 384, 200, 100);
-		w1.NewLabel("You need key to perform this action.\nSend someone to get a key.", 100, 20);
-		w1.NewButton("Picklocker", 10, 50, 80, 60, function(){
+		var building  = t.actionOf;
+		var w1 = WindowManager.NewWindow(PlayScene.guiLayer, 362, 284, 300, 150);
+		w1.NewLabel("You need key to perform this action.\nSend someone to get a key.", 150, 20);
+		w1.NewImgButton("resource/icon/Icon-Picklocker.png", 100, 100, function(){
+			var s = new Picklocker();
 			PlayScene.guiLayer.removeChild(w1.winGroup);
-			atkObj.soldier.name = "Picklocker";
-			atkObj.soldier.op = "brute-force P/W crack";
+			atkObj.soldier.name = s.name;
+			atkObj.soldier.op = s.op;
 			atkObj.dur = 1;
 			QueueList.Add(atkObj.soldier.name, atkObj.dur);
 			PlayScene.atkQueue.push(atkObj);
+			addStep(atkObj);
+			s.Draw(PlayScene.cityMap, building.sprite.x, building.sprite.y);
 		});
-		w1.NewButton("Hypnotist", 100, 50, 80, 60, function(){
+		w1.NewImgButton("resource/icon/Icon-Phishing.png", 200, 100, function(){
 			PlayScene.guiLayer.removeChild(w1.winGroup);
 			atkObj.soldier.name = "Hypnotist";
 			atkObj.soldier.op = "Phishing P/W crack";
 			atkObj.dur = 3;
 			QueueList.Add(atkObj.soldier.name, atkObj.dur);
 			PlayScene.atkQueue.push(atkObj);
+			addStep(atkObj);
 		});
 		return;
 	}
 
 	//if(PlayScene.moneyText.text-t.ref.level > 0){
-		PlayScene.moneyText.text = PlayScene.moneyText.text-t.ref.level;
 		var atkObj = {
 			"start": parseInt(PlayScene.turnText.text, 10),
 			"soldier": t.ref,
@@ -107,6 +121,7 @@ Soldier.Action = function (e){
 		dstMachine.status="attacking";
 		dstMachine.atkCount += 1;
 		t.ref.Draw(PlayScene.cityMap, PlayScene.cursor.x, PlayScene.cursor.y);
+		t.ref.sprite.gotoAndPlay("run");
 		QueueList.Add(t.ref.name, atkObj.dur);
 		PlayScene.atkQueue.push(atkObj);
 		ActionPane.container.removeAllChildren();
@@ -138,28 +153,69 @@ function Explorer(city){
 	this.to = city.machine.machineID;
 }
 
-Explorer.Draw=function(parent, x, y){
+Explorer.prototype.Draw=function(parent, x, y){
 	if(parent==null){return}
 	this.sheet = new createjs.SpriteSheet({
 		"animations":{
-			"default":[0,15,"default"]
+			"default":[0,3,"default"]
 		},
-		"images":["resource/ninja.png"],
+		"images":["resource/char/char-scout-test.png"],
 		"frames":{
 			"width": 128,
-			"height": 128,
+			"height": 46,
 			"regX": 64,
-			"regY": 64,
-			"count": 16
+			"regY": 23,
+			"count": 4
 		}
 	});
-
+	
 	this.sprite = new createjs.Sprite(this.sheet, "default");
 	this.sprite.x = x;
-	this.sprite.y = y;
+	this.sprite.y = y-64;
 	this.sprite.ref = this;
+	//parent.addChild(this.sprite);
+	this.sprite.gotoAndPlay("default");
+
+	this.scan0 = new createjs.Bitmap("resource/fx/scan0.png");
+	this.scan0.x = x;
+	this.scan0.y = y;
+	this.scan0.regX = this.scan0.regY = 32;
+	parent.addChild(this.scan0);
+
+	this.scan1 = new createjs.Bitmap("resource/fx/scan1.png");
+	this.scan1.x = x;
+	this.scan1.y = y;
+	this.scan1.regX = 32;
+	this.scan1.regY = 32;
+	parent.addChild(this.scan1);
+
 	parent.addChild(this.sprite);
-	this.sprite.gotoAndStop("default");
+
+	createjs.Tween.get(this.sprite, {"loop":true})
+		.to({"rotation":10}, 1000)
+		.to({"rotation":-10}, 2000)
+		.to({"rotation":0}, 1000);
+
+	createjs.Tween.get(this.scan1, {"loop":true})
+		.to({"rotation":360}, 4000);
+}
+
+Explorer.prototype.Erase=function(){
+	createjs.Tween.get(this.sprite, {"override":true})
+		.to({"scaleX":0.01, "scaleY":0.01}, 500, createjs.Ease.backIn);
+	createjs.Tween.get(this.scan0)
+		.to({"scaleX":1.5, "scaleY":1.5, "alpha":0}, 500);
+	createjs.Tween.get(this.scan1, {"override":true})
+		.to({"scaleX":1.5, "scaleY":1.5, "alpha":0}, 500)
+		.call(function(){
+			createjs.Tween.removeTweens(this.sprite);
+			createjs.Tween.removeTweens(this.scan1);
+			createjs.Tween.removeTweens(this.scan0);
+			PlayScene.objLayer.removeChild(this.scan1);
+			PlayScene.objLayer.removeChild(this.scan0);
+			PlayScene.objLayer.removeChild(this.sprite);
+		}, null, this);
+	
 }
 
 Explorer.ShowInfo=function(e){
@@ -171,8 +227,8 @@ Explorer.ShowInfo=function(e){
 
 Explorer.Action=function(e){
 	var t=e.target;
-	if(PlayScene.moneyText.text-t.ref.level > 0){
-		PlayScene.moneyText.text = PlayScene.moneyText.text-t.ref.level;
+	//if(PlayScene.moneyText.text-t.ref.level > 0){
+		//PlayScene.moneyText.text = PlayScene.moneyText.text-t.ref.level;
 		var atkObj = {
 			"start": parseInt(PlayScene.turnText.text, 10),
 			"soldier": t.ref,
@@ -185,11 +241,41 @@ Explorer.Action=function(e){
 		QueueList.Add(t.ref.name, atkObj.dur);
 		PlayScene.atkQueue.push(atkObj);
 		ActionPane.container.removeAllChildren();
-
+		t.ref.Draw(PlayScene.objLayer, PlayScene.cursor.x, PlayScene.cursor.y);
 		addStep(atkObj)
-	}else{
+	/*}else{
 		PlayScene.comment.text = "Insufficient fund.";
-	}
+	}*/
+}
+
+function Picklocker(){
+	this.name = "Picklocker";
+	this.op = "Brute-force password cracking";
+}
+Picklocker.prototype.Draw=function(parent, x, y){
+	if(parent==null){return}
+	this.sheet = new createjs.SpriteSheet({
+		"animations":{
+			"default":[0,0,"default"],
+			"picking":[1,6,"picking",0.25],
+			"success":{"frames":[1,8], "next":null, "speed":0.25},
+			"fail":{"frames":[1,7], "next":null, "speed":0.25}
+		},
+		"images":["resource/char/char-picklock.png"],
+		"frames":{
+			"width": 64,
+			"height": 64,
+			"regX": 32,
+			"regY": 32,
+			"count": 9
+		}
+	});
+	
+	this.sprite = new createjs.Sprite(this.sheet, "picking");
+	this.sprite.x = x;
+	this.sprite.y = y;
+	this.sprite.ref = this;
+	parent.addChild(this.sprite);
 }
 
 function addStep(atkObj){

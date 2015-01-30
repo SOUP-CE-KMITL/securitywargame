@@ -25,17 +25,19 @@ function City(machine, paths){
 City.prototype.Draw = function(parent, x, y){
 	this.sheet = new createjs.SpriteSheet({
 		"animations":{
-			"default":[0,0,"default"],
-			"level1":[1,1,"level1"],
-			"level2":[2,2,"level2"],
-			"level3":[3,3,"level3"]
+			"default":{
+				"frames":[0,1,2,3,2,1]
+			},
+			"level1":[4,7,false],
+			"level2":[4,11,false],
+			"level3":[4,15,false]
 		},
-		"images":["resource/city.png"],
+		"images":["resource/char/char-city.png"],
 		"frames":{
-			"width": 64,
-			"height": 64,
-			"regX": 0,
-			"regY": 0,
+			"width": 128,
+			"height": 128,
+			"regX": 64,
+			"regY": 96,
 			"count": 16
 		}
 	});
@@ -44,13 +46,15 @@ City.prototype.Draw = function(parent, x, y){
 	this.sprite.ref = this;
 	this.sprite.x = x;
 	this.sprite.y = y;
+	this.sprite.scaleX = 0.75;
+	this.sprite.scaleY = 0.75;
 	parent.addChild(this.sprite);
 	if(this.machine.status=="hidden"){
 		this.sprite.visible=false
 	}else if(this.machine.status=="found"){
-		this.sprite.gotoAndStop("default");
+		this.sprite.gotoAndPlay("default");
 	}else if(this.machine.status=="ready"){
-		this.sprite.gotoAndStop("level1");
+		this.sprite.gotoAndPlay("level"+ (Math.ceil(this.to.length/2)));
 	}
 };
 
@@ -66,8 +70,11 @@ City.prototype.IsConnect = function(city){
 City.ClickHandler=function(event){
 	var target = event.target.ref;
 	if(target.machine.status == "found"){
+		//set cursor position
+		PlayScene.cursor.x = target.sprite.x;
+		PlayScene.cursor.y = target.sprite.y;
 		var action={
-			"img": "resource/btn.png",
+			"img": "resource/icon/Icon-Scout.png",
 			"soldier": new Explorer(target)
 		}
 		ActionPane.SetActions([action]);
@@ -76,14 +83,14 @@ City.ClickHandler=function(event){
 		var cityMap = new createjs.Container();
 		PlayScene.cityMap = cityMap;
 		PlayScene.objLayer.addChild(cityMap);
-		var bg = new createjs.Shape();
-		bg.graphics.f("black").r(0,0,1024,768);
+		var bg = new createjs.Bitmap("resource/bg/bg-city.png")
+		bg.scaleX = bg.scaleY = 2;
 		bg.addEventListener("click", function(){})
 		cityMap.addChild(bg);
 		var buildings = new Array();
 		for(var i=0; i<target.machine.services.length; i++){
 			buildings[i]= new Building(target.machine.services[i], target);
-			buildings[i].Draw(cityMap, (i%4)*100, Math.floor(i/4)*100);
+			buildings[i].Draw(cityMap, 244+(i%4)*172, 105+Math.floor(i/4)*112);
 			buildings[i].sprite.addEventListener("mouseover", Building.ShowInfo);
 			buildings[i].sprite.addEventListener("click", Building.ShowActions);
 			for(var j=0;j<PlayScene.atkQueue.length; j++){
@@ -122,8 +129,17 @@ City.ClickHandler=function(event){
 		}
 		*/
 
-		var back = new createjs.Shape();
-		back.graphics.f("red").r(900,500, 50,50);
+		var back = new createjs.Bitmap("resource/icon/Icon-back.png");
+		back.x = 980
+		back.y = 500
+		back.on("mouseover", function(e){
+			createjs.Tween.get(back, {"override":true})
+				.to({"x":960}, 500, createjs.Ease.powIn);
+		});
+		back.on("mouseout", function(e){
+			createjs.Tween.get(back, {"override":true})
+				.to({"x":980}, 500);
+		});
 		back.addEventListener("click", function(e) {
 			PlayScene.objLayer.removeChild(cityMap);
 			PlayScene.cityMap = null;
