@@ -883,9 +883,9 @@ class PostJSONGraphHandler(Handler,FacebookHandler):
 		uv = Graph.query().filter(Graph.graphID == graphID).get()
 		for key, value in machine_objects.iteritems():
 			for i, item in enumerate(value): 
-				#machineID = value[i]['machineID']
+				machineID = value[i]['machineID']
 				temp = Graph.query().filter(Graph.graphID == graphID).get()
-				machineID = temp.machine_hold + 1
+				#machineID = temp.machine_hold + 1
 				#automated new machineID
 				name = value[i]['name']
 				status = value[i]['status']
@@ -904,14 +904,14 @@ class PostJSONGraphHandler(Handler,FacebookHandler):
 		uw = Graph.query().filter(Graph.graphID == graphID).get()
 		for key, value in service_objects.iteritems():
 			for i, item in enumerate(value):
-				#serviceID = value[i]['serviceID']
+				serviceID = value[i]['serviceID']
 				temp = Graph.query().filter(Graph.graphID == graphID).get()
-				serviceID = temp.service_hold + 1				
+				#serviceID = temp.service_hold + 1				
 				name = value[i]['name']
 				status = value[i]['status']
 				impact = value[i]['impact']
-				machineName = value[i]['machineName']
-				w = Service.add_new_service(int(serviceID),name,status,int(impact),machineName)
+				machineID = value[i]['machineID']
+				w = Service.add_new_service(int(serviceID),name,status,int(impact),machineID)
 				if uw.services:
 					uw.services.append(w)
 					uw.service_hold = serviceID
@@ -966,7 +966,7 @@ class MapListHandler(Handler,FacebookHandler):
 class CreateWayPointsHandler(Handler,FacebookHandler):
 	def post(self):
 		waypointsID = WayPoints.query().count()+1 #shoud be generated somehow
-		playerID = int(self.request.get('playerID')) #should get this from session
+		playerID = self.request.get('playerID') #should get this from session
 		mapID = int(escape_html(self.request.get('mapID')))
 		waypoints = WayPoints(waypointsID=waypointsID, playerID=playerID, mapID=mapID)
 		key = waypoints.put()
@@ -1321,15 +1321,15 @@ class Service(ndb.Model):
 	name=ndb.StringProperty()
 	status=ndb.StringProperty()
 	impact=ndb.IntegerProperty()
-	machineName=ndb.StringProperty()
+	machineID=ndb.IntegerProperty()
 	
 	@classmethod
-	def add_new_service(cls,serviceID,name,status,impact,machineName):
+	def add_new_service(cls,serviceID,name,status,impact,machineID):
 		return Service(		serviceID 	= 	serviceID,
 							name 		= 	name,
 							status 		=	status,
 							impact 		= 	impact,
-							machineName	=	machineName)
+							machineID	=	machineID)
 
 class Machine(ndb.Model):
 	machineID=ndb.IntegerProperty(required=True)
@@ -1488,12 +1488,12 @@ class WayPoints(ndb.Model):
 	waypointsID = ndb.IntegerProperty()	
 	#just a graph
 	mapID = ndb.IntegerProperty()
-	playerID = ndb.IntegerProperty()
+	playerID = ndb.StringProperty()
 	step = ndb.StructuredProperty(Step, repeated=True)
 
 class WaypointReport(ndb.Model):
 	waypointID = ndb.IntegerProperty(required=True)
-	play_by = ndb.IntegerProperty(required=True)
+	play_by = ndb.StringProperty(required=True)
 	score = ndb.IntegerProperty(required=True)
 	total_turn = ndb.IntegerProperty(required=True)
 	total_impact = ndb.IntegerProperty(required=True)
