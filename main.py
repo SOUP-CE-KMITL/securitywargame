@@ -694,24 +694,28 @@ class GetGraphHandler(Handler,FacebookHandler):
 		u = Graph.query().filter(Graph.graphID == id).get()		
 		self.render_json(u)
 		
-class CreateGraphHandler(Handler,FacebookHandler):	
-	def get(self):
-		data = {}
-		graphs = Graph.query().order(Graph.graphID)
-		data['graphs'] = graphs
-		self.render('create-graph.html',**data)
-		
+class CreateGraphHandler(Handler,FacebookHandler):		
 	def post(self):
 		name = escape_html(self.request.get('graph-name'))
+		api_key = escape_html(self.request.get('api_key'))
+		owner = User.query().filter(User.APIkey == api_key).get()
+		owner_id = owner.user_id		
 		graphID = assign_graph_ID()
+		graph_amount = owner.graph_created + 1
+		owner.graph_created = graph_amount
+
+		#ADD GRAPH FIRST
 		u = Graph(	graphID		= 	graphID,
-					name		=	name)
+					name		=	name,
+					owner_id = owner_id)
 		u.put()
-		self.redirect('/create-graph')
+		owner.put()
+		time.sleep(2)
+		self.write("success")
 	
 class EditGraphHandler(Handler,FacebookHandler):
 	def get(self):
-		data = {}
+		data = init_data(self)
 		id = int(escape_html(self.request.get('id')))
 		service_status = [ "found" ,"attacking" ]
 		machine_status = [ "hidden", "found" , "ready" ,"attacking" ]
@@ -724,6 +728,15 @@ class EditGraphHandler(Handler,FacebookHandler):
 		data['path_status'] = path_status
 		data['profiles'] = profiles
 		self.render('edit-graph.html',**data)
+
+#rewrite version
+class GraphProfileHandler(Handler,FacebookHandler):
+	def get(self):
+		data = init_data(self)
+		id = int(escape_html(self.request.get('id')))
+		graph = Graph.query().filter(Graph.graphID == id).get()
+		data['graph'] = graph
+		self.render("/page/graph-profile.html",**data)
 		
 class DeleteGraphHandler(Handler,FacebookHandler):
 	def post(self):
@@ -773,10 +786,10 @@ class AddNewServiceHandler(Handler,FacebookHandler):
 		name = escape_html(self.request.get('serviceName'))
 		status = escape_html(self.request.get('serviceStatus'))
 		impact = int(escape_html(self.request.get('serviceImpact')))
-		machineName = escape_html(self.request.get('serviceMachineName'))
+		machineID = escape_html(self.request.get('serviceMachineID'))
 		api_key = escape_html(self.request.get('api_key'))
 		if valid_api_key(api_key):
-			v = Service.add_new_service(serviceID,name,status,impact,machineName)
+			v = Service.add_new_service(serviceID,name,status,impact,machineID)
 			if u.services:
 				u.services.append(v)
 				u.service_hold = serviceID
@@ -910,8 +923,8 @@ class PostJSONGraphHandler(Handler,FacebookHandler):
 				name = value[i]['name']
 				status = value[i]['status']
 				impact = value[i]['impact']
-				machineName = value[i]['machineName']
-				w = Service.add_new_service(int(serviceID),name,status,int(impact),machineName)
+				machineID = value[i]['machineID']
+				w = Service.add_new_service(int(serviceID),name,status,int(impact),machineID)
 				if uw.services:
 					uw.services.append(w)
 					uw.service_hold = serviceID
@@ -980,6 +993,10 @@ class AddStepHandler(Handler,FacebookHandler):
 		startTurn = int(self.request.get('startTurn'))
 		endTurn = int(self.request.get('endTurn'))
 		solType = self.request.get('solType')
+
+		#require cve_id according to its cwe_id
+		cve_id = str(self.request.get('cve_id'))
+
 		cost = int(self.request.get('cost'))
 		fromCity = int(self.request.get('from'))
 		toCity = int(self.request.get('to'))
@@ -993,6 +1010,7 @@ class AddStepHandler(Handler,FacebookHandler):
 		#1 generate waypoint report
 		#generate report when step is added
 		graph = Graph.query().filter(Graph.graphID == waypoint.mapID).get()
+		owner_id = graph.owner_id
 		if graph:
 			owner_id = graph.owner_id
 			graph_id = graph.graphID
@@ -1042,7 +1060,39 @@ class AddStepHandler(Handler,FacebookHandler):
 			avg_total_impact = total_impact
 			new_map_report = MapReport.add_new_map_report(mapID,play_count,score,avg_score,total_turn,avg_total_turn,total_impact,avg_total_impact,owner_id,graph_id)
 			new_map_report.put()
-		self.write("successfully update step")
+
+		#sol = SolTypeReport.query().filter(SolTypeReport.mapID == mapID).get()
+		cwe_name = solType
+		#query path name with pathID to get it cve_id
+		"""
+		if sol:
+			#doesn't work?
+			#	solution_object.put()
+			#add new solution
+			x = Solution.add_new_solution(cve_id=cve_id,cwe_name=cwe_name,from_map=mapID)
+			sol.solutions.append(x)
+			sol.solType_counter = sol.solType_counter + 1
+			sol.put()
+		else:
+		"""
+			#first time solTypeReport
+		w = SolTypeReport.query().filter(SolTypeReport.mapID == mapID ,SolTypeReport.cve_id == cve_id).get()
+		if w:
+			w.counting = w.counting + 1
+		else:
+			w = SolTypeReport.add_new_soltype(owner_id,mapID,cve_id,cwe_name)
+		w.put()
+
+			#put first solution 
+		
+		#qry = SolTypeReport.query().filter(SolTypeReport.solutions.cve_id==str(cve_id)).get()
+		#qry1 = SolTypeReport.query().filter(SolTypeReport.solutions.cve_id==str(cve_id)).counting
+
+		#qry.solutions.counting = 
+		#qry.solutions.count = qry.solutions.count + 1
+		#q_count =
+		#qry.put() 	
+		self.write("success")
 		## working here ##
 
 class CreateDummyUserHandler(Handler,FacebookHandler):
@@ -1067,9 +1117,11 @@ class OverallReportHandler(Handler,FacebookHandler):
 		graphs = Graph.query().filter(Graph.owner_id == user.user_id).order(-Graph.graphID)
 		waypoint_reports = WaypointReport.query().filter(WaypointReport.owner_id == user.user_id).fetch()
 		map_reports = MapReport.query().filter(MapReport.owner_id == user.user_id).fetch()
+		soltype_reports = SolTypeReport.query().filter(SolTypeReport.owner_id == user.user_id).order(-SolTypeReport.counting).fetch()
 		data['waypoint_reports'] = waypoint_reports
 		data['map_reports'] = map_reports		
 		data['graphs'] = graphs
+		data['soltype_reports'] = soltype_reports
 		data['url'] = "report"
 		self.render("/page/report.html",**data)
 
@@ -1260,7 +1312,8 @@ app = webapp2.WSGIApplication([
 	('/player-regis',PlayerRegisterHandler),
 	('/player-login',PlayerLoginHandler),
 	('/api',APIHandler),
-	('/post_graph_v2',post_graph_v2Handler)
+	('/post_graph_v2',post_graph_v2Handler),
+	('/graph-profile',GraphProfileHandler)
 
 	
 	#('/updateGraph',UpdateJSONGraphHandler)
@@ -1321,15 +1374,15 @@ class Service(ndb.Model):
 	name=ndb.StringProperty()
 	status=ndb.StringProperty()
 	impact=ndb.IntegerProperty()
-	machineName=ndb.StringProperty()
+	machineID=ndb.IntegerProperty()
 	
 	@classmethod
-	def add_new_service(cls,serviceID,name,status,impact,machineName):
+	def add_new_service(cls,serviceID,name,status,impact,machineID):
 		return Service(		serviceID 	= 	serviceID,
 							name 		= 	name,
 							status 		=	status,
 							impact 		= 	impact,
-							machineName	=	machineName)
+							machineID	=	machineID)
 
 class Machine(ndb.Model):
 	machineID=ndb.IntegerProperty(required=True)
@@ -1540,6 +1593,33 @@ class MapReport(ndb.Model):
 								avg_total_impact = avg_total_impact,
 								graph_id = graph_id,
 								owner_id = owner_id)
+
+class Solution(ndb.Model):
+	cve_id = ndb.StringProperty(required=True)
+	cwe_name = ndb.StringProperty(required=True)
+	from_map = ndb.IntegerProperty(required=True)
+	counting = ndb.IntegerProperty(default=0)
+
+	@classmethod
+	def add_new_solution(cls,solution_id,cve_id,cwe_name,from_map):
+		return Solution( solution_id=solution_id,cve_id=cve_id,cwe_name=cwe_name,from_map=from_map,counting=1)
+
+class SolTypeReport(ndb.Model):
+	owner_id = ndb.IntegerProperty(required=True)
+	mapID = ndb.IntegerProperty(required=True)
+	cve_id = ndb.StringProperty(required=True)
+	cwe_name = ndb.StringProperty(required=True)
+	counting = ndb.IntegerProperty(default=0)
+
+	@classmethod
+	def add_new_soltype(cls,owner_id,mapID,cve_id,cwe_name):
+		return SolTypeReport( 	owner_id = owner_id, 
+								mapID = mapID,
+								cve_id = cve_id,
+								cwe_name = cwe_name,
+								counting = 1)
+
+
 
 #class WayPointSummary(ndb.Model): -> just a list of step!
 

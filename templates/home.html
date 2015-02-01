@@ -39,6 +39,8 @@
 	<link rel="stylesheet" type="text/css" href="/static/js/sweetalert/lib/sweet-alert.css" />
 	<link rel="stylesheet" type="text/css" href="/static/custom.css" />
 
+
+
 </head>
 <body>
 	
@@ -46,40 +48,91 @@
 	{% if user %}
 		<div class="dashboard-wrapper">
 			<div class="dashboard-main">
+			 	<div style="display:none" class="loading-img">
+			<img src="/static/images/ajax-loader.gif"></img>
+		</div> 
 				{% include "partial/dashboard-menu.html" %}
 		{% block bodycontent %}
 			<div id="home-content" class="container-fluid">
 				<div class="col-md-12">
 		          <ul class='nav nav-tabs'>
-		            <li class='active'><a href='#graph'>Available Graph</a></li>
-		            <li><a href='#manage-graph'>Manage Graph</a></li>
-		            <li><a href='#statistics'>Statistics</a></li>
+		            <li class='active'><a href='#graph'>Manage Graph</a></li>
+		            <li><a href='#manage-graph'>History</a></li>
+		            <!--<li><a href='#statistics'>Statistics</a></li>-->
 		          </ul>
 			
 					<div class='tab-content'>
 						<div class='tab-pane fade in active' id='graph'>
+						<br/>
+<div class="row">
+	<div class="col-md-2">
+	<button type="button" class="btn btn-primary text-center graph-manage-button" id="create-graph-button" data-toggle="modal" data-target="#addNewGraph">
+	  	<i class="glyphicon glyphicon-plus"></i><br/>
+	  	Add New Graph
+	</button>
+	</div>
+</div>
+<br/>
+
+<!-- Modal -->
+<div class="modal fade" id="addNewGraph" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  
+  <div class="modal-dialog modal-vertical-centered">
+
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Add New Graph</h4>
+
+      </div>
+
+      <div id="add-graph-modal" class="modal-body" id="add-graph-modal" >
+<form id="add-new-graph-form" method="post" action="/create-graph">
+	<div class="form-group">
+		<label for="graph-name">Choose name for your new graph</label>
+		<input name="graph-name" class="form-control" id="graph-name" placeholder="Name of your new graph">
+<!-- working here -->
+		<input name="api_key" value="{{ user.APIkey }}" class="hidden">
+	</div>
+</form>
+      </div>
+      <div class="modal-footer">
+
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button id="add-graph-submit" type="button" class="btn btn-primary">Create New Graph</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 							{% if graphs %}
 							<div class="alert alert-info" role="alert">
 								You have created {{ user.graph_created }} graph(s).
 							</div>
-							<table class="table table-striped table-hover">
+							<h2>Avaiable Graphs</h2>
+							<table class="text-center table table-striped table-hover">
 								
 								<tr>
 									<td>ID#</td>
 									<td>Name</td>
-									<td>number of paths</td>
-									<td>number of machines</td>
-									<td>number of services</td>
+									<td>Number of paths</td>
+									<td>Number of machines</td>
+									<td>Number of services</td>
+									<td>Edit</td>
+									<td>Delete</td>
 								</tr>
 								
 								{% for graph in graphs %}
 								
 									<tr>
 										<td>{{ graph.graphID }}</td>
-										<td><a href="#">{{ graph.name }}</a></td>
+										<td><a href="/graph-profile?id={{graph.graphID}}">{{ graph.name }}</a></td>
 										<td>{{ graph.path_hold }}</td>
 										<td>{{ graph.machine_hold }}</td>
-										<td>{{ graph.service_hold }}</td>												
+										<td>{{ graph.service_hold }}</td>											
+										<td><a href="/edit-graph?id={{graph.graphID}}"><i class="glyphicon glyphicon-edit"></i></a></td>
+										<td><a href="/delete-graph?id={{graph.graphID}}"><i class="glyphicon glyphicon-remove"></i></a></td>											
 									</tr>
 								
 								{% endfor %}
@@ -90,15 +143,21 @@
 							{% endif %}
 						</div>
 						<div class='tab-pane fade' id='manage-graph'>
-							<div class="alert alert-danger" role="alert">Under Construction!
+							<div class="manage-graph-panel">
+<!-- Button trigger modal -->
+							
 							</div>
 						</div>
+						<!--
 						<div class='tab-pane fade' id='statistics'>
 							<div class="alert alert-danger" role="alert">Under Construction!
 							</div>
 						</div>
+						-->
 					</div>
+
 				</div>
+
 			</div>
 		{% endblock %}
 	{% else %}
@@ -111,17 +170,22 @@
 		</div>
 
 
+
+
 	</div>
 </body>
 
 <script src="/static/dashboard.js"></script>
 <script src='/static/js/bootstrap.min.js'></script>
 <script>
+
   $(function() {
     $('.nav-tabs a').click(function (e) {
       e.preventDefault();
       $(this).tab('show');
     });
   });
+
+
 </script>
 </body>

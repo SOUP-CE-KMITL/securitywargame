@@ -66,6 +66,17 @@ indexes:
   - name: submited
     direction: desc
 
+- kind: SolTypeReport
+  properties:
+  - name: owner_id
+  - name: counting
+
+- kind: SolTypeReport
+  properties:
+  - name: owner_id
+  - name: counting
+    direction: desc
+
 - kind: Temperature
   properties:
   - name: from_sensor

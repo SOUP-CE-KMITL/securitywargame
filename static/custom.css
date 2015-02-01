@@ -21,10 +21,24 @@
 }
 
 .nav .dropdown-menu {
-	z-index:9999;
+	z-index:150;
 
 }
 
 .panel {
 	margin:10px;
+}
+
+.modal-vertical-centered {
+	transform: translate(0, 50%) !important;
+	-ms-transform: translate(0, 50%) !important; /* IE 9 */
+	-webkit-transform: translate(0, 50%) !important; /* Safari and Chrome */
+}
+
+.modal-dialog {
+	z-index:1500;
+}
+
+.tab-content {
+background-color:#eee;	
 }

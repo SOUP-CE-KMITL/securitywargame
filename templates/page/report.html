@@ -82,8 +82,33 @@
 	{% endif %}							
 {% endfor %}	
 				</table>
+
+<h3>CVE summerize</h3>
+				<table class="text-center table table-bordered">
+
+<tr>
+	<td>CVE ID</td>
+	<td>CWE Name</td>
+	<td>Times</td>
+</tr>
+
+
+
+{% for soltype_report in soltype_reports %} 
+	{% if soltype_report.mapID == graph.graphID %}
+<tr>
+	<td>{{ soltype_report.cve_id}}</td>
+	<td>{{ soltype_report.cwe_name}}</td>
+	<td>{{ soltype_report.counting}}</td>
+</tr>
+	{% endif %}
+{% endfor %}
+
+				</table>				
 			</div>
 		</div>
+
+
 		{% endfor %}
 
 	</div>

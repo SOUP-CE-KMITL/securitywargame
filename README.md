@@ -1,3 +1,16 @@
+### report update-cve summary<br/>
+
+http://puu.sh/fl2G7/a0a4df2dba.jpg<br/>
+
+note -> /add-step will request one more parameter -> 'cve_id'<br/>
+
+### update some UI but still in text-mode
+### working in progress...
+### bring back machineID
+polish graph profile<br/>
+
+http://puu.sh/fksKL/ff11394e59.jpg
+
 ### report update
 /overall-report <br/>
 after login with admin account

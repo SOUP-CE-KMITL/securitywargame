@@ -1,0 +1,111 @@
+{% extends "home.html" %}
+{% block bodycontent %}	
+
+	<div class="container-fluid">
+
+{% if graph %}
+<div class="panel panel-primary">
+  <!-- Default panel contents -->
+  <div class="text-center panel-heading"><h3>Machines</h3></div>
+  <div class="panel-body">
+    <p>List of Machines</p>
+  </div>
+
+  <!-- Table -->
+	<table class="text-center table table-bordered table-hover">
+		<tr>
+			<td>ID <i class="glyphicon glyphicon-star"></i></td>
+			<td>Name <i class="glyphicon glyphicon-asterisk"></i></td>
+			<td>Status <i class="glyphicon glyphicon-check"></i></td>
+			<td>Impact <i class="glyphicon glyphicon-stats"></i></td>
+		</tr>
+		{% for machine in graph.machines %}
+		<tr>
+			<td>{{ machine.machineID }}</td>
+			<td>{{ machine.name }}</td>
+			<td>{{ machine.status }}</td>
+			<td>{{ machine.impact }}</td>
+		</tr>		
+		{% endfor %}
+	</table>
+</div>
+
+<div class="panel panel-primary">
+  <!-- Default panel contents -->
+  <div class="text-center  panel-heading"><h3>Services</h3></div>
+  <div class="panel-body">
+    <p>List of services</p>
+  </div>
+
+  <!-- Table -->
+	<table class="text-center table table-bordered table-hover">
+		<tr>
+			<td>ID <i class="glyphicon glyphicon-star"></i></td>
+			<td>Name <i class="glyphicon glyphicon-asterisk"></i></td>
+			<td>Status <i class="glyphicon glyphicon-check"></i></td>
+			<td>Impact <i class="glyphicon glyphicon-stats"></i></td>
+			<td>MachineID</td>
+		</tr>
+		{% for service in graph.services %}
+		<tr>
+			<td>{{ service.serviceID }}</td>
+			<td>{{ service.name }}</td>
+			<td>{{ service.status }}</td>
+			<td>{{ service.impact }}</td>
+			<td>{{ service.machineID }}</td>
+		</tr>		
+		{% endfor %}
+	</table>
+</div>
+
+<div class="panel panel-primary">
+  <!-- Default panel contents -->
+  <div class="text-center  panel-heading"><h3>Paths <i class="glyphicon glyphicon-road"></i></h3></div>
+  <div class="panel-body">
+    <p>List of Paths</p>
+  </div>
+
+  <!-- Table -->
+	<table class="text-center table table-bordered table-hover">
+		<tr>
+			<td>ID <i class="glyphicon glyphicon-star"></i></td>
+			<td>Name <i class="glyphicon glyphicon-asterisk"></i></td>
+			<td>Status <i class="glyphicon glyphicon-check"></i></td>
+			<td>Source <i class="glyphicon glyphicon-home"></i></td>
+			<td>Destination <i class="glyphicon glyphicon-flag"></i></td>
+			<td>Confidential Impact</td>
+			<td>Integrity Impact</td>
+			<td>Availability Impact</td>
+			<td>Access Complexity</td>
+			<td>Gain Access</td>
+			<td>Authentication</td>
+		</tr>
+		{% for path in graph.paths %}
+		<tr>
+			<td>{{ path.pathID }}</td>
+			<td>{{ path.name }}</td>
+			<td>{{ path.status }}</td>
+			<td>{{ path.src }}</td>
+			<td>{{ path.dest}}</td>
+			<td>{{ path.confidentiality_impact }}</td>
+			<td>{{ path.integrity_impact }}</td>
+			<td>{{ path.availability_impact }}</td>
+			<td>{{ path.access_complexity }}</td>
+			<td>{{ path.gained_access }}</td>
+			<td>{{ path.authentication }}</td>
+		</tr>		
+		{% endfor %}
+	</table>
+</div>
+
+{% endif %}	
+	</div>
+
+
+
+
+{% endblock %}
+
+
+
+
