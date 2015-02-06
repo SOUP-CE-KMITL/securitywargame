@@ -6,10 +6,21 @@ QueueList.Init = function(parent){
 	QueueList.names = [];
 	QueueList.remTurns = [];
 	var g = new createjs.Graphics();
-	g.f("rgba(0,0,0,0.5)").rr(0, 0, 100, 150, 15).ef();
+	g.f("rgba(0,0,0,0.5)").rr(0, 0, 130, 400, 15).ef();
 	QueueList.container.addChild(new createjs.Shape(g));
 	QueueList.container.y = 100;
+	QueueList.container.x = -100;
 	parent.addChild(QueueList.container);
+
+	QueueList.container.on("mouseover", function(){
+		createjs.Tween.get(QueueList.container)
+			.to({"x":0}, 200);
+	}, this);
+
+	QueueList.container.on("mouseout", function(){
+		createjs.Tween.get(QueueList.container)
+			.to({"x":-100}, 200);
+	}, this);
 }
 
 QueueList.Add = function(text, turn){
@@ -21,12 +32,6 @@ QueueList.Add = function(text, turn){
 	num.x = 100;
 	QueueList.remTurns.push(num);
 	QueueList.container.addChild(num);
-
-	PlayScene.activeLevel += 1;
-	PlayScene.activeLevelText.text = PlayScene.activeLevel;
-	typeof(PlayScene.activeLevelText.color);
-	//PlayScene.activeLevelText.color.charAt(2) = PlayScene.activeLevelText.color.charAt(2)-1;
-	//PlayScene.activeLevelText.color.charAt(3) = PlayScene.activeLevelText.color.charAt(3)+1;
 
 	var a=false;
 	for(var i=0; i<QueueList.names.length; i++){

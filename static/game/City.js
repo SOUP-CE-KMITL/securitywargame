@@ -14,12 +14,12 @@ function City(machine, paths){
 		}
 	}
 
-	/*for(var i=0; i<PlayScene.graph.services.length; i++){
+	for(var i=0; i<PlayScene.graph.services.length; i++){
 		var a = PlayScene.graph.services[i];
 		if(a.machineID==this.cityID){
 			this.services.push(a);
 		}
-	}*/
+	}
 }
 
 City.prototype.Draw = function(parent, x, y){
@@ -56,11 +56,22 @@ City.prototype.Draw = function(parent, x, y){
 	}else if(this.machine.status=="ready"){
 		this.sprite.gotoAndPlay("level"+ (Math.ceil(this.to.length/2)));
 	}
+
+	this.sprite.on("mouseover", function(e){
+		createjs.Tween.get(this.sprite)
+			.to({"scaleX":0.85, "scaleY":0.85}, 250);
+	}, this);
+
+	this.sprite.on("mouseout", function(e){
+		createjs.Tween.get(this.sprite)
+			.to({"scaleX":.75, "scaleY":.75}, 250);
+	}, this);
+
 };
 
 City.prototype.IsConnect = function(city){
 	for (var i=0; i<this.to.length; i++){
-		if(this.to[i]==city.machine && city.machine!=this.machine){
+		if(this.to[i]==city.machine.machineID && city.machine.machineID!=this.machine.machineID){
 			return true;
 		}
 	}
@@ -155,14 +166,12 @@ City.ShowCityInfo=function(event){
 	var t = event.target;
 	var info = "";
 	info = "name: "+t.ref.machine.name+"\n"+
-				 "size: "+t.ref.to.length+"\n"+
+				 "size: "+t.ref.services.length+"\n"+
 				 "status: "+t.ref.machine.status+"\n";
 	PlayScene.inspecWin.stat.text = info;
 }
 
 City.prototype.Spread=function(){
-	console.log(this.to);
-	console.log(PlayScene.graph.machines)
 	for(var j=0; j<this.to.length; j++){
 		var c = getCityById(this.to[j])
 		if(c.machine.status=="hidden"){

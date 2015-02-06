@@ -12,17 +12,30 @@ WindowManager.NewWindow = function(parent,x,y,w,h){
 }
 
 function GUIWindow(parent, x, y, w, h){
+	this.parent = parent;
 	var g = new createjs.Graphics();
 	g.s("#000000").f("#EEEEEE").r(0,0,w,h).ef().es();
 	this.bg = new createjs.Shape(g);
+	g = new createjs.Graphics();
+	g.f("#000").r(-x,-y,1024,768).ef();
+	this.block = new createjs.Shape(g);
+	this.block.alpha = 0.5;
 	this.winGroup = new createjs.Container();
+	this.winGroup.addChild(this.block);
 	this.winGroup.addChild(this.bg);
 	parent.addChild(this.winGroup);
 	this.items = [];
 	this.winGroup.x = x;
 	this.winGroup.y = y;
+	this.block.on("click", function(e){
+		this.RemoveWindow()
+	}, this);
 }
 
+GUIWindow.prototype.RemoveWindow=function(){
+	this.parent.removeChild(this.winGroup)
+	delete this;
+}
 GUIWindow.prototype.NewLabel=function(msg,x,y){
 	var l = new createjs.Text(msg, "18px arial", "#000000");
 	l.x = x;
@@ -35,7 +48,7 @@ GUIWindow.prototype.NewLabel=function(msg,x,y){
 GUIWindow.prototype.NewButton=function(label, x, y, w, h, callback){
 	var b = new createjs.Container();
 	var g = new createjs.Graphics();
-	g.s("#00000").f("#1111BB").r(0,0,w,h).ef().es();
+	g.s("#000").f("#EEE").r(0,0,w,h).ef().es();
 	g = new createjs.Shape(g);
 	b.addChild(g);
 	var l = new createjs.Text(label, "18px arial", "#000000");
@@ -46,8 +59,16 @@ GUIWindow.prototype.NewButton=function(label, x, y, w, h, callback){
 	b.addChild(l);
 	b.x = x;
 	b.y = y;
+	b.l = l;
+	b.g = g;
 	this.winGroup.addChild(b);
 	b.addEventListener("click", callback);
+	b.on("mouseover", function(e){
+		g.graphics.clear().s("#000").f("#CCC").r(0,0,w,h).ef().es();
+	}, b)
+	b.on("mouseout", function(e){
+		g.graphics.clear().s("#000").f("#EEE").r(0,0,w,h).ef().es();
+	}, b)
 	this.items.push(b);
 }
 

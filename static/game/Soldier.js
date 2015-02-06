@@ -16,7 +16,6 @@ function Soldier(sol){
 	this.edge = sol;
 	this.vector = sol.gained_access;
 	this.level = sol.access_complexity;
-	this.keyheld = 0;
 	this.authen = sol.authentication;
 	this.confident = sol.confidentiality_impact;
 	this.integrity = sol.integrity_impact;
@@ -69,11 +68,11 @@ Soldier.Action = function (e){
 		return;
 	}
 
-	if( t.ref.keyheld < t.ref.authen-1){
+	if( t.ref.edge.keyHeld < t.ref.authen){
 		var atkObj = {
 			"start": parseInt(PlayScene.turnText.text, 10),
 			"soldier": {
-				forPath: t.ref,
+				forPath: t.ref.edge,
 				name: undefined,
 				city: getCityById(getServiceById(t.ref.to).machineID),
 				level: 1,
@@ -100,7 +99,7 @@ Soldier.Action = function (e){
 		});
 		w1.NewImgButton("resource/icon/Icon-Phishing.png", 200, 100, function(){
 			PlayScene.guiLayer.removeChild(w1.winGroup);
-			atkObj.soldier.name = "Hypnotist";
+			atkObj.soldier.name = "Locksmith";
 			atkObj.soldier.op = "Phishing P/W crack";
 			atkObj.dur = 3;
 			QueueList.Add(atkObj.soldier.name, atkObj.dur);
@@ -134,11 +133,12 @@ Soldier.Action = function (e){
 
 Soldier.ShowInfo = function(e){
 	var t=e.target;
+	console.log(t);
 	PlayScene.inspecWin.stat.text = 
 		"name: "+t.ref.name+"\n"+
 		"range: "+t.ref.vector+"\n"+
 		"level: "+t.ref.level+"\n"+
-		"key: "+t.ref.keyheld+"/"+(t.ref.authen-1)+"\n"+
+		"key: "+t.ref.edge.keyHeld+"/"+(t.ref.authen)+"\n"+
 		"occupiable: "+t.ref.confident+"\n"+
 		"capacity: "+t.ref.integrity+"\n"+
 		"damage: "+t.ref.availability+"\n";

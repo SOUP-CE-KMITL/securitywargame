@@ -28,6 +28,7 @@ MapDrawer.prototype.Format = function(){
 	for(var i=0; i<this.graph.paths.length; i++){
 		var p = this.graph.paths[i];
 		p.status = p.status || "unused";
+		p.keyHeld = 0;
 	}
 }
 
@@ -42,13 +43,13 @@ MapDrawer.prototype.DrawWorldMap=function(layer){
 	var cities = [];
 	for(var i=0; i<this.graph.machines.length; i++){
 		cities[i] = new City(this.graph.machines[i], this.graph.paths);
-		cities[i].Draw(layer, 512, 334);
+		cities[i].Draw(layer, 512, 334+i);
 	}
 	PlayScene.cities = cities;
 
 	//Draw with Force-directed algorithm. 
 	//Do iterations. Mostly 100 times is enough.
-	for(var i=0; i<1; i++){
+	for(var i=0; i<100; i++){
 		//calculat repulsive force
 		for(var j=0; j<cities.length; j++){
 			cities[j].disp = new Vector(0,0);
@@ -94,19 +95,19 @@ MapDrawer.prototype.DrawWorldMap=function(layer){
 	}
 
 	//
-	cities[0].machine.status = "found";
-	cities[0].sprite.visible=true;
 
-	for(var i=0; i<this.graph.paths.length; i++){
-		var a = getCityById(getServiceById(this.graph.paths[i].src).machineID)
-		if(a!=null) a=a.sprite;
-		var b = getCityById(getServiceById(this.graph.paths[i].dest).machineID).sprite;
-		if(b!=null) b=b.sprite;
-		if(a!=null && b!=null && a.visible==true && b.visible==true){
-			var g = createjs.Graphics;
-			var road = new g().beginStroke("#FFFFFF").moveTo(a.x, a.y).lineTo(b.x, b.y).endStroke();
-			var shape = new createjs.Shape(road);
-			layer.addChild(shape);
+	for(var i=0; i<cities.length; i++){
+		var a = cities[i];
+		for(var j=0; j<a.to; j++){
+			var b = cities[j];
+			a = a.sprite;
+			b = b.sprite;
+			if(a.visible && b.visible){
+				var g = createjs.Graphics;
+				var road = new g().beginStroke("#FFFFFF").moveTo(a.x, a.y).lineTo(b.x, b.y).endStroke();
+				var shape = new createjs.Shape(road);
+				layer.addChild(shape);
+			}
 		}
 	}
 

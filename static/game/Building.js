@@ -39,13 +39,24 @@ Building.prototype.Draw=function(parent, x, y){
 	this.sprite.y = y;
 	parent.addChild(this.sprite);
 	this.sprite.gotoAndStop("default");
+
+	this.sprite.on("mouseover", function(e){
+		createjs.Tween.get(this.sprite)
+			.to({"scaleX":0.35, "scaleY":0.35}, 250);
+	}, this);
+
+	this.sprite.on("mouseout", function(e){
+		createjs.Tween.get(this.sprite)
+			.to({"scaleX":.25, "scaleY":.25}, 250);
+	}, this);
 };
 
 Building.ShowInfo=function(event){
 	var t = event.target;
 	var info = "name: "+t.ref.sName+"\n"+
 	           "city: "+t.ref.city.name+"\n"+
-	           "status: "+t.ref.service.status+"\n";
+	           "status: "+t.ref.service.status+"\n"+
+	           "captured: "+t.ref.service.captured+"\n";
 	PlayScene.inspecWin.stat.text = info;
 }
 

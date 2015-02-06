@@ -76,9 +76,19 @@ PlayScene.prototype.PreloadComplete = function(event){
 	this.comment.x = 10;
 	this.comment.y = 558;
 
-	this.detectIcon = new createjs.Bitmap("resource/icon/DetectIcon.png");
-	this.detectIcon.x = 487;
-	this.detectIcon.y = 0;
+	var detectSheet = new createjs.SpriteSheet({
+		"images": ["resource/icon/icon-detect-guage.png"],
+		"frames": {
+			"width": 64,
+			"height": 64,
+			"regX": 32,
+			"regY": 32,
+			"count": 9
+		}
+	});
+	this.detectIcon = new createjs.Sprite(detectSheet);
+	this.detectIcon.x = 512;
+	this.detectIcon.y = 32;
 	this.guiLayer.addChild(this.detectIcon);
 	this.detectIcon.addEventListener("mouseover", function(){PlayScene.comment.text="Detection level."});
 
@@ -121,10 +131,11 @@ PlayScene.prototype.PreloadComplete = function(event){
 	QueueList.Init(this.guiLayer);
 
 	this.activeLevel = 0;
-	this.activeLevelText = new createjs.Text("0", "18px arial", "#0F0");
+	this.activeLevelText = new createjs.Text("0", "18px arial", "#FFF");
 	this.guiLayer.addChild(this.activeLevelText);
 	this.activeLevelText.x = 512;
-	this.activeLevelText.y = 10;
+	this.activeLevelText.y = 18;
+	this.activeLevelText.textAlign = "center";
 
 	this.moneyIcon = new createjs.Bitmap("resource/icon/MoneyIcon.png")
 	this.guiLayer.addChild(this.moneyIcon);
@@ -155,6 +166,7 @@ PlayScene.prototype.PreloadComplete = function(event){
 	PlayScene.activeLevel = 0;
 	PlayScene.score = this.score;
 	PlayScene.scoreText = this.scoreText;
+	PlayScene.detectIcon = this.detectIcon;
 
 	this.Show(SceneManager.stage, SceneManager.params);
 	SceneManager.currentScene = this;
@@ -203,43 +215,60 @@ PlayScene.Launch = function(e){
 
 	var p = PlayScene;
 	p.turnText.text = parseInt(p.turnText.text, 10)+1;
+
+	if(p.atkQueue.length == 0){
+		PlayScene.activeLevel -= 1;
+	}
+
+	/*for (var i=0; i<p.atkQueue.length; i++){		
+		var s = p.atkQueue[i].soldier;
+		if(s.name=="Picklocker"){
+			PlayScene.activeLevel +=2;
+		}else{
+			PlayScene.activeLevel += 1;
+		}
+	}*/
+
 	for (var i=0; i<p.atkQueue.length; i++){
 		if (p.atkQueue[i].start + p.atkQueue[i].dur == parseInt(p.turnText.text, 10)){
 			var sol = p.atkQueue[i].soldier;
 			if(sol.name=="explorer"){
+				PlayScene.activeLevel += 1;
 				var dstMachine=sol.city.machine;
 				dstMachine.status="ready";
-				i-=1;
 				console.log(dstMachine);
-				sol.city.sprite.gotoAndPlay("level"+ (Math.ceil(sol.city.to.length/2)));
+				sol.city.sprite.gotoAndPlay("level"+ (Math.ceil(sol.city.services.length/2)));
 				sol.Erase();
 			}else if(sol.name=="occupier" || sol.name=="occupy"){
+				PlayScene.activeLevel += 1;
 				if(sol.integrity<2){
 					var b = getServiceById(sol.city);
 					b.captured = true;
 					c = getCityById(b.machineID);
 				}else{
 					var c = getCityById(sol.to);
-					for(var i=0; i<c.services.length; i++){
-						getServiceById(c.services[i]).captured = true;
+					for(var  j=0; j<c.services.length; j++){
+						c.services[j].captured = true;
 					}
 				}
 				c.Spread();
 			}else if(sol.name=="Picklocker"){
+				PlayScene.activeLevel += 3;
 				var r = Math.random();
-				if (r < 0.25){
-					sol.forPath.keyheld += 1;
+				if (r < 0.5){
+					sol.forPath.keyHeld += 1;
 					PlayScene.comment.text = "Picklocking success.";
 				}else{
 					PlayScene.comment.text = "Picklocking fails.";
 				}
-			}else if(sol.name=="Hypnotist"){
+			}else if(sol.name=="Locksmith"){
+				PlayScene.activeLevel += 1;
 				var r = Math.random();
-				if (r < 0.45){
-					sol.forPath.keyheld += 1;
-					PlayScene.comment.text = "Hypnotist success.";
+				if (r < 0.9){
+					sol.forPath.keyHeld += 1;
+					PlayScene.comment.text = "Key coppied.";
 				}else{
-					PlayScene.comment.text = "Hypnotist fails.";
+					PlayScene.comment.text = "Can't coppy the key.";
 				}
 			}else{ //attacker
 				var dstService = getServiceById(sol.edge.dest);
@@ -248,13 +277,13 @@ PlayScene.Launch = function(e){
 				
 				//Occupy
 				if(sol.integrity > 1){
-					var w1 = WindowManager.NewWindow(PlayScene.guiLayer, 512, 384, 200, 100);
-					w1.NewLabel("Do you want to occupy "+sol.edge.dest.name, 100, 20);
-					w1.NewButton("yes", 10, 50, 80, 60, function(){
+					var w1 = WindowManager.NewWindow(PlayScene.guiLayer, 387, 300, 250, 100);
+					w1.NewLabel("Do you want to occupy "+ SERVICE_DICT[getServiceById(sol.edge.dest).name], 125, 20);
+					w1.NewButton("yes", 35, 60, 80, 30, function(){
 						PlayScene.guiLayer.removeChild(w1.winGroup);
 						occupy(sol);
 					});
-					w1.NewButton("no", 100, 50, 80, 60, function(){
+					w1.NewButton("no", 125, 60, 80, 30, function(){
 						PlayScene.guiLayer.removeChild(w1.winGroup);
 					});
 				}
@@ -267,24 +296,24 @@ PlayScene.Launch = function(e){
 					var value = sol.confident - im.c;
 					PlayScene.moneyText.text = parseInt(PlayScene.moneyText.text, 10) + value;
 					dstMachine.impact += value*9
-					score += SCORE_SYSTEM.ci[value-1];
+					score += SCORE_SYSTEM.ci[value];
 				}
 				if(im.i < sol.integrity){
 					var value = sol.confident - im.i;
 					PlayScene.moneyText.text = parseInt(PlayScene.moneyText.text, 10) + value;
 					dstMachine.impact += value*3
-					score += SCORE_SYSTEM.ii[value-1];
+					score += SCORE_SYSTEM.ii[value];
 				}
 				if(im.a < sol.availability){
 					var value = sol.confident - im.a;
 					PlayScene.moneyText.text = parseInt(PlayScene.moneyText.text, 10) + value;
 					dstMachine.impact += value
-					score += SCORE_SYSTEM.ai[value-1];
+					score += SCORE_SYSTEM.ai[value];
 				}
 
-				score+= SCORE_SYSTEM.av[sol.vector-1];
-				score+= SCORE_SYSTEM.ac[sol.level-1];
-				score+= SCORE_SYSTEM.au[sol.authen-1];
+				score+= SCORE_SYSTEM.av[sol.vector];
+				score+= SCORE_SYSTEM.ac[sol.level];
+				score+= SCORE_SYSTEM.au[sol.authen];
 
 				PlayScene.score += score;
 				PlayScene.scoreText.text = PlayScene.score;
@@ -292,8 +321,14 @@ PlayScene.Launch = function(e){
 
 			//dequeue
 			p.atkQueue.splice(i,1);
+			i--;
 		}
 	}
+
+	if (PlayScene.activeLevel > 8) PlayScene.activeLevel=8;
+	if (PlayScene.activeLevel <= 0) PlayScene.activeLevel=0;
+	PlayScene.activeLevelText.text = PlayScene.activeLevel;
+	PlayScene.detectIcon.gotoAndStop(PlayScene.activeLevel);
 
 	for(var i=0; i<QueueList.names.length; i++){
 		QueueList.remTurns[i].text = QueueList.remTurns[i].text - 1;
@@ -363,16 +398,4 @@ function getCityById(id){
 		}
 	}
 	return null;
-}
-
-var SCORE_SYSTEM = {
-	//accessibility
-	"av": [100, 64, 39],
-	"ac": [35, 61, 71],
-	"au": [45, 56, 70],
-
-	//impact
-	"ci": [0, 27, 66],
-	"ii": [0, 27, 66],
-	"ai": [0, 27, 66]
 }

@@ -1076,7 +1076,7 @@ class AddStepHandler(Handler,FacebookHandler):
 		else:
 		"""
 			#first time solTypeReport
-		w = SolTypeReport.query().filter(SolTypeReport.mapID == mapID ,SolTypeReport.cve_id == cve_id).get()
+		w = SolTypeReport.query().filter(SolTypeReport.mapID == mapID ,SolTypeReport.cve_id == cve_id, SolTypeReport.cwe_name == cwe_name).get()
 		if w:
 			w.counting = w.counting + 1
 		else:

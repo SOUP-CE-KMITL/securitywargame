@@ -2,6 +2,15 @@
 <html>
 	<title>eiei</title>
 	<head>
+		<style>
+			html { 
+			  background: url(/static/images/arch/btg.jpg) no-repeat center center fixed; 
+			  -webkit-background-size: cover;
+			  -moz-background-size: cover;
+			  -o-background-size: cover;
+			  background-size: cover;
+			}
+		</style>
 		<script src="lib/easeljs-0.8.0.min.js"></script>
 		<script src="lib/tweenjs-0.6.0.min.js"></script>
 		<script src="lib/preloadjs-0.6.0.min.js"></script>
@@ -16,6 +25,7 @@
 		<script type="text/javascript" src="ActionPane.js"></script>
 		<script type="text/javascript" src="QueueList.js"></script>
 		<script type="text/javascript" src="GUIWindow.js"></script>
+		<script type="text/javascript" src="Constant.js"></script>
 		<script>
 			//cg from "five-archers@opengameart.org"
 			function init(){
@@ -96,8 +106,13 @@
 			}
 		</script>
 	<body onLoad="init();">
-		<canvas id="demo" width="1024" height="768">
-			ahahahahahah
-		</canvas>
+		
+		<div style='width:1024px; height:768px; margin:0 auto; z-index:0'>
+			<canvas id="demo" width="1024" height="768">
+				Your browser does not support HTML5 canvas.
+			</canvas>
+		</div>
+		
+		
 	</body>
 </html>
