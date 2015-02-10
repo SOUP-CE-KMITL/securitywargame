@@ -998,9 +998,11 @@ class AddStepHandler(Handler,FacebookHandler):
 		cve_id = str(self.request.get('cve_id'))
 
 		cost = int(self.request.get('cost'))
+		# host analysis on this???
 		fromCity = int(self.request.get('from'))
 		toCity = int(self.request.get('to'))
 		pathID = int(self.request.get('pathID'))
+
 		step = Step(startTurn=startTurn, endTurn=endTurn, solType=solType, cost=cost, fromCity=fromCity, toCity=toCity, pathID=pathID)
 		if waypoint.step:
 			waypoint.step.append(step)
@@ -1024,7 +1026,9 @@ class AddStepHandler(Handler,FacebookHandler):
 		total_turn = endTurn - startTurn
 		#no module for calculate impact
 		total_impact = calculate_impact()
+		"""
 
+		"""
 		### query waypoint with user id
 		u = WaypointReport.query().filter(WaypointReport.play_by == play_by).get()
 		if u:
@@ -1033,10 +1037,12 @@ class AddStepHandler(Handler,FacebookHandler):
 			u.total_turn = u.total_turn + total_turn
 			u.total_impact = u.total_impact + total_impact
 			u.play_count = u.play_count + 1
+			u.maximum_impact = u.maximum_impact + 10
 			u.put()
 		else:
 			#create a new one
-			new_waypoint = WaypointReport.add_new_waypoint_report(waypointID,play_by,score,total_turn,total_impact,owner_id,graph_id)
+			maximum_impact = 10
+			new_waypoint = WaypointReport.add_new_waypoint_report(waypointID,play_by,score,total_turn,total_impact,owner_id,graph_id,maximum_impact)
 			new_waypoint.put()
 		#create new map report
 		mapID = waypoint.mapID
@@ -1050,37 +1056,32 @@ class AddStepHandler(Handler,FacebookHandler):
 			v.avg_total_turn = v.total_turn / ( play_count*1.000 )
 			v.total_impact = v.total_impact + total_impact
 			v.avg_total_impact = v.total_impact / ( play_count*1.000 )
+			v.maximum_impact = v.maximum_impact + 10
 			v.put()
 		else:
 			#create a new one
 			#play_count,avg_score,avg_total_turn,avg_total_impact,owner_id,graph_id)
 			play_count = 1
+			maximum_impact = 10
 			avg_score = score
 			avg_total_turn = total_turn
 			avg_total_impact = total_impact
-			new_map_report = MapReport.add_new_map_report(mapID,play_count,score,avg_score,total_turn,avg_total_turn,total_impact,avg_total_impact,owner_id,graph_id)
+			new_map_report = MapReport.add_new_map_report(mapID,play_count,score,avg_score,total_turn,avg_total_turn,total_impact,avg_total_impact,owner_id,graph_id,maximum_impact)
 			new_map_report.put()
 
 		#sol = SolTypeReport.query().filter(SolTypeReport.mapID == mapID).get()
 		cwe_name = solType
 		#query path name with pathID to get it cve_id
-		"""
-		if sol:
-			#doesn't work?
-			#	solution_object.put()
-			#add new solution
-			x = Solution.add_new_solution(cve_id=cve_id,cwe_name=cwe_name,from_map=mapID)
-			sol.solutions.append(x)
-			sol.solType_counter = sol.solType_counter + 1
-			sol.put()
-		else:
-		"""
+		#service_name = str(fromCity)
+		uv = Graph.query().filter(Graph.services.serviceID == fromCity).get()
+		service_name = uv.services[fromCity].name
+		#uv.
 			#first time solTypeReport
-		w = SolTypeReport.query().filter(SolTypeReport.mapID == mapID ,SolTypeReport.cve_id == cve_id, SolTypeReport.cwe_name == cwe_name).get()
+		w = SolTypeReport.query().filter(SolTypeReport.mapID == mapID ,SolTypeReport.cve_id == cve_id,SolTypeReport.service_name == service_name, SolTypeReport.cwe_name == cwe_name).get()
 		if w:
 			w.counting = w.counting + 1
 		else:
-			w = SolTypeReport.add_new_soltype(owner_id,mapID,cve_id,cwe_name)
+			w = SolTypeReport.add_new_soltype(owner_id,mapID,cve_id,cwe_name,service_name)
 		w.put()
 
 			#put first solution 
@@ -1125,6 +1126,7 @@ class OverallReportHandler(Handler,FacebookHandler):
 		data['url'] = "report"
 		self.render("/page/report.html",**data)
 
+#depricated
 class ReportHandler(Handler,FacebookHandler):
 	def get(self):
 		map_id = int(self.request.get('map_id'))
@@ -1554,9 +1556,9 @@ class WaypointReport(ndb.Model):
 	graph_id = ndb.IntegerProperty(required=True)
 	owner_id = ndb.IntegerProperty(required=True)
 	play_count = ndb.IntegerProperty(default=0)
-
+	maximum_impact = ndb.FloatProperty(required=True)
 	@classmethod
-	def add_new_waypoint_report(cls,waypointID,play_by,score,total_turn,total_impact,owner_id,graph_id):
+	def add_new_waypoint_report(cls,waypointID,play_by,score,total_turn,total_impact,owner_id,graph_id,maximum_impact):
 		return WaypointReport(	waypointID = waypointID, 
 								play_by = play_by,
 								score = score,
@@ -1564,7 +1566,8 @@ class WaypointReport(ndb.Model):
 								total_impact = total_impact,
 								graph_id = graph_id,
 								owner_id = owner_id,
-								play_count = 1 )
+								play_count = 1,
+								maximum_impact = maximum_impact )
 
 class MapReport(ndb.Model):
 	mapID = ndb.IntegerProperty(required=True)
@@ -1577,12 +1580,13 @@ class MapReport(ndb.Model):
 	avg_total_turn = ndb.FloatProperty(required=True)
 	total_impact = ndb.IntegerProperty(required=True)
 	avg_total_impact = ndb.FloatProperty(required=True)
+	maximum_impact = ndb.FloatProperty(required=True)
 	# query without exhausted joining
 	graph_id = ndb.IntegerProperty(required=True)
 	owner_id = ndb.IntegerProperty(required=True)
 
 	@classmethod
-	def add_new_map_report(cls,mapID,play_count,score,avg_score,total_turn,avg_total_turn,total_impact,avg_total_impact,owner_id,graph_id):
+	def add_new_map_report(cls,mapID,play_count,score,avg_score,total_turn,avg_total_turn,total_impact,avg_total_impact,owner_id,graph_id,maximum_impact):
 		return MapReport(	mapID = mapID, 
 								play_count = play_count,
 								score = score,
@@ -1592,8 +1596,20 @@ class MapReport(ndb.Model):
 								total_impact = total_impact,
 								avg_total_impact = avg_total_impact,
 								graph_id = graph_id,
-								owner_id = owner_id)
+								owner_id = owner_id,
+								maximum_impact = maximum_impact)
+"""
+class PathReport(ndb.Model):
+	mapID = ndb.IntegerProperty(required=True)
+	graphID = ndb.IntegerProperty(required=True)
+	owner_id = ndb.IntegerProperty(required=True)
+	pathID = ndb.IntegerProperty(required=True)
+	counting = ndb.IntegerProperty(default=0)
 
+	@classmethod
+	def add_new_path_report(cls,mapID,graph_id,owner_id,pathID,counting):
+		return PathReport(mapID=mapID,graph_id=graphID,owner_id=owner_id,pathID=pathID,counting=counting)
+"""
 class Solution(ndb.Model):
 	cve_id = ndb.StringProperty(required=True)
 	cwe_name = ndb.StringProperty(required=True)
@@ -1608,16 +1624,18 @@ class SolTypeReport(ndb.Model):
 	owner_id = ndb.IntegerProperty(required=True)
 	mapID = ndb.IntegerProperty(required=True)
 	cve_id = ndb.StringProperty(required=True)
+	service_name = ndb.StringProperty()
 	cwe_name = ndb.StringProperty(required=True)
 	counting = ndb.IntegerProperty(default=0)
 
 	@classmethod
-	def add_new_soltype(cls,owner_id,mapID,cve_id,cwe_name):
+	def add_new_soltype(cls,owner_id,mapID,cve_id,cwe_name,service_name):
 		return SolTypeReport( 	owner_id = owner_id, 
 								mapID = mapID,
 								cve_id = cve_id,
 								cwe_name = cwe_name,
-								counting = 1)
+								counting = 1,
+								service_name = service_name)
 
 
 

@@ -54,7 +54,14 @@
 	<td>{{ waypoint_report.score }}</td>
 	<td>{{ waypoint_report.play_count }}</td>
 	<td>{{ waypoint_report.total_turn }}</td>
-	<td>{{ waypoint_report.total_impact }}</td>
+	<td><span 
+	{% if waypoint_report.total_impact / waypoint_report.maximum_impact < 0.33 %} 
+	style="color:green" 
+	{% elif waypoint_report.total_impact / waypoint_report.maximum_impact < 0.66 %} 
+	style="color:orange" 
+	{% else %}
+	style="color:red" 
+	{% endif %}>{{ waypoint_report.total_impact }} / {{ waypoint_report.maximum_impact }}</span></td>
 </tr>
 	{% endif %}							
 {% endfor %}
@@ -77,7 +84,14 @@
 	<td>{{ map_report.play_count }}</td>
 	<td>{{ map_report.avg_score|round(2, 'floor') }}</td>
 	<td>{{ map_report.avg_total_turn|round(2, 'floor') }}</td>
-	<td>{{ map_report.avg_total_impact|round(2, 'floor') }}</td>
+	<td><span
+	{% if map_report.total_impact / map_report.maximum_impact > 0.66 %}
+		style="color:red"
+	{% elif map_report.total_impact / map_report.maximum_impact > 0.33 %}
+		style="color:orange"
+	{% else %}
+		style="color:green"
+	{% endif %}> {{ map_report.avg_total_impact|round(2, 'floor') }} / 10</span></td>
 </tr>
 	{% endif %}							
 {% endfor %}	
@@ -88,6 +102,7 @@
 
 <tr>
 	<td>CVE ID</td>
+	<td>Service ID</td>
 	<td>CWE Name</td>
 	<td>Times</td>
 </tr>
@@ -98,6 +113,7 @@
 	{% if soltype_report.mapID == graph.graphID %}
 <tr>
 	<td>{{ soltype_report.cve_id}}</td>
+	<td>{{ soltype_report.service_name}}</td>
 	<td>{{ soltype_report.cwe_name}}</td>
 	<td>{{ soltype_report.counting}}</td>
 </tr>
