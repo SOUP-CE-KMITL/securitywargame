@@ -116,7 +116,7 @@ Soldier.Action = function (e){
 
 	//if(PlayScene.moneyText.text-t.ref.level > 0){
 		var to = getServiceById(t.ref.to)
-		var score = SCORE_SYSTEM.SCORE_SYSTEM.av[t.ref.vector];
+		var score = SCORE_SYSTEM.av[t.ref.vector];
 		score += SCORE_SYSTEM.ac[t.ref.level];
 		score += SCORE_SYSTEM.au[t.ref.authen];
 		score += SCORE_SYSTEM.ai[Math.max(0, t.ref.availability - to.impact.a)];
