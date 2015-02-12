@@ -15,9 +15,9 @@ var SCORE_SYSTEM = {
 
 var SERVICE_DICT = {
 	"os": "HQ",
-	"db": "Quarry",
-	"web": "Web",
-	"unknown": "Lab",
+	"db": "Warehouse",
+	"web": "Trade port",
+	"unknown": "Store",
 	"aaa": "bbb"
 }
 
