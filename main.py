@@ -1128,10 +1128,12 @@ class OverallReportHandler(Handler,FacebookHandler):
 		waypoint_reports = WaypointReport.query().filter(WaypointReport.owner_id == user.user_id).fetch()
 		map_reports = MapReport.query().filter(MapReport.owner_id == user.user_id).fetch()
 		soltype_reports = SolTypeReport.query().filter(SolTypeReport.owner_id == user.user_id).order(-SolTypeReport.counting).fetch()
+		path_reports = PathReport.query().filter(PathReport.owner_id == user.user_id).fetch()
 		data['waypoint_reports'] = waypoint_reports
 		data['map_reports'] = map_reports		
 		data['graphs'] = graphs
 		data['soltype_reports'] = soltype_reports
+		data['path_reports'] = path_reports
 		data['url'] = "report"
 		self.render("/page/report.html",**data)
 
@@ -1650,7 +1652,7 @@ class SolTypeReport(ndb.Model):
 								cwe_name = cwe_name,
 								counting = 1,
 								service_name = service_name,
-								impact = solType_impact)
+								solType_impact = solType_impact)
 
 
 

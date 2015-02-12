@@ -1,14 +1,24 @@
 {% include "partial/forehead.html" %}
-	{% if fb_user %}
-		hello {{ fb_user.displayname }}
-	{% else %}
-		Please Login to play this game!<br/>
-		<fb:login-button size="xlarge" autologoutlink="true" scope="publish_stream,email" ></fb:login-button>
-		<div id="fb-root"></div>
-
-	{% endif %}
-<!-- init facebook authen -->
-
+<div class="hub-wrapper">
+  <div class="hub-header">
+    <div class="hub-header-inner">
+      <img src="/static/images/banner.jpg" />
+    </div>
+  </div>
+  <div class="hub-wrapper-inner text-center">
+    <div class="row">
+      <div class="facebook-login-box ThaiSansLite">
+    	{% if fb_user %}
+    		hello {{ fb_user.displayname }}
+    	{% else %}
+    		<h1>กรุณาเข้าสู่ระบบเพื่อเริ่มเล่นเกม</h1><br/><br/>
+    		<fb:login-button size="xlarge" autologoutlink="true" scope="publish_stream,email" ></fb:login-button>
+    		<div id="fb-root"></div>
+    	{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
 <script>
       window.fbAsyncInit = function() {
         FB.init({appId: '{{ facebook_app_id }}', status: true, cookie: true,

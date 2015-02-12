@@ -1,0 +1,99 @@
+//////////////////////////////////////////////////reset css//////////////////////////////////////////////////
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+
+textarea:focus, input:focus{
+    outline: 0;
+}
+// prevent chrome text hilight
+*:focus {
+    outline: 0;
+}
+///////////////////////////////////////////////////color//////////////////////////////////////////////////////
+@facebook_color: #3b5998;
+@twitter_color: #4099FF;
+@googleplus_color: #d34836;
+@instagram_color: #517fa4;
+@gray_border: #e2e2e2;
+@gray_background: #eaeaea;
+@dashboard_color: #77C5D2;
+@footer_color: #1A1D24;
+@red-menu_color : #EA2D49;
+@warning_color: #f0ad4e;
+@warning-hover_color: #f2cf71;
+@success_color: #5cb85c;
+@info_color: #5bc0de;
+@default-blue_color: #428bca;
+@primary: #428bca;
+@fav_green: #6FC152;
+@bootstrap_purple : ##6F5499;
+@pink_text: ##f9f2f4;
+@red-font: #c7254e;
+//////////////////////////////////////////// bottstrap color ///////////////////////////////////////////////
+@gray-darker:  lighten(#000, 13.5%); // #222
+@gray-dark:    lighten(#000, 20%);   // #333
+@gray:         lighten(#000, 33.5%); // #555
+@gray-light:   lighten(#000, 46.7%); // #777
+@gray-lighter: lighten(#000, 93.5%); // #eee
+/////////////////////////////////////////////////wrapper//////////////////////////////////////////////////////
+
+.hub-wrapper {
+  min-height: 100%;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: inline-block;
+  margin-top:80px;
+}
+
+.hub-wrapper-inner {
+  height: 100%;
+  overflow-y: auto;
+  // margin: 0 auto -51px; negative indent for height of footer and top breadcrumb */
+  //margin-top: 50px;
+  width:80%;
+  margin:0 auto;
+  padding: 0;
+}
+
+
+.hub-header {
+	height:200px;
+	position:fixed;
+	top:0;
+	width:100%;
+	background-color:white;
+
+}
+
+.hub-header-inner {
+	margin:0 auto;
+	width:520px;
+	clear:both;
+	height:200px;
+}
+
+.facebook-login-box {
+	margin-top:200px;
+
+}

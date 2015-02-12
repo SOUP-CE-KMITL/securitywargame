@@ -102,12 +102,11 @@
 
 <tr>
 	<td>CVE ID</td>
-	<td>Service ID</td>
+	<td>Service Name</td>
 	<td>CWE Name</td>
-	<td>Times</td>
+	<td>Total Impact</td>
+	<td>hits</td>
 </tr>
-
-
 
 {% for soltype_report in soltype_reports %} 
 	{% if soltype_report.mapID == graph.graphID %}
@@ -115,15 +114,36 @@
 	<td>{{ soltype_report.cve_id}}</td>
 	<td>{{ soltype_report.service_name}}</td>
 	<td>{{ soltype_report.cwe_name}}</td>
+	<td>{{ soltype_report.solType_impact}} / {{ soltype_report.counting * 9 }}</td>
 	<td>{{ soltype_report.counting}}</td>
 </tr>
 	{% endif %}
 {% endfor %}
+				</table>
+<h3>Path summerize</h3>				
+				<table class="text-center table table-bordered">
 
-				</table>				
+<tr>
+	<td>Path ID</td>
+	<td>Availability Impact</td>
+	<td>Integrity Impact</td>
+	<td>Confidentialy Impact</td>
+	<td>hits</td>
+</tr>
+{% for path_report in path_reports %}
+	{% if path_report.graph_id == graph.graphID %}
+<tr>
+	<td>{{ path_report.pathID }}</td>
+	<td>{{ path_report.ai}}</td>
+	<td>{{ path_report.ii}}</td>
+	<td>{{ path_report.ci}}</td>
+	<td>{{ path_report.counting}}</td>
+</tr>
+	{% endif %}
+{% endfor %}
+</table>
 			</div>
 		</div>
-
 
 		{% endfor %}
 

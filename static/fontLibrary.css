@@ -12,10 +12,6 @@
 	src: url("/static/fontLibrary/TH/02-TH-Krub/TH Krub.ttf");
 }
 
-.Consolas{
-	font-family:Consolas ,monospace;
-	font-size:14px;}
-
 .KrubFont {
 	font-family:Krub;
 }
@@ -117,7 +113,6 @@
 @font-face {
 	font-family: Allura;
 	src: url("/static/fontLibrary/EN/allura/Allura-Regular.otf");
-	
 }
 
 .Allura {
@@ -142,4 +137,15 @@
 
 .CalendasPlus {
 	font-family: CalendasPlus;
+}
+
+
+@font-face {
+	font-family:ThaiSansLite;
+	src: url("/static/fontLibrary/TH/thaisanslite/thaisanslite_r1.ttf");
+}
+
+.ThaiSansLite {
+	font-family:ThaiSansLite;
+	
 }
