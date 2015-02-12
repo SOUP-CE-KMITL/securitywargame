@@ -996,6 +996,10 @@ class AddStepHandler(Handler,FacebookHandler):
 
 		#require cve_id according to its cwe_id
 		cve_id = str(self.request.get('cve_id'))
+		score = int(self.request.get('score'))
+		ii = int(self.request.get('ii'))
+		ai = int(self.request.get('ai'))
+		ci = int(self.request.get('ci'))
 
 		cost = int(self.request.get('cost'))
 		# host analysis on this???
@@ -1022,13 +1026,10 @@ class AddStepHandler(Handler,FacebookHandler):
 
 		play_by = waypoint.playerID
 		#no module for score calculate yet
-		score = cost*100
+		score = score
 		total_turn = endTurn - startTurn
 		#no module for calculate impact
-		total_impact = calculate_impact()
-		"""
-
-		"""
+		total_impact = ai + ii + ci
 		### query waypoint with user id
 		u = WaypointReport.query().filter(WaypointReport.play_by == play_by).get()
 		if u:
@@ -1068,33 +1069,41 @@ class AddStepHandler(Handler,FacebookHandler):
 			avg_total_impact = total_impact
 			new_map_report = MapReport.add_new_map_report(mapID,play_count,score,avg_score,total_turn,avg_total_turn,total_impact,avg_total_impact,owner_id,graph_id,maximum_impact)
 			new_map_report.put()
-
-		#sol = SolTypeReport.query().filter(SolTypeReport.mapID == mapID).get()
-		#cwe_name = solType
-		#query path name with pathID to get it cve_id
-		#service_name = str(fromCity)
-		#uv = Graph.query().filter(Graph.services.serviceID == fromCity).get()
-		#service_name = uv.services[fromCity].name
+		# cve and cwe analysis
+		solType_impact = ai + ii + ci
+		cwe_name = solType
+		#from city may =0
+		uv = Graph.query().filter(Graph.services.serviceID == toCity).get()
+		service_name = uv.services[toCity].name
 		#uv.
 			#first time solTypeReport
-		#w = SolTypeReport.query().filter(SolTypeReport.mapID == mapID ,SolTypeReport.cve_id == cve_id,SolTypeReport.service_name == service_name, SolTypeReport.cwe_name == cwe_name).get()
-		#if w:
-		#	w.counting = w.counting + 1
-		#else:
-		#	w = SolTypeReport.add_new_soltype(owner_id,mapID,cve_id,cwe_name,service_name)
-		#w.put()
+		w = SolTypeReport.query().filter(SolTypeReport.mapID == mapID , \
+			SolTypeReport.cve_id == cve_id,SolTypeReport.service_name == service_name, \
+			SolTypeReport.cwe_name == cwe_name).get()
+		if w:
+			w.counting = w.counting + 1
+			if w.solType_impact == None:
+				w.solType_impact = 0
+			w.solType_impact = w.solType_impact + 1
+		else:
+			w = SolTypeReport.add_new_soltype(owner_id,mapID,cve_id,cwe_name,service_name,solType_impact)
+		w.put()
 
-			#put first solution 
-		
-		#qry = SolTypeReport.query().filter(SolTypeReport.solutions.cve_id==str(cve_id)).get()
-		#qry1 = SolTypeReport.query().filter(SolTypeReport.solutions.cve_id==str(cve_id)).counting
-
-		#qry.solutions.counting = 
-		#qry.solutions.count = qry.solutions.count + 1
-		#q_count =
-		#qry.put() 	
+		# path analysis
+		# query path with pathID
+		p = PathReport.query().filter(PathReport.pathID == pathID).get()
+		if p: #path exist
+			#update
+			p.counting = p.counting + 1
+			p.ai = p.ai + 1
+			p.ii = p.ii + 1
+			p.ci = p.ci + 1
+			p.put()
+		else:
+			new_path_report = PathReport.add_new_path_report(mapID,graph_id,owner_id,pathID,ai,ii,ci,counting=1)
+			new_path_report.put()
+	
 		self.write("success")
-		## working here ##
 
 class CreateDummyUserHandler(Handler,FacebookHandler):
 	def get(self):
@@ -1598,18 +1607,22 @@ class MapReport(ndb.Model):
 								graph_id = graph_id,
 								owner_id = owner_id,
 								maximum_impact = maximum_impact)
-"""
+
 class PathReport(ndb.Model):
 	mapID = ndb.IntegerProperty(required=True)
-	graphID = ndb.IntegerProperty(required=True)
+	graph_id = ndb.IntegerProperty(required=True)
 	owner_id = ndb.IntegerProperty(required=True)
 	pathID = ndb.IntegerProperty(required=True)
+	### what for ???
+	ai = ndb.IntegerProperty(required=True)
+	ii = ndb.IntegerProperty(required=True)
+	ci = ndb.IntegerProperty(required=True)
 	counting = ndb.IntegerProperty(default=0)
 
 	@classmethod
-	def add_new_path_report(cls,mapID,graph_id,owner_id,pathID,counting):
-		return PathReport(mapID=mapID,graph_id=graphID,owner_id=owner_id,pathID=pathID,counting=counting)
-"""
+	def add_new_path_report(cls,mapID,graph_id,owner_id,pathID,ai,ii,ci,counting):
+		return PathReport(mapID=mapID,graph_id=graph_id,owner_id=owner_id,pathID=pathID,ai=ai,ii=ii,ci=ci,counting=counting)
+
 class Solution(ndb.Model):
 	cve_id = ndb.StringProperty(required=True)
 	cwe_name = ndb.StringProperty(required=True)
@@ -1625,17 +1638,19 @@ class SolTypeReport(ndb.Model):
 	mapID = ndb.IntegerProperty(required=True)
 	cve_id = ndb.StringProperty(required=True)
 	service_name = ndb.StringProperty()
+	solType_impact = ndb.IntegerProperty()
 	cwe_name = ndb.StringProperty(required=True)
 	counting = ndb.IntegerProperty(default=0)
 
 	@classmethod
-	def add_new_soltype(cls,owner_id,mapID,cve_id,cwe_name,service_name):
+	def add_new_soltype(cls,owner_id,mapID,cve_id,cwe_name,service_name,solType_impact):
 		return SolTypeReport( 	owner_id = owner_id, 
 								mapID = mapID,
 								cve_id = cve_id,
 								cwe_name = cwe_name,
 								counting = 1,
-								service_name = service_name)
+								service_name = service_name,
+								impact = solType_impact)
 
 
 
