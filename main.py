@@ -1070,19 +1070,19 @@ class AddStepHandler(Handler,FacebookHandler):
 			new_map_report.put()
 
 		#sol = SolTypeReport.query().filter(SolTypeReport.mapID == mapID).get()
-		cwe_name = solType
+		#cwe_name = solType
 		#query path name with pathID to get it cve_id
 		#service_name = str(fromCity)
-		uv = Graph.query().filter(Graph.services.serviceID == fromCity).get()
-		service_name = uv.services[fromCity].name
+		#uv = Graph.query().filter(Graph.services.serviceID == fromCity).get()
+		#service_name = uv.services[fromCity].name
 		#uv.
 			#first time solTypeReport
-		w = SolTypeReport.query().filter(SolTypeReport.mapID == mapID ,SolTypeReport.cve_id == cve_id,SolTypeReport.service_name == service_name, SolTypeReport.cwe_name == cwe_name).get()
-		if w:
-			w.counting = w.counting + 1
-		else:
-			w = SolTypeReport.add_new_soltype(owner_id,mapID,cve_id,cwe_name,service_name)
-		w.put()
+		#w = SolTypeReport.query().filter(SolTypeReport.mapID == mapID ,SolTypeReport.cve_id == cve_id,SolTypeReport.service_name == service_name, SolTypeReport.cwe_name == cwe_name).get()
+		#if w:
+		#	w.counting = w.counting + 1
+		#else:
+		#	w = SolTypeReport.add_new_soltype(owner_id,mapID,cve_id,cwe_name,service_name)
+		#w.put()
 
 			#put first solution 
 		
