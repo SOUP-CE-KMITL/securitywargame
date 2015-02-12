@@ -329,8 +329,12 @@ class FacebookLogoutHandler(Handler,FacebookHandler):
 class HubHandler(Handler,FacebookHandler):
 	def get(self):
 		data = init_data(self)
+		fb_user = self.fb_user
 		data['fb_user'] = self.fb_user
-		self.render("/page/hub.html",**data)
+		if fb_user:
+			self.render("/static/game/game.html")
+		else:
+			self.render("/page/hub.html",**data)
 
 class AdminHandler(Handler,FacebookHandler):
 	def get(self):
