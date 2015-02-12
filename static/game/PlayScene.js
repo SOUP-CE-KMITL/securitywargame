@@ -350,11 +350,16 @@ function occupy(sol){
 			name:"occupier",
 			city: dest,
 			level: 1,
-			op: "occupy",
+			op: "Install root kit",
 			from: PlayScene.base && PlayScene.base.machineID || 0,
 			to: getServiceById(sol.edge.dest).machineID,
 		},
 		"dur": 5,
+		"ci": 0,
+		"ii": 0,
+		"ai": 0,
+		"score": 10,
+		"cve_id": 0
 	};
 	QueueList.Add(atkObj.soldier.name, atkObj.dur);
 	PlayScene.atkQueue.push(atkObj);
