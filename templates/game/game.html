@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+	<title>eiei</title>
+	<head>
+		<style>
+			html { 
+			  background: url(/static/images/arch/btg.jpg) no-repeat center center fixed; 
+			  -webkit-background-size: cover;
+			  -moz-background-size: cover;
+			  -o-background-size: cover;
+			  background-size: cover;
+			}
+		</style>
+		<script src="lib/easeljs-0.8.0.min.js"></script>
+		<script src="lib/tweenjs-0.6.0.min.js"></script>
+		<script src="lib/preloadjs-0.6.0.min.js"></script>
+		<script type="text/javascript" src="SceneManager.js"></script>
+		<script type="text/javascript" src="PlayScene.js"></script>
+		<script type="text/javascript" src="Soldier.js"></script>
+		<script type="text/javascript" src="City.js"></script>
+		<script type="text/javascript" src="Building.js"></script>
+		<script type="text/javascript" src="Loader.js"></script>
+		<script type="text/javascript" src="MapDrawer.js"></script>
+		<script type="text/javascript" src="Vector.js"></script>
+		<script type="text/javascript" src="ActionPane.js"></script>
+		<script type="text/javascript" src="QueueList.js"></script>
+		<script type="text/javascript" src="GUIWindow.js"></script>
+		<script type="text/javascript" src="Constant.js"></script>
+		<script>
+			//cg from "five-archers@opengameart.org"
+			function init(){
+				function getCookie(name) {
+				  var value = "; " + document.cookie;
+				  var parts = value.split("; " + name + "=");
+				  if (parts.length == 2) return parts.pop().split(";").shift();
+				}
+				window.getCookie = getCookie;
+				
+				var stage=new createjs.Stage("demo");
+				stage.enableMouseOver();
+				createjs.Ticker.addEventListener("tick", stage);
+				SceneManager.SetUp(stage);
+				SceneManager.ChangeScene("level");
+
+				/*function showCityMap(event){
+					var node = nodes[event.target.num];
+					var cityMap = new createjs.Container();
+					stage.enableMouseOver(20);
+					objLayer.addChild(cityMap);
+					var bg = new createjs.Shape();
+					bg.graphics.f("white").r(0,0,1024,768);
+					cityMap.addChild(bg);
+					var buildings = new Array();
+					for(i=0; i<node.services.length; i++){
+						buildings[i]= new Building(node.services[i]);
+						buildings[i].Draw(cityMap, 200*i, 0);
+						buildings[i].sprite.addEventListener("mouseover", function(e){
+							inspectorWin.text.text=e.toString();
+						});
+					}
+					var back = new createjs.Shape();
+					back.graphics.f("red").r(900,700, 50,50);
+					back.addEventListener("click", function(e) {objLayer.removeChild(cityMap);});
+					cityMap.addChild(back);
+				}
+
+				//samples data (fake & random)
+				var nodes=[
+					{"name":"a", "services":["hq", "www", "ssh", "ftp"]},
+					{"name":"b", "services":["hq", "db"]},
+					{"name":"c", "services":["hq", "mail"]}
+				];
+				var graph=[
+					{"id":"aaaa-bbbb", "from":null, "to":nodes[0]},
+					{"id":"aaaa-cccc", "from":null, "to":nodes[2]},
+					{"id":"xxxx-yyyy", "from":nodes[0].services[1], "to":nodes[1].services[1]}
+				];
+				var g=createjs.Graphics;
+				var stage=new createjs.Stage("demo");
+				createjs.Ticker.addEventListener("tick", stage);
+
+				var worldMap = new createjs.Container();
+				var guiLayer = new createjs.Container();
+				var objLayer = new createjs.Container();
+				stage.addChild(objLayer);
+				stage.addChild(guiLayer);
+				objLayer.addChild(worldMap);
+
+				var inspectorWin = new createjs.Container();
+				inspectorWin.bg = new createjs.Shape();
+				inspectorWin.bg.graphics.f("blue").r(700,0, 300,700);
+				inspectorWin.addChild(inspectorWin.bg);
+				inspectorWin.text = new createjs.Text("", "18px arial", "#FFFFFF");
+				guiLayer.addChild(inspectorWin);
+				inspectorWin.addChild(inspectorWin.text);
+				inspectorWin.text.x=400;
+
+				var cities = new Array();
+
+				for(i=0; i<nodes.length; i++){
+					cities[i] = new City(nodes[i].services.length, i);
+					cities[i].Draw(worldMap, 200*i, 200);
+					cities[i].sprite.addEventListener("click", showCityMap);
+				}
+				*/
+			}
+		</script>
+	<body onLoad="init();">
+		
+		<div style='width:1024px; height:768px; margin:0 auto; z-index:0'>
+			<canvas id="demo" width="1024" height="768">
+				Your browser does not support HTML5 canvas.
+			</canvas>
+		</div>
+		
+		
+	</body>
+</html>

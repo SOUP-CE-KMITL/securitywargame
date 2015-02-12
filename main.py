@@ -332,7 +332,7 @@ class HubHandler(Handler,FacebookHandler):
 		fb_user = self.fb_user
 		data['fb_user'] = self.fb_user
 		if fb_user:
-			self.render("/static/game/game.html")
+			self.redirect("/static/game/game.html")
 		else:
 			self.render("/page/hub.html",**data)
 
