@@ -81,6 +81,11 @@ Soldier.Action = function (e){
 				to: getServiceById(t.ref.to).machineID,
 			},
 			"dur": undefined,
+			"ci": 0,
+			"ii": 0,
+			"ai": 0,
+			"score": 10,
+			"cve_id": 0
 		};
 
 		var building  = t.actionOf;
@@ -110,10 +115,23 @@ Soldier.Action = function (e){
 	}
 
 	//if(PlayScene.moneyText.text-t.ref.level > 0){
+		var to = getServiceById(t.ref.to)
+		var score = SCORE_SYSTEM.SCORE_SYSTEM.av[t.ref.vector];
+		score += SCORE_SYSTEM.ac[t.ref.level];
+		score += SCORE_SYSTEM.au[t.ref.authen];
+		score += SCORE_SYSTEM.ai[Math.max(0, t.ref.availability - to.impact.a)];
+		score += SCORE_SYSTEM.ii[Math.max(0, t.ref.integrity - to.impact.i)];
+		score += SCORE_SYSTEM.ci[Math.max(0, t.ref.confident - to.impact.c)];
+
 		var atkObj = {
 			"start": parseInt(PlayScene.turnText.text, 10),
 			"soldier": t.ref,
 			"dur": 3,
+			"ci": t.ref.confident,
+			"ii": t.ref.integrity,
+			"ai": t.ref.availability,
+			"score": score,
+			"cve_id": 0
 		};
 		t.ref.edge.status="using";
 		var dstMachine = getMachineById(getServiceById(t.ref.edge.dest).machineID)
@@ -126,9 +144,6 @@ Soldier.Action = function (e){
 		ActionPane.container.removeAllChildren();
 
 		addStep(atkObj);
-	//}else{
-	//	PlayScene.comment.text = "Insufficient funds.";
-	//}
 }
 
 Soldier.ShowInfo = function(e){
@@ -233,6 +248,11 @@ Explorer.Action=function(e){
 			"start": parseInt(PlayScene.turnText.text, 10),
 			"soldier": t.ref,
 			"dur": 2,
+			"ai": 0,
+			"ci": 0,
+			"ii": 0,
+			"score": 5,
+			"cve_id": 0
 		};
 		t.ref.city.machine.status="using";
 		var dstMachine = t.ref.city.machine;
@@ -286,12 +306,18 @@ function addStep(atkObj){
 	var params = 
 		"waypoint="+PlayScene.wayKey+"&"+
 		"startTurn="+atkObj.start+"&"+
+		"dur="+atkObj.dur+"&"+
 		"endTurn="+(atkObj.start+atkObj.dur)+"&"+
 		"solType="+atkObj.soldier.op+"&"+
 		"cost="+atkObj.soldier.level+"&"+
 		"pathID="+(atkObj.soldier.pathId || 0) +"&"+
 		"from="+atkObj.soldier.from +"&"+
-		"to="+atkObj.soldier.to;
+		"to="+atkObj.soldier.to +"&"+
+		"ci="+atkObj.ci +"&"+
+		"ai="+atkObj.ai+"&"+
+		"ii="+atkObj.ii +"&"+
+		"score="+atkObj.score +"&"+
+		"cve_id="+atkObj.cve_id;
 	console.log(params);
 
 	var req;

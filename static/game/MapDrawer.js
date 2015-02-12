@@ -43,7 +43,7 @@ MapDrawer.prototype.DrawWorldMap=function(layer){
 	var cities = [];
 	for(var i=0; i<this.graph.machines.length; i++){
 		cities[i] = new City(this.graph.machines[i], this.graph.paths);
-		cities[i].Draw(layer, 512, 334+i);
+		cities[i].Draw(layer, 64*Math.cos(i*2.02)+512, 64*Math.sin(i*2.02)+384);
 	}
 	PlayScene.cities = cities;
 
@@ -56,60 +56,80 @@ MapDrawer.prototype.DrawWorldMap=function(layer){
 			for(var k=0; k<cities.length; k++){
 				//if city[j] connect city[k]
 				if(cities[j].IsConnect(cities[k])){
+					//Attractive
 					var x = cities[j].sprite.x - cities[k].sprite.x;
 					var y = cities[j].sprite.y - cities[k].sprite.y;
 					var delta = new Vector(x,y);
-					var mag = (K*12/(delta.length()));
-					console.log("repulsive: "+mag);
-					var diff = delta.unit();
-					diff.x *= mag;
-					diff.y *= mag;
-					cities[j].disp = cities[j].disp.add(diff);
+					cities[j].sprite.x -= delta.x*2/3;
+					cities[j].sprite.y -= delta.y/4;
+					cities[k].sprite.x += delta.x*2/3;
+					cities[k].sprite.y += delta.y/4;
+					//console.log("pair: "+cities[j].name+" - "+cities[k].name+", dif.x: "+delta.x+", dif.y: "+delta.y);
+				}
+
+				//Repulsive
+				var u = cities[j];
+				var v = cities[k];
+				var x = v.sprite.x - u.sprite.x
+				var y = v.sprite.y - u.sprite.y
+				x = (x<1 && x>0)? 1: (x>-1 && x<0)? -1: x;
+				y = (y<1 && y>0)? 1: (y>-1 && y<0)? -1: y;
+				if(x!=0){
+					cities[j].sprite.x -= 192/x;
+					cities[k].sprite.x += 192/x;
+				}
+				if(y!=0){
+					cities[j].sprite.y -= 144/y;
+					cities[k].sprite.y += 144/y;
 				}
 			}
 		}
-
-		//calculate attractive force
-		for(var j=0; j<this.graph.paths.length; j++){
-			var u = getMachineById (this.graph.paths[j].src)
-			var v = getMachineById (this.graph.paths[j].dest)
-			var x = 0//v.sprite.x - u.sprite.x
-			var y = 0//v.sprite.y - u.sprite.y
-			var delta = new Vector(x,y);
-			var mag = delta.length()*5/K;
-			console.log("attractive :"+mag);
-			delta = delta.unit();
-			delta.x *= mag;
-			delta.y *= mag;
-			//v.disp = v.disp.subtract(delta);
-			//u.disp = u.disp.add(delta);
-		}
-
-		for(var j=0; j<cities.length; j++){
-			//cities[j].disp = cities[j].disp.unit()
-			cities[j].sprite.x += cities[j].disp.x;
-			cities[j].sprite.y += cities[j].disp.y;
-			cities[j].sprite.x = Math.min(924, Math.max(0, cities[j].sprite.x));
-			cities[j].sprite.y = Math.min(568, Math.max(0, cities[j].sprite.y));
-		}
 	}
+	var sx=sy=0;
+	for(var j=0; j<cities.length; j++){
+		sx += cities[j].sprite.x
+		sy += cities[j].sprite.y
+	}
+	sx /= cities.length;
+	sy /= cities.length;
+	var dx = sx-512;
+	var dy = sy-324;
+	console.log(dx+" "+dy);
+	for(var j=0; j<cities.length; j++){
+		cities[j].sprite.x -= dx;
+		cities[j].sprite.y -= dy;
+		cities[j].sprite.x = Math.max(50, Math.min(cities[j].sprite.x, 950));
+		cities[j].sprite.y = Math.max(100, Math.min(cities[j].sprite.y, 684));
+	}
+	
 
 	//
 
 	for(var i=0; i<cities.length; i++){
 		var a = cities[i];
-		for(var j=0; j<a.to; j++){
-			var b = cities[j];
-			a = a.sprite;
-			b = b.sprite;
-			if(a.visible && b.visible){
+		for(var j=0; j<a.to.length; j++){
+			var b = getCityById(a.to[j]);
+			sa = a.sprite;
+			sb = b.sprite;
+			if(sa.visible && sb.visible){
 				var g = createjs.Graphics;
-				var road = new g().beginStroke("#FFFFFF").moveTo(a.x, a.y).lineTo(b.x, b.y).endStroke();
+				var road = new g().beginStroke("#FFFFFF").moveTo(sa.x, sa.y).lineTo(sb.x, sb.y).endStroke();
 				var shape = new createjs.Shape(road);
 				layer.addChild(shape);
 			}
 		}
 	}
+
+	layer.addEventListener("mousedown", function(evt){
+		evt.currentTarget.px = evt.localX;
+		evt.currentTarget.py = evt.localY;
+	});
+	layer.addEventListener("pressmove", function (evt) {
+    evt.currentTarget.set({
+        x: evt.stageX-evt.currentTarget.px,
+        y: evt.stageY-evt.currentTarget.py
+    });
+	});
 
 	return cities
 }
