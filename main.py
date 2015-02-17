@@ -811,7 +811,7 @@ class AddNewPathHandler(Handler,FacebookHandler):
 		pathID = u.path_hold + 1
 		#GET CVSS FROM PROFILE
 		name = escape_html(self.request.get('pathName'))
-		cve_id = name
+		cve_id = escape_html(self.request.get('cve_id'))
 		v = CVEProfile.query().filter(CVEProfile.cve_id == cve_id).get()
 		#ASSIGN SCORE
 		c_imp = v.confidentiality_impact
@@ -828,7 +828,7 @@ class AddNewPathHandler(Handler,FacebookHandler):
 		dest = int(escape_html(self.request.get('pathDest')))
 		api_key = escape_html(self.request.get('api_key'))	
 		if valid_api_key(api_key):
-			w = Path.add_new_path(pathID,name,status,src,dest,c_imp,i_imp,a_imp,acc_com,g_acc,auth)
+			w = Path.add_new_path(pathID,name,status,src,dest,cve_id,c_imp,i_imp,a_imp,acc_com,g_acc,auth)
 			if u.paths:
 				u.paths.append(w)
 				u.path_hold = pathID
@@ -945,6 +945,7 @@ class PostJSONGraphHandler(Handler,FacebookHandler):
 				#pathID = value[i]['pathID']
 				temp = Graph.query().filter(Graph.graphID == graphID).get()
 				pathID = temp.path_hold + 1
+				cve_id = value[i]['cve']
 				name = value[i]['name']
 				status = value[i]['status']
 				src = value[i]['src']
@@ -955,7 +956,7 @@ class PostJSONGraphHandler(Handler,FacebookHandler):
 				acc_com = value[i]['ac']
 				i_imp = value[i]['ii']
 				a_imp = value[i]['ai']
-				x = Path.add_new_path(int(pathID),name,status,int(src),int(dest),int(c_imp),int(i_imp),int(a_imp),int(acc_com),int(g_acc),int(auth))
+				x = Path.add_new_path(int(pathID),name,status,int(src),int(dest),cve_id,int(c_imp),int(i_imp),int(a_imp),int(acc_com),int(g_acc),int(auth))
 				if ux.paths:
 					ux.paths.append(x)
 					ux.path_hold = pathID
@@ -1011,7 +1012,7 @@ class AddStepHandler(Handler,FacebookHandler):
 		toCity = int(self.request.get('to'))
 		pathID = int(self.request.get('pathID'))
 
-		step = Step(startTurn=startTurn, endTurn=endTurn, solType=solType, cost=cost, fromCity=fromCity, toCity=toCity, pathID=pathID)
+		step = Step(startTurn=startTurn, endTurn=endTurn, solType=solType, cost=cost, fromCity=fromCity, toCity=toCity, pathID=pathID, ai=ai, ci=ci, ii=ii, score=score)
 		if waypoint.step:
 			waypoint.step.append(step)
 		else:
@@ -1077,8 +1078,11 @@ class AddStepHandler(Handler,FacebookHandler):
 		solType_impact = ai + ii + ci
 		cwe_name = solType
 		#from city may =0
-		uv = Graph.query().filter(Graph.services.serviceID == toCity).get()
-		service_name = uv.services[toCity].name
+		myGraph = Graph.query().filter(Graph.graphID == waypoint.mapID).get()
+		service_name = "This is machine name."
+		for machine in myGraph.machines:
+			if machine.machineID == toCity:
+				service_name = machine.name
 		#uv.
 			#first time solTypeReport
 		w = SolTypeReport.query().filter(SolTypeReport.mapID == mapID , \
@@ -1284,6 +1288,72 @@ class PlayerRegisterHandler(Handler,FacebookHandler):
 	def post(self):
 		pass
 		
+class MapSummarizeHandler(Handler, FacebookHandler):
+	def get(self):
+		retJson = {"avgScore":0, "avgTurn":0, "playCount":0, "uniquePlay":0}
+		map_id = int(self.request.get("map_id"))
+		waypoints = WayPoints.query(WayPoints.mapID==map_id)
+		#avg field value for every waypoints
+		avgScore = 0
+		avgTurn = 0
+		wpCount = 0
+		for wp in waypoints:
+			#sum erery step attr
+			sumTurn = 0
+			for step in wp.step:
+				sumTurn += step.endTurn - step.startTurn
+				#sumScore += step.score
+			avgTurn += sumTurn
+			wpCount += 1
+		avgTurn /= wpCount
+		retJson["avgTurn"] = avgTurn
+		retJson["playCount"] = wpCount
+		retJson["score"] = 0
+		self.response.write(json.dumps(retJson))
+
+class HostSummarizeHandler(Handler, FacebookHandler):
+	def get(self):
+		retJson = []
+		map_id = int(self.request.get("map_id"))
+		waypoints = WayPoints.query(WayPoints.mapID==map_id)
+		graphOfMap = Graph.query(Graph.graphID==map_id).get()
+		
+		#create report obj
+		for m in graphOfMap.machines:
+			obj={
+				"machineName": m.name,
+				"machineID": m.machineID,
+				"hits": 0,
+				"impact": 0,
+				"maxImpact": 0,
+				"avgHits": 0,
+				"ai": 0,
+				"ci": 0,
+				"ii": 0
+			}
+			retJson.append(obj)
+		retJson.sort(key=lambda x: x["machineID"], reverse=False)
+
+		#logging.info("retJson: %s", str(retJson))
+		wpCount = 0
+		for wp in waypoints:
+			wpCount += 1
+			for step in wp.step:
+				#logging.info("step.toCity: %d", step.toCity)
+				retJson[step.toCity-1]["hits"] += 1
+				retJson[step.toCity]["ai"] += step.ai or 0
+				retJson[step.toCity]["ci"] += step.ci or 0
+				retJson[step.toCity]["ii"] += step.ii or 0
+
+		for o in retJson:
+			o["avgHits"] = o["hits"]/(wpCount*1.0)
+			o["ai"] /= o["hits"]
+			o["ci"] /= o["hits"]
+			o["ii"] /= o["hits"]
+
+		retJson.sort(key=lambda x: x["hits"], reverse=True)
+		self.response.write(json.dumps(retJson))
+
 #######################################################################################################
 #######################################################################################################
 #######################################################################################################
@@ -1330,7 +1400,9 @@ app = webapp2.WSGIApplication([
 	('/player-login',PlayerLoginHandler),
 	('/api',APIHandler),
 	('/post_graph_v2',post_graph_v2Handler),
-	('/graph-profile',GraphProfileHandler)
+	('/graph-profile',GraphProfileHandler),
+	('/map-report', MapSummarizeHandler),
+	('/host-report', HostSummarizeHandler)
 
 	
 	#('/updateGraph',UpdateJSONGraphHandler)
@@ -1421,6 +1493,7 @@ class Path(ndb.Model):
 	src=ndb.IntegerProperty()
 	dest=ndb.IntegerProperty()
 	#cvss=ndb.StringProperty()
+	cve_id = ndb.StringProperty()
 	confidentiality_impact = ndb.IntegerProperty()
 	integrity_impact = ndb.IntegerProperty()
 	availability_impact = ndb.IntegerProperty()
@@ -1429,12 +1502,13 @@ class Path(ndb.Model):
 	authentication = ndb.IntegerProperty()
 	
 	@classmethod
-	def add_new_path(cls,pathID,name,status,src,dest,c_imp,i_imp,a_imp,acc_com,g_acc,auth):
+	def add_new_path(cls,pathID,name,status,src,dest,cve_id,c_imp,i_imp,a_imp,acc_com,g_acc,auth):
 		return Path(		pathID 						= 	pathID,
 							name 						= 	name,
 							status 						=	status,
 							src 						= 	src,
 							dest						=	dest,
+							cve_id = cve_id,
 							confidentiality_impact 		= 	c_imp,
 							integrity_impact 			= 	i_imp,
 							availability_impact 		= 	a_imp,
@@ -1552,6 +1626,10 @@ class Step(ndb.Model):
 	fromCity = ndb.IntegerProperty()
 	toCity = ndb.IntegerProperty()
 	pathID = ndb.IntegerProperty()
+	score = ndb.IntegerProperty()
+	ai = ndb.IntegerProperty()
+	ci = ndb.IntegerProperty()
+	ii = ndb.IntegerProperty()
 	
 
 class WayPoints(ndb.Model):

@@ -20,11 +20,12 @@ function Soldier(sol){
 	this.confident = sol.confidentiality_impact;
 	this.integrity = sol.integrity_impact;
 	this.availability = sol.availability_impact;
-	this.name = sol.name;
+	this.name = sol.cwe || "unknown";
 	this.op = sol.cwe || "unknown";
 	this.from  = getServiceById(sol.src).machineID;
 	this.to = getServiceById(sol.dest).machineID;
 	this.pathId = sol.pathID;
+	this.cve_id = sol.cve_id;
 }
 
 Soldier.prototype.Draw = function (parent,x,y){
@@ -317,7 +318,7 @@ function addStep(atkObj){
 		"ai="+atkObj.ai+"&"+
 		"ii="+atkObj.ii +"&"+
 		"score="+atkObj.score +"&"+
-		"cve_id="+atkObj.cve_id;
+		"cve_id="+atkObj.soldier.cve_id;
 	console.log(params);
 
 	var req;
