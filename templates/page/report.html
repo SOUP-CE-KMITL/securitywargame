@@ -108,7 +108,7 @@
 	<div class="col-md-4">
 	{% for soltype_report in soltype_reports %} 
 		{% if soltype_report.mapID == graph.graphID %}
-			{% if soltype_report.cve_id %}	
+			{% if soltype_report.cve_id == "undefined" %}	
 			<div class="alert alert-info">
 				<div class="graph-color-circle" style="float:left;width:10px;height:10px;border-radius:100%;background-color:#{{pallettes[loop.index]}};margin-right:20px;" ></div>#{{loop.index}} CVE-{{ soltype_report.cve_id }}  {{ soltype_report.counting }} hit(s) <br/>
 			</div>
@@ -131,7 +131,7 @@
 	{% for soltype_report in soltype_reports %} 
 		{% if soltype_report.mapID == graph.graphID %}
 	<tr>
-		{% if soltype_report.cve_id %}
+		{% if soltype_report.cve_id == "undefined" %}
 			<td>{{ soltype_report.cve_id}}</td>
 		{% else %}
 			<td></td>
@@ -181,7 +181,7 @@
 	var soltypedata{{graph.graphID}} = [
 		{% for soltype_report in soltype_reports %}
 			{% if soltype_report.mapID == graph.graphID %}
-				{% if soltype_report.cve_id %}
+				{% if soltype_report.cve_id == "undefined" %}
 
 		    {
 		        value: {{ soltype_report.counting }},

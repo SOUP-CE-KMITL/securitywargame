@@ -731,7 +731,7 @@ class EditGraphHandler(Handler,FacebookHandler):
 		data['machine_status'] = machine_status
 		data['path_status'] = path_status
 		data['profiles'] = profiles
-		self.render('edit-graph.html',**data)
+		self.render('edit-graph-2.html',**data)
 
 #rewrite version
 class GraphProfileHandler(Handler,FacebookHandler):
