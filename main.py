@@ -1164,6 +1164,8 @@ class CreateDummyUserHandler(Handler,FacebookHandler):
 
 class BypassLoginHandler(Handler,FacebookHandler):
 	def get(self):
+
+
 		user_id = int(self.request.get('user_id'))
 		u = User.query().filter(User.user_id == user_id).get()
 		self.bypass_login(u)
@@ -1179,7 +1181,7 @@ class OverallReportHandler(Handler,FacebookHandler):
 		soltype_reports = SolTypeReport.query().filter(SolTypeReport.owner_id == user.user_id).order(-SolTypeReport.counting).fetch()
 		path_reports = PathReport.query().filter(PathReport.owner_id == user.user_id).fetch()
 		#  blue , orange , green , gray, pink , brown , purple , yellow , red
-		pallettes = [ '5DA5DA' , 'FAA43A' , '60BD68' , '4D4D4D' , 'F17CB0' , 'B2912F' , 'B276B2', 'DECF3F', 'F15854' ]
+		pallettes = [ 'DEDEDE' , '5DA5DA' , 'FAA43A' , 'F15854' , '60BD68', 'F17CB0' , 'B2912F' , 'B276B2', 'DECF3F', '60BD68', '4D4D4D' ]
 		data['waypoint_reports'] = waypoint_reports
 		data['map_reports'] = map_reports		
 		data['graphs'] = graphs
