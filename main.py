@@ -1097,6 +1097,35 @@ class AddStepHandler(Handler,FacebookHandler):
 			w = SolTypeReport.add_new_soltype(owner_id,mapID,cve_id,cwe_name,service_name,solType_impact)
 		w.put()
 
+		srcM = "abc"
+		dstM = "abc"
+		srcS = "abc"
+		dstS = "abc"
+		myPath = None
+		src = None
+		dst = None
+
+		for p in graph.paths:
+			if p.pathID==pathID:
+				myPath = p
+
+		#find service in path
+		for s in graph.services:
+			if s.serviceID==p.src:
+				srcS = s.name
+				src = s
+			if s.serviceID==p.dest:
+				dstS = s.name
+				dst = s
+
+		#find machine in path
+		for m in graph.machines:
+			if m.machineID==src.machineID:
+				srcM = m.name
+			if m.machineID==dst.machineID:
+				dstM = m.name
+
+		logging.info("%s, %s, %s, %s", srcM, srcS, dstS, dstM)
 		# path analysis
 		# query path with pathID
 		p = PathReport.query().filter(PathReport.pathID == pathID).get()
@@ -1106,9 +1135,21 @@ class AddStepHandler(Handler,FacebookHandler):
 			p.ai = p.ai + 1
 			p.ii = p.ii + 1
 			p.ci = p.ci + 1
+			p.srcMachine = srcM
+			p.srcService = srcS
+			p.dstMachine = dstM
+			p.dstService = dstS
 			p.put()
 		else:
-			new_path_report = PathReport.add_new_path_report(mapID,graph_id,owner_id,pathID,ai,ii,ci,counting=1)
+			new_path_report = PathReport.add_new_path_report(
+				mapID,
+				graph_id,
+				owner_id,
+				pathID,
+				srcM, dstM, srcS, dstS,
+				ai,ii,ci,
+				counting=1
+			)
 			new_path_report.put()
 	
 		self.write("success")
@@ -1697,6 +1738,10 @@ class PathReport(ndb.Model):
 	graph_id = ndb.IntegerProperty(required=True)
 	owner_id = ndb.IntegerProperty(required=True)
 	pathID = ndb.IntegerProperty(required=True)
+	srcMachine = ndb.StringProperty(required=True)
+	dstMachine = ndb.StringProperty(required=True)
+	srcService = ndb.StringProperty(required=True)
+	dstService = ndb.StringProperty(required=True)
 	### what for ???
 	ai = ndb.IntegerProperty(required=True)
 	ii = ndb.IntegerProperty(required=True)
@@ -1704,8 +1749,19 @@ class PathReport(ndb.Model):
 	counting = ndb.IntegerProperty(default=0)
 
 	@classmethod
-	def add_new_path_report(cls,mapID,graph_id,owner_id,pathID,ai,ii,ci,counting):
-		return PathReport(mapID=mapID,graph_id=graph_id,owner_id=owner_id,pathID=pathID,ai=ai,ii=ii,ci=ci,counting=counting)
+	def add_new_path_report(cls,mapID,graph_id,owner_id,pathID,srcM,dstM,srcS,dstS,ai,ii,ci,counting):
+		return PathReport(
+			mapID=mapID,
+			graph_id=graph_id,
+			owner_id=owner_id,
+			pathID=pathID,
+			srcMachine=srcM,
+			dstMachine=dstM,
+			srcService=srcS,
+			dstService=dstS,
+			ai=ai,ii=ii,ci=ci,
+			counting=counting
+		)
 
 class Solution(ndb.Model):
 	cve_id = ndb.StringProperty(required=True)

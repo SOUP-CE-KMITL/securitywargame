@@ -20,8 +20,8 @@ function Soldier(sol){
 	this.confident = sol.confidentiality_impact;
 	this.integrity = sol.integrity_impact;
 	this.availability = sol.availability_impact;
-	this.name = sol.cwe || "unknown";
-	this.op = sol.cwe || "unknown";
+	this.name = sol.name || "unknown";
+	this.op = sol.name || "unknown";
 	this.from  = getServiceById(sol.src).machineID;
 	this.to = getServiceById(sol.dest).machineID;
 	this.pathId = sol.pathID;
