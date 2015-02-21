@@ -35,6 +35,7 @@
 		<div id='panels{{ graph.graphID }}' class='panel-collapse collapse'>
 			<div class='panel-body'>
 				<h1 class="text-center">Statistics <i class="glyphicon glyphicon-th-list"></i></h1>
+				<hr>
 				<h3>Waypoint summary</h3>
 				<table class="text-center table table-bordered">
 <tr>
@@ -68,6 +69,7 @@
 				</table>
 
 <h3>Map summary</h3>
+<hr>
 				<table class="text-center table table-bordered">
 <tr>
 	<td>Map ID</td>
@@ -96,31 +98,54 @@
 	{% endif %}							
 {% endfor %}	
 				</table>
-
+<hr>
 <h3>CVE summary</h3>
-				<table class="text-center table table-bordered">
+<hr>
+<div class="row">
+	<div id="pie-canvas-container" class="col-md-4 col-md-offset-2">
+		<canvas id="solTypeChart{{graph.graphID}}" width="400" height="400"></canvas>
+	</div>
+	<div class="col-md-4">
+	{% for soltype_report in soltype_reports %} 
+		{% if soltype_report.mapID == graph.graphID %}	
+			<div class="alert alert-info">
+				<div class="graph-color-circle" style="float:left;width:10px;height:10px;border-radius:100%;background-color:#{{pallettes[loop.index]}};margin-right:20px;" ></div>#{{loop.index}} CVE-{{ soltype_report.cve_id }} = {{ soltype_report.counting }} hit(s) <br/>
+			</div>
+		{% endif %}
+	{% endfor %}
+	</div>
+</div>
+<div class="row">
+	<table class="text-center table table-bordered">
 
-<tr>
-	<td>CVE ID</td>
-	<td>Service Name</td>
-	<td>CWE Name</td>
-	<td>Total Impact</td>
-	<td>hits</td>
-</tr>
+	<tr>
+		<td>CVE ID</td>
+		<td>Service Name</td>
+		<td>CWE Name</td>
+		<td>Total Impact</td>
+		<td>hits</td>
+	</tr>
 
-{% for soltype_report in soltype_reports %} 
-	{% if soltype_report.mapID == graph.graphID %}
-<tr>
-	<td>{{ soltype_report.cve_id}}</td>
-	<td>{{ soltype_report.service_name}}</td>
-	<td>{{ soltype_report.cwe_name}}</td>
-	<td>{{ soltype_report.solType_impact}} / {{ soltype_report.counting * 9 }}</td>
-	<td>{{ soltype_report.counting}}</td>
-</tr>
-	{% endif %}
-{% endfor %}
-				</table>
-<h3>Path summary</h3>				
+	{% for soltype_report in soltype_reports %} 
+		{% if soltype_report.mapID == graph.graphID %}
+	<tr>
+		<td>{{ soltype_report.cve_id}}</td>
+		<td>{{ soltype_report.service_name}}</td>
+		<td>{{ soltype_report.cwe_name}}</td>
+		<td>{{ soltype_report.solType_impact}} / {{ soltype_report.counting * 9 }}</td>
+		<td>{{ soltype_report.counting}}</td>
+	</tr>
+		{% endif %}
+	{% endfor %}
+	</table>
+</div>
+<script>
+	
+
+</script>
+
+<h3>Path summary</h3>
+<hr>				
 				<table class="text-center table table-bordered">
 
 <tr>
@@ -144,10 +169,36 @@
 </table>
 			</div>
 		</div>
+<script>
 
+
+	var soltypedata{{graph.graphID}} = [
+	{% for soltype_report in soltype_reports %}
+		{% if soltype_report.mapID == graph.graphID %}
+
+	    {
+	        value: {{ soltype_report.counting }},
+	        color:"#{{pallettes[loop.index]}}",
+	        label: "{{ soltype_report.cve_id}}"
+	    } , 
+
+		{% endif %}
+{% endfor %}	
+	]	
+	
+
+
+
+</script>
+<script>
+var ctx{{graph.graphID}} = document.getElementById("solTypeChart{{graph.graphID}}").getContext("2d");
+var myPieChart{{graph.graphID}} = new Chart(ctx{{graph.graphID}}).Pie(soltypedata{{graph.graphID}});
+
+</script>
 		{% endfor %}
 
 	</div>
+
 	{% else %}
 	<div class="alert alert-danger" role="alert">
 		You don't have any graph.

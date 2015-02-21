@@ -1178,12 +1178,15 @@ class OverallReportHandler(Handler,FacebookHandler):
 		map_reports = MapReport.query().filter(MapReport.owner_id == user.user_id).fetch()
 		soltype_reports = SolTypeReport.query().filter(SolTypeReport.owner_id == user.user_id).order(-SolTypeReport.counting).fetch()
 		path_reports = PathReport.query().filter(PathReport.owner_id == user.user_id).fetch()
+		#  blue , orange , green , gray, pink , brown , purple , yellow , red
+		pallettes = [ '5DA5DA' , 'FAA43A' , '60BD68' , '4D4D4D' , 'F17CB0' , 'B2912F' , 'B276B2', 'DECF3F', 'F15854' ]
 		data['waypoint_reports'] = waypoint_reports
 		data['map_reports'] = map_reports		
 		data['graphs'] = graphs
 		data['soltype_reports'] = soltype_reports
 		data['path_reports'] = path_reports
 		data['url'] = "report"
+		data['pallettes'] = pallettes
 		self.render("/page/report.html",**data)
 
 #depricated
@@ -1352,6 +1355,13 @@ class MapSummarizeHandler(Handler, FacebookHandler):
 		retJson["score"] = 0
 		self.response.write(json.dumps(retJson))
 
+class RenderCVEGraphHandler(Handler, FacebookHandler):
+	def get(self):
+		mapID = int(self.request.get("mapID"))
+		soltype_report = SolTypeReport.query().filter(SolTypeReport.owner_id == user.user_id,SolTypeReport.mapID == mapID).order(-SolTypeReport.counting).fetch()
+		data['soltype_report'] = soltype_report
+		self.render("/partial/cve-graph.html",**data)	
+
 class HostSummarizeHandler(Handler, FacebookHandler):
 	def get(self):
 		retJson = []
@@ -1443,7 +1453,8 @@ app = webapp2.WSGIApplication([
 	('/post_graph_v2',post_graph_v2Handler),
 	('/graph-profile',GraphProfileHandler),
 	('/map-report', MapSummarizeHandler),
-	('/host-report', HostSummarizeHandler)
+	('/host-report', HostSummarizeHandler),
+	('/render-cve-graph',RenderCVEGraphHandler)
 
 	
 	#('/updateGraph',UpdateJSONGraphHandler)
