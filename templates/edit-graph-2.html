@@ -1,22 +1,154 @@
 {% extends "home.html" %}
 {% block bodycontent %}
-<h3 class="h3">Edir Graph</h3>
+<h3 class="h3">Edit Graph</h3>
 <hr>
 <div class="row">
-	<div class="jumbotron">
+	<div class="col-md-6">
+		<div class="well well-lg txt-center">
+			<h3>Add New Machine <i class="fa fa-plus-circle"></i></h3>
+			<hr>
+			Machine Name:<br/>
+			<input name="machineName" type="text" class="form-control" /><br/><br/>
+			Status:<br/>
+			<input name="machineStatus" type="text" class="form-control" /><br/><br/>
+			Impact:<br/>
+			<input name="machineImpact" type="text" class="form-control" /><br/><br/>
+			<input class="btn btn-lg btn-primary" type="submit" value="Add New Machine">		
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="well well-lg txt-center">			
+			<h3>Available Machines <i class="fa fa-desktop"></i> </h3>
+			<hr>
+			<table class="txt-center table table-striped table-hover">
+				<tr>
+					<td># ID</td>
+					<td>Name</td>
+					<td>Status</td>
+					<td>Impact</td>
+					<td>Edit</td>
+				</tr>
+				{% for machine in graph.machines %}
+				<tr>
+					<td>{{ machine.machineID }}</td>
+					<td>{{ machine.name }}</td>
+					<td>{{ machine.status }}</td>
+					<td>{{ machine.impact }}</td>
+					<td><a href=""><i class="fa fa-pencil-square-o"></i></a></td>
+				</tr>					
+				{% endfor %}
+			</table>
+		</div>
 	</div>
 </div>
 <hr>
+<!-- service -->
 <div class="row">
-	<div class="jumbotron">
+	<div class="col-md-6">
+		<div class="well well-lg txt-center">
+			<h3>Add New Service <i class="fa fa-plus-circle"></i></h3>
+			<hr>
+			Service Name:<br/>
+			<input name="serviceMachineID" type="text" class="form-control" /><br/><br/>
+			Machine ID:<br/>
+			<input name="serviceMachineID" type="text" class="form-control" /><br/><br/>
+			Status:<br/>
+			<input name="serviceStatus" type="text" class="form-control" /><br/><br/>
+			Impact:<br/>
+			<input name="serviceImpact" type="text" class="form-control" /><br/><br/>
+			<input class="btn btn-lg btn-primary" type="submit" value="Add New Service">	
+			<hr>
+		</div>
+	</div>
+		<div class="col-md-6">
+		<div class="well well-lg txt-center">			
+			<h3>Available Services <i class="fa fa-cogs"></i> </h3>
+			<hr>
+			<table class="txt-center table table-striped table-hover">
+				<tr>
+					<td>Service ID <i class="fa fa-cogs"></i></td>
+					<td>Machine ID <i class="fa fa-desktop"></i></td>
+					<td>Name</td>
+					<td>Status</td>
+					<td>Impact</td>
+					<td>Edit</td>
+				</tr>
+				{% for service in graph.services %}
+				<tr>
+					<td>{{ service.serviceID }}</td>
+					<td>{{ service.machineID }}</td>
+					<td>{{ service.name }}</td>
+					<td>{{ service.status }}</td>
+					<td>{{ service.impact }}</td>
+					<td><a href=""><i class="fa fa-pencil-square-o"></i></a></td>
+				</tr>					
+				{% endfor %}
+			</table>
+		</div>
 	</div>
 </div>
+<!-- path -->
 <hr>
 <div class="row">
-	<div class="jumbotron">
+<div class="col-md-6">
+		<div class="well well-lg txt-center">
+			<h3>Add New Path <i class="fa fa-plus-circle"></i></h3>
+			<hr>
+			Path Name:<br/>
+			<input name="serviceMachineID" type="text" class="form-control" /><br/><br/>
+			Status<br/>
+			<input name="serviceMachineID" type="text" class="form-control" /><br/><br/>
+			Source<br/>
+			<input name="serviceStatus" type="text" class="form-control" /><br/><br/>
+			Destination<br/>
+			<input name="serviceImpact" type="text" class="form-control" /><br/><br/>
+			CVE ID<br/>
+			<select class="txt-center form-control" name="cve_id">
+				<option value="CVE-2014-xxxx">2014-6969</option>
+			</select>
+			<br/>
+			<input class="btn btn-lg btn-primary" type="submit" value="Add New Path">	
+			<hr>
+		</div>
+	</div>
+		<div class="col-md-6">
+		<div class="well well-lg txt-center">			
+			<h3>Available Services <i class="fa fa-share-alt"></i></h3>
+			<hr>
+			<table class="txt-center table table-striped table-hover">
+				<tr>
+					<td># ID </td>
+					<td>Name</td>
+					<td>Status</td>
+					<td>Source</td>
+					<td>Destination</td>
+					<td>CVE ID</td>
+					<td>Edit</td>
+
+				</tr>
+				{% for path in graph.paths %}
+				<tr>
+					<td>{{ path.pathID }}</td>
+					<td>{{ path.name }}</td>
+					<td>{{ path.status }}</td>
+					<td>{{ path.src }}</td>
+					<td>{{ path.dest }}</td>
+					<td>{{ path.cve_id }}</td>
+					<td><a href=""><i class="fa fa-pencil-square-o"></i></a></td>
+				</tr>					
+				{% endfor %}
+			</table>
+		</div>
 	</div>
 </div>
 <hr>
 
 <script src="/static/edit-graph.js"></script>
 {% endblock %}
+<!-- too many to display -->
+<td>{{ path.confidentiality_impact }}</td>
+<td>{{ path.integrity_impact }}</td>
+<td>{{ path.availability_impact }}</td>
+<td>{{ path.access_complexity }}</td>
+<td>{{ path.gained_access }}</td>
+<td>{{ path.authentication }}</td>
