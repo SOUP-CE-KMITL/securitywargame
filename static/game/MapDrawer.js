@@ -124,12 +124,14 @@ MapDrawer.prototype.DrawWorldMap=function(layer){
 		evt.currentTarget.px = evt.localX;
 		evt.currentTarget.py = evt.localY;
 	});
+	/*
 	layer.addEventListener("pressmove", function (evt) {
     evt.currentTarget.set({
-        x: evt.stageX-evt.currentTarget.px,
-        y: evt.stageY-evt.currentTarget.py
+        x: Math.max(0, Math.min(1024-evt.currentTarget.width, evt.stageX-evt.currentTarget.px)),
+        y: Math.max(0, Math.min(768-evt.currentTarget.height, evt.stageY-evt.currentTarget.py))
     });
 	});
+	*/
 
 	return cities
 }

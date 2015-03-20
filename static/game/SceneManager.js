@@ -47,9 +47,9 @@ LevelScene.prototype.Show=function(stage){
 	  xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
 	}
 
-	xmlhttp.open("POST","/maplist",false);
+	xmlhttp.open("GET","/maplist?player=john",false);
 	xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-	xmlhttp.send("player=john");
+	xmlhttp.send();
 	var maplist = JSON.parse(xmlhttp.responseText);
 
 	var headline = new createjs.Text("MAP SELECT", "36px arial", "#FFF");
@@ -63,8 +63,8 @@ LevelScene.prototype.Show=function(stage){
 		btn[i].bbg = new createjs.Shape();
 		btn[i].bbg.graphics.clear().s('#6DEAFF').f("#008CA4").r(-500,-15,1000,30).ef().es();
 		btn[i].addChild(btn[i].bbg);
-		var label = new createjs.Text(maplist[i], "18px arial", "#FFF");
-		btn[i].urlsafekey = maplist[i];
+		var label = new createjs.Text(maplist[i].name, "18px arial", "#FFF");
+		btn[i].urlsafekey = maplist[i].key;
 		label.textAlign = "center";
 		label.y = -10
 		btn[i].addChild(label);

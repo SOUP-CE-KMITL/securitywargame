@@ -122,7 +122,7 @@
 
 	<tr>
 		<td>CVE ID</td>
-		<td>Service Name</td>
+		<td>Machine Name</td>
 		<td>CWE Name</td>
 		<td>Total Impact</td>
 		<td>hits</td>
@@ -203,6 +203,7 @@ var ctx{{graph.graphID}} = document.getElementById("solTypeChart{{graph.graphID}
 var myPieChart{{graph.graphID}} = new Chart(ctx{{graph.graphID}}).Pie(soltypedata{{graph.graphID}});
 
 </script>
+<a onclick="window.open ('static/graphical-report.html?map_id={{graph.graphID}}', 'newwindow', config='height=800,width=1054, toolbar=no, menubar=no, scrollbars=no, resizable=no, location=no, directories=no, status=no')"> View graphical report </a>
 		{% endfor %}
 
 	</div>
@@ -213,6 +214,8 @@ var myPieChart{{graph.graphID}} = new Chart(ctx{{graph.graphID}}).Pie(soltypedat
 	</div>
 	{% endif %}
 </div>
+
+
 
 {% endblock %}
 

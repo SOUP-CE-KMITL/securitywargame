@@ -1,0 +1,338 @@
+<html>
+<head>
+	<!-- crete.js-->
+	<script src="/static/game/lib/easeljs-0.8.0.min.js"></script>
+	<scrpit src="/static/game/lib/tweenjs-0.6.0.min.js"></script>
+	<script src="/static/game/Vector.js"></script>
+</head>
+
+<body>
+	<div style='width:1024px; height:768px; margin:0 auto; z-index:0'>
+		<canvas id="graphicalReport" width="1024" height="768">
+			Your browser does not support HTML5 canvas.
+		</canvas>
+	</div>
+	<script>
+		//precision function
+		function fp(num, point){
+			point = point || 2;
+			num = Math.round(num*Math.pow(10, point))/Math.pow(10, point);
+			return num;
+		}
+		//hover function
+		function showServiceDetails(e){
+			tooltip.text.text = 
+				"serviceName: "+e.target.node.name+"\n"+
+				"Hits per play: "+fp(e.target.node.avgHits)+"\n"+
+				"Average CI: "+fp(e.target.node.avgCI)+"\n"+
+				"Average AI: "+fp(e.target.node.avgAI)+"\n"+
+				"Average II: "+fp(e.target.node.avgII)+"\n"+
+				"Max CI: "+e.target.node.maxCI+"\n"+
+				"Max AI: "+e.target.node.maxAI+"\n"+
+				"Max II: "+e.target.node.maxII+"\n";
+				console.log(e.currentTarget)
+
+			var machine = getMachineByID(e.target.node.machineID);
+			tooltip.text.text +=
+				"Host machine: "+machine.name+"\n";
+			
+		}
+		function showPathDetails(e){
+			p = e.target.path
+			tooltip.text.text = 
+				"pathName: "+p.name+"\n"+
+				"pathID: "+p.pathID+"\n"+
+				"Access: "+p.av+"\n"+
+				"Authen: "+p.au+"\n"+
+				"Complex: "+p.ac+"\n"+
+				"Hits: "+p.hits+"\n"+
+				"Integrity: "+p.ii+"\n"+
+				"Confident: "+p.ci+"\n"+
+				"Available: "+p.ai+"\n"
+		}
+		function getMachineByID(id){
+			for(var i=0; i<graph.machines.length; i++){
+				if(graph.machines[i].machineID == id){
+					return graph.machines[i];
+				}
+			}
+			return null;
+		}
+		function getPathByID(id){
+			for(var i=0; i<graph.paths.length; i++){
+				if(graph.paths[i].pathID == id){
+					return graph.paths[i];
+				}
+			}
+			return null;
+		}
+		function getServiceByID(id){
+			for(var i=0; i<graph.services.length; i++){
+				if(graph.services[i].serviceID == id){
+					return graph.services[i];
+				}
+			}
+			return null;
+		}
+		function getNodeByID(id){
+			for(var i=0; i<smNode.length; i++){
+				if(smNode[i].node.serviceID == id){
+					return smNode[i];
+				}
+			}
+			return null;
+		}
+		function isNodeConnect(node1, node2){
+			id1 = node1.node.serviceID;
+			id2 = node2.node.serviceID;
+			for(var i=0; i<graph.paths.length; i++){
+				p = graph.paths[i];
+				if((id1==p.src && id2==p.dest)||(id1==p.dest&&id2==p.src)){
+					return true
+				}
+			}
+			return false
+		}
+		function hasLink(n){
+			for(var i=0; i<graph.paths.length; i++){
+				p = graph.paths[i];
+				if(p.src==n.serviceID || p.dest==n.serviceID){
+					return true;
+				}
+			}
+			return false
+		}
+		//Graphical report
+		var graphID = location.search.split('map_id=')[1]
+		//canvas set up.
+		var color=["#0F0", "#1E0", "#2D0", "#3C0", "#4B0", "#5A0", "#690", "#780", "#870", "#960", "#A50", "#B40", "#C30", "#D20", "#E10", "#F00"]
+		var myStage=new createjs.Stage("graphicalReport");
+		myStage.enableMouseOver();
+		//createjs.Ticker.addEventListener("tick", myStage);
+
+		var stage = new createjs.Container();
+		myStage.addChild(stage);
+		
+		//get graph.
+		var xmlhttp;
+		if (window.XMLHttpRequest){
+		  xmlhttp=new XMLHttpRequest();
+		}else{
+		  xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+		}
+		xmlhttp.open("GET","/get-graph?id="+graphID,false);
+		xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+		xmlhttp.send();
+		var graph = JSON.parse(xmlhttp.responseText);
+		var net = {"serviceID": 0, "name":"Internet"}
+		graph.services.push(net)
+
+		//get host report.
+		if (window.XMLHttpRequest){
+		  xmlhttp=new XMLHttpRequest();
+		}else{
+		  xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+		}
+		xmlhttp.open("GET","/host-report?map_id="+graphID,false);
+		xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+		xmlhttp.send();
+		var hostReport = JSON.parse(xmlhttp.responseText);
+
+		//get node report
+		if (window.XMLHttpRequest){
+		  xmlhttp=new XMLHttpRequest();
+		}else{
+		  xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+		}
+		xmlhttp.open("GET","/node-report?map_id="+graphID,false);
+		xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+		xmlhttp.send();
+		var nodeReport = JSON.parse(xmlhttp.responseText);
+
+		//get path report
+		if (window.XMLHttpRequest){
+		  xmlhttp=new XMLHttpRequest();
+		}else{
+		  xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+		}
+		xmlhttp.open("GET","/path-report?map_id="+graphID,false);
+		xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+		xmlhttp.send();
+		var pathReport = JSON.parse(xmlhttp.responseText);
+
+		var bigNode = [];
+		var smNode = [];
+		for(var i=0; i<nodeReport.length; i++){
+			if(hasLink(nodeReport[i])){
+				myNode = new createjs.Shape();
+				myNode.node = nodeReport[i];
+				myNode.score = Math.round((nodeReport[i].avgCI+nodeReport[i].avgII+nodeReport[i].avgAI)*255/6)
+				var d = nodeReport[i].machineID;
+				var h = graph.machines.length;
+				var red = Math.round(127+Math.pow(-1,d)*d*(127/h))
+				var green = Math.round(127-Math.pow(-1,d)*d*(127/h))
+				var blue = Math.round(d*255/h)
+				myNode.radius = nodeReport[i].avgHits*10+10
+				myNode.graphics
+					.ss(3, "round")
+					.s(createjs.Graphics.getRGB(red, green, blue))
+					.f(createjs.Graphics.getRGB(myNode.score, 255-(myNode.score),0))
+					.dc(0,0,myNode.radius)
+					.ef()
+					.es()
+
+				myNode.x = Math.random()*900+50
+				myNode.y = Math.random()*600+75
+				myNode.addEventListener("mouseover", showServiceDetails);
+				smNode.push(myNode);
+				stage.addChild(myNode);
+			}
+		}
+		console.log(smNode)
+		//create internet node
+		var internet = new createjs.Shape();
+		internet.graphics.f("#DDD").dc(0,0, 30)
+		internet.x = 512;
+		internet.y = 384
+		internet.radius = 30
+		internet.node = net;
+		stage.addChild(internet)
+		smNode.push(internet);
+		nodeReport.push(net);
+
+		//create tooltip
+		var tooltip = new createjs.Container();
+		tooltip.addEventListener("mousedown", function(e){
+			e.currentTarget.px = e.localX;
+			e.currentTarget.py = e.localY;
+		})
+		tooltip.addEventListener("pressmove", function(e){
+			e.currentTarget.x = e.stageX-e.currentTarget.px;
+			e.currentTarget.y = e.stageY-e.currentTarget.py;
+		});
+
+		var tbg = new createjs.Shape();
+		tbg.graphics.f("rgba(0,0,0,0.5)").dr(0,0,200,400);
+		tooltip.addChild(tbg);
+
+		var headBg = new createjs.Shape()
+		headBg.graphics.f("rbga(0,0,0,0.75)").dr(0,0,200,20);
+		tooltip.addChild(headBg);
+		
+		var text = new createjs.Text("Details", "18px Arial", "#FFF")
+		text.x = 10
+		text.y = 0
+		tooltip.addChild(text);
+
+		tooltip.text = new createjs.Text("Details go here.", "18px Arial", "#EEE")
+		tooltip.text.x = 10
+		tooltip.text.y = 30
+		tooltip.addChild(tooltip.text);
+		
+		myStage.addChild(tooltip);
+		
+		//pause/play finding stable state
+		var togBtn = new createjs.Shape();
+		togBtn.graphics
+			.f("#2DD")
+			.dc(1000,740,20)
+			.ef()
+		stage.addChild(togBtn);
+		togBtn.on("click", function(e){
+			pushingToStableState = !pushingToStableState
+			togBtn.graphics
+				.c()
+				.f(pushingToStableState?"#2DD":"#DD2")
+				.dc(1000,740,20)
+				.ef()
+		}, this)
+
+		//reset btn for reset state
+		var resetBtn  = new createjs.Shape();
+		resetBtn.graphics
+			.f("red")
+			.dc(950,740,20)
+			.ef()
+		stage.addChild(resetBtn);
+		resetBtn.on("click", function(e){
+			pushingToStableState = true;
+			for(var i=0; i<smNode.length; i++){
+				smNode[i].x = Math.random()*900+50
+				smNode[i].y = Math.random()*600+75
+			}
+		}, this)
+
+		var pushingToStableState = true
+		var shapes = [];
+		createjs.Ticker.setFPS(30);
+		createjs.Ticker.addEventListener("tick", function(e){
+			if(pushingToStableState){
+				//loop to match every node
+				for(var j=0; j<smNode.length; j++){
+					for(var k=0; k<smNode.length; k++){
+						//short name
+						var n1 = smNode[j];
+						var n2 = smNode[k];
+						var d0 = new Vector(n2.x-n1.x, n2.y-n1.y);
+						var di //constant to control not push/pull too much
+						if(isNodeConnect(n1,n2)){
+							di = d0.unit().multiply(60);
+						}else{
+							di = d0.unit().multiply(120);
+						}
+						var d1; //Result force
+						d1 = d0.divide(3).subtract(di);	
+						n1.x += d1.x;
+						n1.y += d1.y;
+					}
+				}
+				//graph adjust to center screen
+				var sx=sy=0;
+				for(var j=0; j<smNode.length; j++){
+					sx += smNode[j].x
+					sy += smNode[j].y
+				}
+				sx /= smNode.length;
+				sy /= smNode.length;
+				var dx = sx-512;
+				var dy = sy-324;
+				for(var j=0; j<smNode.length; j++){
+					smNode[j].x -= dx;
+					smNode[j].y -= dy;
+					smNode[j].x = Math.max(50, Math.min(smNode[j].x, 950));
+					smNode[j].y = Math.max(100, Math.min(smNode[j].y, 684));
+				}
+				
+				for(var i=0; i<pathReport.length; i++){
+					var p = getPathByID(pathReport[i].pathID)
+					var node1 = getNodeByID(p.src)
+					var node2 = getNodeByID(p.dest)
+					var angle = Math.atan2(node2.y-node1.y, node2.x-node1.x)
+					var start = new Vector(node1.x+Math.cos(angle)*node1.radius, node1.y+Math.sin(angle)*node1.radius)
+					var end = new Vector(node2.x-Math.cos(angle)*(node2.radius+5), node2.y-Math.sin(angle)*(node2.radius+5))
+					if(!shapes[i]){
+						shapes[i] = new createjs.Shape()
+						shapes[i].path = pathReport[i];
+						shapes[i].score = Math.round((pathReport[i].ai+pathReport[i].ii+pathReport[i].ci+pathReport[i].av+pathReport[i].au+pathReport[i].ac)/12*255)
+						shapes[i].addEventListener("mouseover", showPathDetails);
+					}
+					shapes[i].graphics
+						.c()
+						.f(createjs.Graphics.getRGB(shapes[i].score, 255-shapes[i].score, 0))
+						.dc(start.x, start.y, 4)
+						.ef()
+						.ss(pathReport[i].avgHits+2, "round")
+						.s(createjs.Graphics.getRGB(shapes[i].score, 255-shapes[i].score, 0))
+						.mt(start.x, start.y)
+						.lt(end.x, end.y)
+						.f(createjs.Graphics.getRGB(shapes[i].score, 255-shapes[i].score, 0))
+						.dp(end.x, end.y, 4, 3, 0.5, angle*180/Math.PI)
+						.es();
+					stage.addChild(shapes[i]);
+				}
+			}
+			myStage.update()
+		})
+	</script>	
+</body>
+</html>

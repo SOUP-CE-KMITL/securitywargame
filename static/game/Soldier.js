@@ -20,7 +20,7 @@ function Soldier(sol){
 	this.confident = sol.confidentiality_impact;
 	this.integrity = sol.integrity_impact;
 	this.availability = sol.availability_impact;
-	this.name = sol.name || "unknown";
+	this.name = RANDOM_NAME[sol.pathID];
 	this.op = sol.name || "unknown";
 	this.from  = getServiceById(sol.src).machineID;
 	this.to = getServiceById(sol.dest).machineID;
@@ -32,34 +32,26 @@ Soldier.prototype.Draw = function (parent,x,y){
 	if(parent==null){return}
 	this.sheet = new createjs.SpriteSheet({
 		"animations":{
-			"default":{
-				"frames":[0,1,2,3,2,1]
-			},
-			"run":{
-				"frames":[0,1,2,3,2,1]
-			},
+			"default":[0,19,"default",0.75],
 		},
-		"images":["resource/char/char-scout-test.png"],
+		"images":["resource/char/char-sol1.png"],
 		"frames":{
-			"width": 128,
-			"height": 128,
-			"regX": 64,
-			"regY": 64,
-			"count": 4
+			"width": 63,
+			"height": 57,
+			"regX": 32,
+			"regY": 28,
+			"count": 20
 		}
 	});
 	
 	this.sprite = new createjs.Sprite(this.sheet, "default");
 	this.sprite.x = x;
 	this.sprite.y = y;
+	this.sprite.scaleX = 1.5;
+	this.sprite.scaleY = 1.5;
 	this.sprite.ref = this;
 	parent.addChild(this.sprite);
 	this.sprite.gotoAndStop("default");
-
-	createjs.Tween.get(this.sprite, {"loop":true})
-		.to({"rotation":10}, 1000)
-		.to({"rotation":-10}, 2000)
-		.to({"rotation":0}, 1000);
 };
 
 Soldier.Action = function (e){
@@ -139,7 +131,7 @@ Soldier.Action = function (e){
 		dstMachine.status="attacking";
 		dstMachine.atkCount += 1;
 		t.ref.Draw(PlayScene.cityMap, PlayScene.cursor.x, PlayScene.cursor.y);
-		t.ref.sprite.gotoAndPlay("run");
+		t.ref.sprite.gotoAndPlay("default");
 		QueueList.Add(t.ref.name, atkObj.dur);
 		PlayScene.atkQueue.push(atkObj);
 		ActionPane.container.removeAllChildren();

@@ -101,7 +101,7 @@ City.ClickHandler=function(event){
 		var buildings = new Array();
 		for(var i=0; i<target.machine.services.length; i++){
 			buildings[i]= new Building(target.machine.services[i], target);
-			buildings[i].Draw(cityMap, 244+(i%4)*172, 105+Math.floor(i/4)*112);
+			buildings[i].Draw(cityMap, 244+(FILL_POSITION[i]%4)*172, 105+Math.floor(FILL_POSITION[i]/4)*112);
 			buildings[i].sprite.addEventListener("mouseover", Building.ShowInfo);
 			buildings[i].sprite.addEventListener("click", Building.ShowActions);
 			for(var j=0;j<PlayScene.atkQueue.length; j++){

@@ -27,6 +27,8 @@ PlayScene.prototype.PreloadComplete = function(event){
 	this.scene.addChild(this.guiLayer);
 
 	var shape = new createjs.Shape();
+	shape.width = 1024;
+	shape.height = 768;
 	shape.graphics.bf(event.result).r(0,0,1024,768);
 	this.objLayer.addChild(shape);
 
@@ -148,6 +150,29 @@ PlayScene.prototype.PreloadComplete = function(event){
 	this.guiLayer.addChild(this.scoreText);
 	this.scoreText.x = 60;
 	this.scoreText.y = 15;
+
+	this.helpScr = new createjs.Bitmap("resource/bg/Help.png");
+	this.guiLayer.addChild(this.helpScr);
+	this.helpScr.visible = false;
+
+	this.helpBtn = new createjs.Bitmap("resource/icon/Icon-help.png");
+	this.guiLayer.addChild(this.helpBtn)
+	this.helpBtn.x = 1000;
+	this.helpBtn.y = 100;
+	this.helpBtn.regX = 32;
+	this.helpBtn.regY = 32;
+	this.helpBtn.on("click", function(e){
+		this.helpScr.visible = ! this.helpScr.visible;
+	}, this);
+	this.helpBtn.on("mouseover", function(e){
+		createjs.Tween.get(this.helpBtn)
+			.to({"scaleX":1.1, "scaleY":1.1}, 200);
+	}, this)
+	this.helpBtn.on("mouseout", function(e){
+		createjs.Tween.get(this.helpBtn)
+			.to({"scaleX":1, "scaleY":1}, 200);
+	}, this)
+
 	
 	PlayScene.objLayer = this.objLayer;
 	PlayScene.guiLayer = this.guiLayer;
@@ -277,13 +302,13 @@ PlayScene.Launch = function(e){
 				
 				//Occupy
 				if(sol.integrity > 1){
-					var w1 = WindowManager.NewWindow(PlayScene.guiLayer, 387, 300, 250, 100);
-					w1.NewLabel("Do you want to occupy "+ SERVICE_DICT[getServiceById(sol.edge.dest).name], 125, 20);
-					w1.NewButton("yes", 35, 60, 80, 30, function(){
+					var w1 = WindowManager.NewWindow(PlayScene.guiLayer, 362, 300, 300, 100);
+					w1.NewLabel("Do you want to capture "+ SERVICE_DICT[getServiceById(sol.edge.dest).name], 150, 20);
+					w1.NewButton("yes", 60, 60, 80, 30, function(){
 						PlayScene.guiLayer.removeChild(w1.winGroup);
 						occupy(sol);
 					});
-					w1.NewButton("no", 125, 60, 80, 30, function(){
+					w1.NewButton("no", 150, 60, 80, 30, function(){
 						PlayScene.guiLayer.removeChild(w1.winGroup);
 					});
 				}

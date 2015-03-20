@@ -971,12 +971,12 @@ class PostJSONGraphHandler(Handler,FacebookHandler):
 		self.render_json(json_graph)				
 			
 class MapListHandler(Handler,FacebookHandler):
-	def post(self):
+	def get(self):
 		graphs = Graph.query()
 		output=[];
 		for g in graphs:
 			urlkey = g.graphID;
-			output.append(urlkey)
+			output.append({"key":urlkey, "name":g.name})
 
 		output = json.dumps(output);
 		self.response.write(output);
@@ -1394,18 +1394,110 @@ class HostSummarizeHandler(Handler, FacebookHandler):
 			for step in wp.step:
 				#logging.info("step.toCity: %d", step.toCity)
 				retJson[step.toCity-1]["hits"] += 1
-				retJson[step.toCity]["ai"] += step.ai or 0
-				retJson[step.toCity]["ci"] += step.ci or 0
-				retJson[step.toCity]["ii"] += step.ii or 0
+				retJson[step.toCity-1]["ai"] += step.ai or 0
+				retJson[step.toCity-1]["ci"] += step.ci or 0
+				retJson[step.toCity-1]["ii"] += step.ii or 0
 
 		for o in retJson:
-			o["avgHits"] = o["hits"]/(wpCount*1.0)
-			o["ai"] /= o["hits"]
-			o["ci"] /= o["hits"]
-			o["ii"] /= o["hits"]
+			if o["hits"] != 0:
+				o["avgHits"] = o["hits"]/(wpCount*1.0)
+				o["ai"] /= o["hits"]*1.0
+				o["ci"] /= o["hits"]*1.0
+				o["ii"] /= o["hits"]*1.0
 
 		retJson.sort(key=lambda x: x["hits"], reverse=True)
 		self.response.write(json.dumps(retJson))
+
+class NodeSummarizeHandler(Handler, FacebookHandler):
+	def get(self):
+		retJson = [];
+		map_id = int(self.request.get("map_id"))
+		waypoints = WayPoints.query(WayPoints.mapID==map_id)
+		graphOfMap = Graph.query(Graph.graphID==map_id).get()
+
+		for s in graphOfMap.services:
+			obj = {
+				"name": s.name,
+				"serviceID": s.serviceID,
+				"machineID": s.machineID,
+				"hits": 0,
+				"avgHits": 0,
+				"avgAI": 0,
+				"avgCI": 0,
+				"avgII": 0,
+				"maxAI": 0,
+				"maxCI": 0,
+				"maxII": 0
+			}
+			retJson.append(obj)
+		
+		retJson.sort(key=lambda x: x["serviceID"], reverse=False)
+
+		wpCount = 0
+		i = 0
+		for wp in waypoints:
+			wpCount += 1
+			for step in wp.step:
+				for p in graphOfMap.paths:
+					if p.pathID == step.pathID:
+						i = p.dest-1
+				retJson[i]["hits"] += 1
+				retJson[i]["avgAI"] += step.ai or 0
+				retJson[i]["avgCI"] += step.ci or 0
+				retJson[i]["avgII"] += step.ii or 0
+				retJson[i]["maxAI"] = max(retJson[i]["maxAI"], step.ai)
+				retJson[i]["maxCI"] = max(retJson[i]["maxCI"], step.ci)
+				retJson[i]["maxII"] = max(retJson[i]["maxCI"], step.ii)
+
+		for o in retJson:
+			if o["hits"] != 0:
+				o["avgHits"] = o["hits"]/(wpCount*1.0)
+				o["avgCI"] /= o["hits"]*1.0
+				o["avgAI"] /= o["hits"]*1.0
+				o["avgII"] /= o["hits"]*1.0
+
+		retJson.sort(key=lambda x: x["hits"], reverse=True)
+		self.response.write(json.dumps(retJson))
+
+class PathSummarizeHandler(Handler, FacebookHandler):
+	def get(self):
+		retJson = [];
+		map_id = int(self.request.get("map_id"))
+		waypoints = WayPoints.query(WayPoints.mapID==map_id)
+		graphOfMap = Graph.query(Graph.graphID==map_id).get()
+
+		for p in graphOfMap.paths:
+			obj = {
+				"name": p.name,
+				"pathID": p.pathID,
+				"hits": 0,
+				"avgHits": 0,
+				"av": p.gained_access,
+				"ac": p.access_complexity,
+				"au": p.authentication,
+				"ai": p.integrity_impact,
+				"ii": p.integrity_impact,
+				"ci": p.confidentiality_impact
+			}
+			retJson.append(obj)
+
+		retJson.sort(key=lambda x: x["pathID"], reverse=False)
+
+		wpCount = 0
+		i = 0
+		for wp in waypoints:
+			wpCount += 1
+			for step in wp.step:
+				if step.pathID != 0:
+					retJson[step.pathID-1]["hits"] +=1
+
+		for o in retJson:
+			if wpCount!=0:
+				o["avgHits"] = o["hits"]/wpCount*1.0;
+
+		retJson.sort(key=lambda x: x["hits"], reverse=True)
+		self.response.write(json.dumps(retJson))
+		logging.info("path report sent.")
 
 #######################################################################################################
 #######################################################################################################
@@ -1456,6 +1548,8 @@ app = webapp2.WSGIApplication([
 	('/graph-profile',GraphProfileHandler),
 	('/map-report', MapSummarizeHandler),
 	('/host-report', HostSummarizeHandler),
+	('/node-report', NodeSummarizeHandler),
+	('/path-report', PathSummarizeHandler),
 	('/render-cve-graph',RenderCVEGraphHandler)
 
 	
