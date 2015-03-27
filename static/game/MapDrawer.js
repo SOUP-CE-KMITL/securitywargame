@@ -103,21 +103,9 @@ MapDrawer.prototype.DrawWorldMap=function(layer){
 	}
 	
 
-	//
-
+	//draw road
 	for(var i=0; i<cities.length; i++){
-		var a = cities[i];
-		for(var j=0; j<a.to.length; j++){
-			var b = getCityById(a.to[j]);
-			sa = a.sprite;
-			sb = b.sprite;
-			if(sa.visible && sb.visible){
-				var g = createjs.Graphics;
-				var road = new g().beginStroke("#FFFFFF").moveTo(sa.x, sa.y).lineTo(sb.x, sb.y).endStroke();
-				var shape = new createjs.Shape(road);
-				layer.addChild(shape);
-			}
-		}
+		cities[i].DrawLink()
 	}
 
 	layer.addEventListener("mousedown", function(evt){

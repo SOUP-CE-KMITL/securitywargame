@@ -101,3 +101,29 @@ Building.ShowActions=function(event){
 	PlayScene.baseView.stat.text = "name: "+t.sName+"\nrandom: "+Math.random()*300+"\n"
 	*/
 }
+
+Building.prototype.Capture = function(sol){
+	var oldScore = PlayScene.score;
+	this.service.captured = true;
+
+	//Calculate the score
+	var score = 0;
+	var im = this.service.impact;
+	if(im.c < sol.confident){
+		var value = sol.confident - im.c;
+		im.c += value
+		score += SCORE_SYSTEM.ci[value];
+	}
+	if(im.i < sol.integrity){
+		var value = sol.confident - im.i;
+		im.i += value
+		score += SCORE_SYSTEM.ii[value];
+	}
+	if(im.a < sol.availability){
+		var value = sol.confident - im.a;
+		im.a += value
+		score += SCORE_SYSTEM.ai[value];
+	}
+
+	return score
+}

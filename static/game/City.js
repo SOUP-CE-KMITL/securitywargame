@@ -54,7 +54,7 @@ City.prototype.Draw = function(parent, x, y){
 	}else if(this.machine.status=="found"){
 		this.sprite.gotoAndPlay("default");
 	}else if(this.machine.status=="ready"){
-		this.sprite.gotoAndPlay("level"+ (Math.ceil(this.to.length/2)));
+		this.sprite.gotoAndPlay("level"+ (Math.ceil(this.services.length/2)));
 	}
 
 	this.sprite.on("mouseover", function(e){
@@ -90,7 +90,7 @@ City.ClickHandler=function(event){
 		}
 		ActionPane.SetActions([action]);
 
-	}else if(target.machine.status=="ready"){
+	}else /*if(target.machine.status=="ready")*/{
 		var cityMap = new createjs.Container();
 		PlayScene.cityMap = cityMap;
 		PlayScene.objLayer.addChild(cityMap);
@@ -99,6 +99,7 @@ City.ClickHandler=function(event){
 		bg.addEventListener("click", function(){})
 		cityMap.addChild(bg);
 		var buildings = new Array();
+		PlayScene.buildings = [];
 		for(var i=0; i<target.machine.services.length; i++){
 			buildings[i]= new Building(target.machine.services[i], target);
 			buildings[i].Draw(cityMap, 244+(FILL_POSITION[i]%4)*172, 105+Math.floor(FILL_POSITION[i]/4)*112);
@@ -109,6 +110,20 @@ City.ClickHandler=function(event){
 				if(a.soldier.edge && a.soldier.edge.status=="attacking" && a.soldier.edge.dest==buildings[i].service.serviceID){
 					a.soldier.Draw(cityMap, buildings[i].sprite.x, buildings[i].sprite.y);
 					buildings[i].status="attacking";
+				}
+			}
+			PlayScene.buildings.push(buildings[i])
+		}
+
+		PlayScene.currentCity = target;
+		var p = PlayScene;
+		for (var i=0; i<p.atkQueue.length; i++){
+			//redraw character in cityMap
+			if (PlayScene.cityMap &&  p.atkQueue[i].soldier.to == PlayScene.currentCity.cityID){
+				var b = getBuildingById(p.atkQueue[i].soldier.edge.dest)
+				if(b){
+					p.atkQueue[i].soldier.Draw(p.cityMap, b.sprite.x, b.sprite.y);
+					p.atkQueue[i].soldier.sprite.gotoAndPlay("default");
 				}
 			}
 		}
@@ -158,7 +173,6 @@ City.ClickHandler=function(event){
 			ActionPane.container.removeAllChildren();
 		});
 		cityMap.addChild(back);
-		PlayScene.currentCity = target;
 	}
 }
 
@@ -178,12 +192,17 @@ City.prototype.Spread=function(){
 			c.machine.status="found";
 			c.sprite.visible=true;
 		}
+	}
+}
 
-		var g = createjs.Graphics;
-		var road = new g().beginStroke("#FFFFFF").moveTo(this.sprite.x, this.sprite.y).lineTo(c.sprite.x, c.sprite.y).endStroke();
-		var shape = new createjs.Shape(road);
-		PlayScene.objLayer.addChild(shape);
-		if(PlayScene.cityMap != null)
-			PlayScene.objLayer.setChildIndex(PlayScene.cityMap, PlayScene.objLayer.getChildIndex(shape));
+City.prototype.DrawLink=function(){
+	for(var i=0; i<this.to.length; i++){
+		var c = getCityById(this.to[i])
+		console.log(this.machine.status=="ready" && c.sprite.visible)
+		if(this.machine.status=="ready" && c.sprite.visible){
+			var road = new createjs.Shape()
+			road.graphics.ss(2).s("#FFF").mt(this.sprite.x, this.sprite.y).lt(c.sprite.x, c.sprite.y).es()
+			PlayScene.objLayer.addChildAt(road, PlayScene.objLayer.getChildIndex(PlayScene.cities[0].sprite))
+		}
 	}
 }

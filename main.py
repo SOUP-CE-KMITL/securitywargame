@@ -983,15 +983,21 @@ class MapListHandler(Handler,FacebookHandler):
 
 class CreateWayPointsHandler(Handler,FacebookHandler):
 	def post(self):
-		waypointsID = WayPoints.query().count()+1 #shoud be generated somehow
 		playerID = self.request.get('playerID') #should get this from session
 		mapID = int(escape_html(self.request.get('mapID')))
-		waypoints = WayPoints(waypointsID=waypointsID, playerID=playerID, mapID=mapID)
+		waypoints = WayPoints.query(WayPoints.playerID==playerID, WayPoints.mapID==mapID, WayPoints.status=="playing").get()
+		if not waypoints:
+			waypointsID = WayPoints.query().count()+1 #shoud be generated somehow
+			graph = Graph.query(Graph.graphID==mapID).get()
+			waypoints = WayPoints(waypointsID=waypointsID, playerID=playerID, mapID=mapID, score=0, savedTurn=0, status="playing", graphStat=json.dumps(graph.to_dict()))
 		key = waypoints.put()
-		self.response.write(waypointsID)
+		self.response.write(json.dumps(waypoints.to_dict()))
 
 class AddStepHandler(Handler,FacebookHandler):
 	def post(self):
+		#debug
+		logging.info("%s", self.request.get('waypoint'))
+		###
 		waypointsKey = int(self.request.get('waypoint'))
 		waypoint = WayPoints.query().filter(WayPoints.waypointsID == waypointsKey).get()
 
@@ -1124,8 +1130,7 @@ class AddStepHandler(Handler,FacebookHandler):
 				srcM = m.name
 			if m.machineID==dst.machineID:
 				dstM = m.name
-
-		logging.info("%s, %s, %s, %s", srcM, srcS, dstS, dstM)
+				
 		# path analysis
 		# query path with pathID
 		p = PathReport.query().filter(PathReport.pathID == pathID).get()
@@ -1493,11 +1498,23 @@ class PathSummarizeHandler(Handler, FacebookHandler):
 
 		for o in retJson:
 			if wpCount!=0:
-				o["avgHits"] = o["hits"]/wpCount*1.0;
+				o["avgHits"] = o["hits"]/(wpCount*1.0);
 
 		retJson.sort(key=lambda x: x["hits"], reverse=True)
 		self.response.write(json.dumps(retJson))
 		logging.info("path report sent.")
+
+class updateScoreHandler(Handler, FacebookHandler):
+	def post(self):
+		newScore = int(self.request.get("score"))
+		waypointID = int(self.request.get("waypoint"))
+		currentTurn = int(self.request.get("currentTurn"))
+		graphStat = self.request.get("graphStat")
+		wp = WayPoints.query(WayPoints.waypointsID==waypointID).get()
+		wp.score = newScore
+		wp.graphStat = graphStat
+		wp.savedTurn = currentTurn
+		wp.put()
 
 #######################################################################################################
 #######################################################################################################
@@ -1550,6 +1567,7 @@ app = webapp2.WSGIApplication([
 	('/host-report', HostSummarizeHandler),
 	('/node-report', NodeSummarizeHandler),
 	('/path-report', PathSummarizeHandler),
+	('/update-score', updateScoreHandler),
 	('/render-cve-graph',RenderCVEGraphHandler)
 
 	
@@ -1783,9 +1801,13 @@ class Step(ndb.Model):
 class WayPoints(ndb.Model):
 	waypointsID = ndb.IntegerProperty()	
 	#just a graph
+	status = ndb.StringProperty()
 	mapID = ndb.IntegerProperty()
 	playerID = ndb.StringProperty()
+	score = ndb.IntegerProperty()
 	step = ndb.StructuredProperty(Step, repeated=True)
+	savedTurn = ndb.IntegerProperty()
+	graphStat = ndb.TextProperty()
 
 class WaypointReport(ndb.Model):
 	waypointID = ndb.IntegerProperty(required=True)

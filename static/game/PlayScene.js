@@ -200,7 +200,7 @@ PlayScene.prototype.PreloadComplete = function(event){
 PlayScene.prototype.Show = function(stage, params){
 	stage.addChild(this.scene);
 	PlayScene.turnText.text = "0"
-	new XMLLoader(SceneManager.params, this);
+	//new XMLLoader(SceneManager.params, this);
 
 	var req;
 	if (window.XMLHttpRequest){
@@ -212,12 +212,16 @@ PlayScene.prototype.Show = function(stage, params){
 	req.open("POST","/create-waypoint",false);
 	req.setRequestHeader("Content-type","application/x-www-form-urlencoded");
 	req.send("mapID="+SceneManager.params+"&playerID="+getCookie("user_id"));
-	PlayScene.wayKey = req.responseText
-}
+	var retObj = JSON.parse(req.responseText)
+	PlayScene.wayKey = retObj.waypointsID
+	PlayScene.replayStep = retObj.step
+	PlayScene.score = retObj.score
+	PlayScene.scoreText.text = PlayScene.score;
+	PlayScene.turnText.text  = retObj.savedTurn
 
-PlayScene.prototype.OnLoadComplete = function(jGraph, p){
+	var p=PlayScene
+	var jGraph = JSON.parse(retObj.graphStat)
 	p.mapDrawer = new MapDrawer(jGraph);
-
 	PlayScene.graph = jGraph;
 	console.log(jGraph);
 
@@ -229,14 +233,6 @@ PlayScene.prototype.OnLoadComplete = function(jGraph, p){
 }
 
 PlayScene.Launch = function(e){
-
-	function excImpact(impact){
-		var ret={};
-		ret.c = Math.floor(Math.floor(impact/3)/3)%3;
-		ret.i = Math.floor(impact/3)%3
-		ret.a = impact%3
-		return ret;
-	}
 
 	var p = PlayScene;
 	p.turnText.text = parseInt(p.turnText.text, 10)+1;
@@ -255,34 +251,28 @@ PlayScene.Launch = function(e){
 	}*/
 
 	for (var i=0; i<p.atkQueue.length; i++){
+		//reach final turn -> do mission.
 		if (p.atkQueue[i].start + p.atkQueue[i].dur == parseInt(p.turnText.text, 10)){
+			addStep(p.atkQueue[i]);
 			var sol = p.atkQueue[i].soldier;
+			var score = 0
 			if(sol.name=="explorer"){
 				PlayScene.activeLevel += 1;
 				var dstMachine=sol.city.machine;
 				dstMachine.status="ready";
-				console.log(dstMachine);
 				sol.city.sprite.gotoAndPlay("level"+ (Math.ceil(sol.city.services.length/2)));
 				sol.Erase();
+				score = 5
+				sol.city.DrawLink()
 			}else if(sol.name=="occupier" || sol.name=="occupy"){
-				PlayScene.activeLevel += 1;
-				if(sol.integrity<2){
-					var b = getServiceById(sol.city);
-					b.captured = true;
-					c = getCityById(b.machineID);
-				}else{
-					var c = getCityById(sol.to);
-					for(var  j=0; j<c.services.length; j++){
-						c.services[j].captured = true;
-					}
-				}
-				c.Spread();
+				/*deprecated -- occupy automaticly after attacked*/
 			}else if(sol.name=="Picklocker"){
 				PlayScene.activeLevel += 3;
 				var r = Math.random();
 				if (r < 0.5){
 					sol.forPath.keyHeld += 1;
 					PlayScene.comment.text = "Picklocking success.";
+					score = 10
 				}else{
 					PlayScene.comment.text = "Picklocking fails.";
 				}
@@ -292,56 +282,67 @@ PlayScene.Launch = function(e){
 				if (r < 0.9){
 					sol.forPath.keyHeld += 1;
 					PlayScene.comment.text = "Key coppied.";
+					score = 10
 				}else{
 					PlayScene.comment.text = "Can't coppy the key.";
 				}
 			}else{ //attacker
 				var dstService = getServiceById(sol.edge.dest);
 				var dstMachine = getMachineById(dstService.machineID);
-				var im = excImpact(dstService.impact);
 				
 				//Occupy
-				if(sol.integrity > 1){
-					var w1 = WindowManager.NewWindow(PlayScene.guiLayer, 362, 300, 300, 100);
-					w1.NewLabel("Do you want to capture "+ SERVICE_DICT[getServiceById(sol.edge.dest).name], 150, 20);
-					w1.NewButton("yes", 60, 60, 80, 30, function(){
-						PlayScene.guiLayer.removeChild(w1.winGroup);
-						occupy(sol);
-					});
-					w1.NewButton("no", 150, 60, 80, 30, function(){
-						PlayScene.guiLayer.removeChild(w1.winGroup);
-					});
+				PlayScene.activeLevel += 1;
+				if(sol.integrity<2){
+					var b = getBuildingById(sol.edge.dest);
+					score += b.Capture(sol)
+				}else{
+					var c = getCityById(sol.to);
+					for(var  j=0; j<c.services.length; j++){
+						var b = getBuildingById(c.services[j].serviceID)
+						score += b.Capture(sol)
+					}
 				}
+				c.Spread();
+				c.DrawLink();
 
-				//Check if it has better impact
+				//Set status
 				dstMachine.status = "ready";
 				sol.edge.status = "used";
-				var score = 0;
-				if(im.c < sol.confident){
-					var value = sol.confident - im.c;
-					PlayScene.moneyText.text = parseInt(PlayScene.moneyText.text, 10) + value;
-					dstMachine.impact += value*9
-					score += SCORE_SYSTEM.ci[value];
-				}
-				if(im.i < sol.integrity){
-					var value = sol.confident - im.i;
-					PlayScene.moneyText.text = parseInt(PlayScene.moneyText.text, 10) + value;
-					dstMachine.impact += value*3
-					score += SCORE_SYSTEM.ii[value];
-				}
-				if(im.a < sol.availability){
-					var value = sol.confident - im.a;
-					PlayScene.moneyText.text = parseInt(PlayScene.moneyText.text, 10) + value;
-					dstMachine.impact += value
-					score += SCORE_SYSTEM.ai[value];
-				}
+				
 
 				score+= SCORE_SYSTEM.av[sol.vector];
 				score+= SCORE_SYSTEM.ac[sol.level];
 				score+= SCORE_SYSTEM.au[sol.authen];
+			}
 
+			//update score and graph status
+			if(score > 0 ){
 				PlayScene.score += score;
 				PlayScene.scoreText.text = PlayScene.score;
+				var req2;
+				if (window.XMLHttpRequest){
+				  req2=new XMLHttpRequest();
+				}else{
+				  req2=new ActiveXObject("Microsoft.XMLHTTP");
+				}
+
+				req2.open("POST","/update-score",false);
+				req2.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+				req2.send(
+					"waypoint="+PlayScene.wayKey+
+					"&score="+PlayScene.score+
+					"&graphStat="+JSON.stringify(PlayScene.graph)+
+					"&currentTurn="+PlayScene.turnText.text
+				)
+			}
+
+			//erase character
+			if(PlayScene.cityMap){
+				createjs.Tween.get(sol.sprite, {"override":true})
+					.to({"scaleX":0, "scaleY":0}, 300)
+					.call(function(e){
+						PlayScene.cityMap.removeChild(sol.sprite);
+					})
 			}
 
 			//dequeue
@@ -425,6 +426,15 @@ function getCityById(id){
 	for(var i=0; i<PlayScene.cities.length; i++){
 		if(PlayScene.cities[i].cityID==id){
 			return PlayScene.cities[i];
+		}
+	}
+	return null;
+}
+
+function getBuildingById(id){
+	for(var i=0; i<PlayScene.buildings.length; i++){
+		if(PlayScene.buildings[i].buildingID==id){
+			return PlayScene.buildings[i];
 		}
 	}
 	return null;

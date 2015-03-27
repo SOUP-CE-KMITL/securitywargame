@@ -20,6 +20,7 @@ function Soldier(sol){
 	this.confident = sol.confidentiality_impact;
 	this.integrity = sol.integrity_impact;
 	this.availability = sol.availability_impact;
+	this.score = (this.vector+this.level+this.authen+this.confident+this.integrity+this.availability-1)/6
 	this.name = RANDOM_NAME[sol.pathID];
 	this.op = sol.name || "unknown";
 	this.from  = getServiceById(sol.src).machineID;
@@ -29,20 +30,22 @@ function Soldier(sol){
 }
 
 Soldier.prototype.Draw = function (parent,x,y){
-	if(parent==null){return}
-	this.sheet = new createjs.SpriteSheet({
-		"animations":{
-			"default":[0,19,"default",0.75],
-		},
-		"images":["resource/char/char-sol1.png"],
-		"frames":{
-			"width": 63,
-			"height": 57,
-			"regX": 32,
-			"regY": 28,
-			"count": 20
+	var options;
+	if(this.score < 1){
+		options = {
+			"images": ["resource/char/char-sol1.png"],
+			"frames": {"width":63, "height":57, "regX":32, "regY":28, "count":20},
+			"animations": {"default":[0,19, "default", 0.75]}
 		}
-	});
+	}else{
+		options ={
+			"images": ["resource/char/char-tank.png"],
+			"frames": {"width":94, "height":53, "regX":47, "regY":27, "count":12},
+			"animations": {"default":[0,11, "default", 0.75]}
+		}
+	}
+	if(parent==null){return}
+	this.sheet = new createjs.SpriteSheet(options);
 	
 	this.sprite = new createjs.Sprite(this.sheet, "default");
 	this.sprite.x = x;
@@ -61,6 +64,7 @@ Soldier.Action = function (e){
 		return;
 	}
 
+	/*
 	if( t.ref.edge.keyHeld < t.ref.authen){
 		var atkObj = {
 			"start": parseInt(PlayScene.turnText.text, 10),
@@ -92,7 +96,7 @@ Soldier.Action = function (e){
 			atkObj.dur = 1;
 			QueueList.Add(atkObj.soldier.name, atkObj.dur);
 			PlayScene.atkQueue.push(atkObj);
-			addStep(atkObj);
+			//addStep(atkObj);
 			s.Draw(PlayScene.cityMap, building.sprite.x, building.sprite.y);
 		});
 		w1.NewImgButton("resource/icon/Icon-Phishing.png", 200, 100, function(){
@@ -102,10 +106,11 @@ Soldier.Action = function (e){
 			atkObj.dur = 3;
 			QueueList.Add(atkObj.soldier.name, atkObj.dur);
 			PlayScene.atkQueue.push(atkObj);
-			addStep(atkObj);
+			//addStep(atkObj);
 		});
 		return;
 	}
+	*/
 
 	//if(PlayScene.moneyText.text-t.ref.level > 0){
 		var to = getServiceById(t.ref.to)
@@ -136,7 +141,7 @@ Soldier.Action = function (e){
 		PlayScene.atkQueue.push(atkObj);
 		ActionPane.container.removeAllChildren();
 
-		addStep(atkObj);
+		//addStep(atkObj);
 }
 
 Soldier.ShowInfo = function(e){
@@ -255,7 +260,7 @@ Explorer.Action=function(e){
 		PlayScene.atkQueue.push(atkObj);
 		ActionPane.container.removeAllChildren();
 		t.ref.Draw(PlayScene.objLayer, PlayScene.cursor.x, PlayScene.cursor.y);
-		addStep(atkObj)
+		//addStep(atkObj)
 	/*}else{
 		PlayScene.comment.text = "Insufficient fund.";
 	}*/
@@ -293,8 +298,8 @@ Picklocker.prototype.Draw=function(parent, x, y){
 
 function addStep(atkObj){
 
-	//fake variable
-	var playerID = getCookie("user_id"); var playID=getCookie("play_id");
+	//
+	var playerID = getCookie("user_id");
 	//
 	var params = 
 		"waypoint="+PlayScene.wayKey+"&"+

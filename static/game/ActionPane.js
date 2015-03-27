@@ -19,6 +19,9 @@ ActionPane.SetActions=function(set){
 		}else{
 			ActionPane.actions[i].img.addEventListener("mouseover", Soldier.ShowInfo);
 			ActionPane.actions[i].img.addEventListener("click", Soldier.Action);
+			if( !getServiceById(set[i].soldier.edge.src).captured ){
+				ActionPane.actions[i].img.alpha = 0.5
+			}
 		}
 		ActionPane.actions[i].img.x = 700+(i%4)*72;
 		ActionPane.actions[i].img.y = 620+(Math.floor(i/4))*72;

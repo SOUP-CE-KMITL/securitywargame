@@ -111,7 +111,9 @@
 		//createjs.Ticker.addEventListener("tick", myStage);
 
 		var stage = new createjs.Container();
+		var textLayer = new createjs.Container();
 		myStage.addChild(stage);
+		myStage.addChild(textLayer);
 		
 		//get graph.
 		var xmlhttp;
@@ -160,8 +162,29 @@
 		xmlhttp.send();
 		var pathReport = JSON.parse(xmlhttp.responseText);
 
+		//choose path to show.
+		/*if there are more than 1 path that have same source and destination
+			choose to most hits path to show
+		*/
+		for(var i=0; i<pathReport.length; i++){
+			for(var j=0; j<pathReport.length; j++){
+				var p1 = getPathByID(pathReport[i].pathID)
+				var p2 = getPathByID(pathReport[j].pathID)
+				if(p1.src == p2.src && p1.dest==p2.dest && p1!=p2){
+					if(pathReport[i].avgHits<pathReport[j].avgHits){
+						pathReport.splice(i,1)
+						i--;
+					}else{
+						pathReport.splice(j,1)
+						j--;
+					}
+				}
+			}
+		}
+
 		var bigNode = [];
 		var smNode = [];
+		var nodeLabel = [];
 		for(var i=0; i<nodeReport.length; i++){
 			if(hasLink(nodeReport[i])){
 				myNode = new createjs.Shape();
@@ -186,6 +209,22 @@
 				myNode.addEventListener("mouseover", showServiceDetails);
 				smNode.push(myNode);
 				stage.addChild(myNode);
+
+				//add node label
+				var label = getMachineByID(nodeReport[i].machineID).name+"/"+nodeReport[i].name
+				var nodeLabelGroup = new createjs.Container();
+				nodeLabelGroup.textLabel = new createjs.Text(label, "14px Arial", "#000");
+				nodeLabelGroup.textLabel.textAlign = "center";
+				nodeLabelGroup.bg = new createjs.Shape();
+				var bound = nodeLabelGroup.textLabel.getBounds().clone()
+				nodeLabelGroup.bg.graphics.f("#000").r(bound.x-5, bound.y-5, bound.width+10, bound.height+10);
+				nodeLabelGroup.bg.alpha = 0.25;
+				nodeLabelGroup.addChild(nodeLabelGroup.bg);
+				nodeLabelGroup.addChild(nodeLabelGroup.textLabel);
+				textLayer.addChild(nodeLabelGroup)
+				nodeLabelGroup.x = myNode.x;
+				nodeLabelGroup.y = myNode.y+myNode.radius;
+				nodeLabel.push(nodeLabelGroup);
 			}
 		}
 		console.log(smNode)
@@ -199,6 +238,25 @@
 		stage.addChild(internet)
 		smNode.push(internet);
 		nodeReport.push(net);
+		var label = "External network"
+		var netLabel = new createjs.Container();
+		netLabel.textLabel = new createjs.Text(label, "14px Arial", "#000");
+		netLabel.textLabel.textAlign = "center";
+		netLabel.bg = new createjs.Shape();
+		var bound = netLabel.textLabel.getBounds().clone()
+		netLabel.bg.graphics.f("#000").r(bound.x-5, bound.y-5, bound.width+10, bound.height+10);
+		netLabel.bg.alpha = 0.25;
+		netLabel.addChild(netLabel.bg);
+		netLabel.addChild(netLabel.textLabel);
+		textLayer.addChild(netLabel)
+		netLabel.x = internet.x;
+		netLabel.y = internet.y+internet.radius;
+		nodeLabel.push(netLabel)
+
+		//internet details
+		internet.addEventListener("mouseover", function(e){
+			tooltip.text.text = "External network"
+		})
 
 		//create tooltip
 		var tooltip = new createjs.Container();
@@ -225,17 +283,45 @@
 		tooltip.addChild(text);
 
 		tooltip.text = new createjs.Text("Details go here.", "18px Arial", "#EEE")
+		tooltip.text.maxWidth = 180
 		tooltip.text.x = 10
 		tooltip.text.y = 30
 		tooltip.addChild(tooltip.text);
 		
 		myStage.addChild(tooltip);
 		
+		//color serverity scale
+		var colorScale = new createjs.Shape()
+		colorScale.graphics
+			.s("#000")
+			.mt(49,735)
+			.lt(49,755)
+			.mt(851,735)
+			.lt(851,755)
+			.es()
+			.lf(["#F00", "#0F0"], [0,1], 50, 0, 800, 0)
+			.r(50,740,800,10)
+		stage.addChild(colorScale);
+
+		var low_text = new createjs.Text("High serverity", "14px Arial", "#F00")
+		low_text.textAlign = "center"
+		low_text.x = 50
+		low_text.y = 715
+		stage.addChild(low_text);
+
+		var high_text = new createjs.Text("Low serverity", "14px Arial", "#0F0")
+		high_text.textAlign = "center"
+		high_text.x = 850
+		high_text.y = 715
+		stage.addChild(high_text);
+
 		//pause/play finding stable state
 		var togBtn = new createjs.Shape();
 		togBtn.graphics
 			.f("#2DD")
 			.dc(1000,740,20)
+			.f("#2AA")
+			.dp(1000,740,10,4,0,45)
 			.ef()
 		stage.addChild(togBtn);
 		togBtn.on("click", function(e){
@@ -244,14 +330,20 @@
 				.c()
 				.f(pushingToStableState?"#2DD":"#DD2")
 				.dc(1000,740,20)
+				.f(pushingToStableState?"#2AA":"#AA2")
+				.dp(1000,740,10,pushingToStableState?4:3,0,pushingToStableState?45:0)
 				.ef()
 		}, this)
 
-		//reset btn for reset state
+		//reset btn for random new position
 		var resetBtn  = new createjs.Shape();
 		resetBtn.graphics
 			.f("red")
 			.dc(950,740,20)
+			.s("#C00")
+			.ss(4, "round")
+			.f("red")
+			.dc(950,740,10)
 			.ef()
 		stage.addChild(resetBtn);
 		resetBtn.on("click", function(e){
@@ -260,6 +352,29 @@
 				smNode[i].x = Math.random()*900+50
 				smNode[i].y = Math.random()*600+75
 			}
+			togBtn.graphics
+				.c()
+				.f(pushingToStableState?"#2DD":"#DD2")
+				.dc(1000,740,20)
+				.f(pushingToStableState?"#2AA":"#AA2")
+				.dp(1000,740,10,4,0,45)
+				.ef()
+		}, this)
+
+		var togNameBtn = new createjs.Shape()
+		togNameBtn.graphics
+			.f("#ECF")
+			.dc(900,740,20)
+			.ef()
+			.s("#CAD")
+			.ss(3, "round")
+			.mt(894,750)
+			.lt(894,730)
+			.lt(906,750)
+			.lt(906,730)
+		stage.addChild(togNameBtn);
+		togNameBtn.on("click", function(e){
+			textLayer.visible = !textLayer.visible
 		}, this)
 
 		var pushingToStableState = true
@@ -284,6 +399,8 @@
 						d1 = d0.divide(3).subtract(di);	
 						n1.x += d1.x;
 						n1.y += d1.y;
+						nodeLabel[j].x = n1.x;
+						nodeLabel[j].y = n1.y+n1.radius;
 					}
 				}
 				//graph adjust to center screen
@@ -321,13 +438,14 @@
 						.f(createjs.Graphics.getRGB(shapes[i].score, 255-shapes[i].score, 0))
 						.dc(start.x, start.y, 4)
 						.ef()
-						.ss(pathReport[i].avgHits+2, "round")
+						.ss(2, "round")
 						.s(createjs.Graphics.getRGB(shapes[i].score, 255-shapes[i].score, 0))
 						.mt(start.x, start.y)
 						.lt(end.x, end.y)
 						.f(createjs.Graphics.getRGB(shapes[i].score, 255-shapes[i].score, 0))
 						.dp(end.x, end.y, 4, 3, 0.5, angle*180/Math.PI)
 						.es();
+					shapes[i].alpha = 0.1+pathReport[i].avgHits*0.9
 					stage.addChild(shapes[i]);
 				}
 			}
