@@ -43,48 +43,32 @@ MapDrawer.prototype.DrawWorldMap=function(layer){
 	var cities = [];
 	for(var i=0; i<this.graph.machines.length; i++){
 		cities[i] = new City(this.graph.machines[i], this.graph.paths);
-		cities[i].Draw(layer, 64*Math.cos(i*2.02)+512, 64*Math.sin(i*2.02)+384);
+		cities[i].Draw(layer, 244+(FILL_POSITION[i]%4)*172, 105+Math.floor(FILL_POSITION[i]/4)*112);
 	}
 	PlayScene.cities = cities;
 
 	//Draw with Force-directed algorithm. 
 	//Do iterations. Mostly 100 times is enough.
 	for(var i=0; i<100; i++){
-		//calculat repulsive force
 		for(var j=0; j<cities.length; j++){
-			cities[j].disp = new Vector(0,0);
 			for(var k=0; k<cities.length; k++){
-				//if city[j] connect city[k]
+				var n1 = cities[j].sprite
+				var n2 = cities[k].sprite
+				var d0 = new Vector(n2.x-n1.x, n2.y-n1.y)
+				var di
 				if(cities[j].IsConnect(cities[k])){
-					//Attractive
-					var x = cities[j].sprite.x - cities[k].sprite.x;
-					var y = cities[j].sprite.y - cities[k].sprite.y;
-					var delta = new Vector(x,y);
-					cities[j].sprite.x -= delta.x*2/3;
-					cities[j].sprite.y -= delta.y/4;
-					cities[k].sprite.x += delta.x*2/3;
-					cities[k].sprite.y += delta.y/4;
-					//console.log("pair: "+cities[j].name+" - "+cities[k].name+", dif.x: "+delta.x+", dif.y: "+delta.y);
+					//Distance should be 80
+					di = d0.unit().multiply(80)
+				}else{
+					di = d0.unit().multiply(120)
 				}
-
-				//Repulsive
-				var u = cities[j];
-				var v = cities[k];
-				var x = v.sprite.x - u.sprite.x
-				var y = v.sprite.y - u.sprite.y
-				x = (x<1 && x>0)? 1: (x>-1 && x<0)? -1: x;
-				y = (y<1 && y>0)? 1: (y>-1 && y<0)? -1: y;
-				if(x!=0){
-					cities[j].sprite.x -= 192/x;
-					cities[k].sprite.x += 192/x;
-				}
-				if(y!=0){
-					cities[j].sprite.y -= 144/y;
-					cities[k].sprite.y += 144/y;
-				}
+				var d1 = d0.divide(3).subtract(di)
+				n1.x += d1.x
+				n1.y += d1.y
 			}
 		}
 	}
+	//adjust to center
 	var sx=sy=0;
 	for(var j=0; j<cities.length; j++){
 		sx += cities[j].sprite.x
@@ -94,7 +78,6 @@ MapDrawer.prototype.DrawWorldMap=function(layer){
 	sy /= cities.length;
 	var dx = sx-512;
 	var dy = sy-324;
-	console.log(dx+" "+dy);
 	for(var j=0; j<cities.length; j++){
 		cities[j].sprite.x -= dx;
 		cities[j].sprite.y -= dy;

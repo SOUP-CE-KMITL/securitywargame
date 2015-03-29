@@ -906,7 +906,7 @@ class PostJSONGraphHandler(Handler,FacebookHandler):
 				#automated new machineID
 				name = value[i]['name']
 				status = value[i]['status']
-				impact = value[i]['impact']
+				impact = 0
 				v = Machine.add_new_machine(int(machineID),name,status,int(impact))
 				if uv.machines:
 					uv.machines.append(v)
@@ -926,7 +926,7 @@ class PostJSONGraphHandler(Handler,FacebookHandler):
 				#serviceID = temp.service_hold + 1				
 				name = value[i]['name']
 				status = value[i]['status']
-				impact = value[i]['impact']
+				impact = 0
 				machineID = value[i]['machineID']
 				w = Service.add_new_service(int(serviceID),name,status,int(impact),machineID)
 				if uw.services:
@@ -947,7 +947,7 @@ class PostJSONGraphHandler(Handler,FacebookHandler):
 				pathID = temp.path_hold + 1
 				cve_id = value[i]['cve']
 				name = value[i]['name']
-				status = value[i]['status']
+				status = "unused"
 				src = value[i]['src']
 				dest = value[i]['dest']
 				g_acc = value[i]['av']
@@ -1023,7 +1023,13 @@ class AddStepHandler(Handler,FacebookHandler):
 			waypoint.step.append(step)
 		else:
 			waypoint.step = [step]
+
 		waypoint.put()
+		logging.info("%s", waypoint)
+		waypoint.put()
+		#block comment 
+		#TODO: Report table will no longer use this.?
+		"""
 		#1 generate waypoint report
 		#generate report when step is added
 		graph = Graph.query().filter(Graph.graphID == waypoint.mapID).get()
@@ -1103,10 +1109,10 @@ class AddStepHandler(Handler,FacebookHandler):
 			w = SolTypeReport.add_new_soltype(owner_id,mapID,cve_id,cwe_name,service_name,solType_impact)
 		w.put()
 
-		srcM = "abc"
-		dstM = "abc"
-		srcS = "abc"
-		dstS = "abc"
+		srcM = "External network"
+		dstM = "Impossible"
+		srcS = "External network"
+		dstS = "Impossible"
 		myPath = None
 		src = None
 		dst = None
@@ -1115,21 +1121,21 @@ class AddStepHandler(Handler,FacebookHandler):
 			if p.pathID==pathID:
 				myPath = p
 
-		#find service in path
-		for s in graph.services:
-			if s.serviceID==p.src:
-				srcS = s.name
-				src = s
-			if s.serviceID==p.dest:
-				dstS = s.name
-				dst = s
-
-		#find machine in path
-		for m in graph.machines:
-			if m.machineID==src.machineID:
-				srcM = m.name
-			if m.machineID==dst.machineID:
-				dstM = m.name
+		if myPath:
+			#find service in path
+			for s in graph.services:
+				if s.serviceID==p.src:
+					srcS = s.name
+					src = s
+				if s.serviceID==p.dest:
+					dstS = s.name
+					dst = s
+			#find machine in path
+			for m in graph.machines:
+				if m.machineID==src.machineID:
+					srcM = m.name
+				if m.machineID==dst.machineID:
+					dstM = m.name
 				
 		# path analysis
 		# query path with pathID
@@ -1156,7 +1162,7 @@ class AddStepHandler(Handler,FacebookHandler):
 				counting=1
 			)
 			new_path_report.put()
-	
+		"""
 		self.write("success")
 
 class CreateDummyUserHandler(Handler,FacebookHandler):

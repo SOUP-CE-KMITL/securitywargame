@@ -53,9 +53,10 @@ var RANDOM_NAME = [
 ]
 
 var RANDOM_CITY = [
-	"St.James",
-	"Nichueyen",
-	"Rome"
+	"St.James","Nichueyen","Rome","Brookhaven","Black Butte Ranch",
+	"Crosbyton","Cedar Vale","Gnadenhutten","Ash Shu‘aybah",
+	"‘Atf Jabara","Aushaziya","Daff Khuzā‘ah","Ras at Tannura",
+	"Heesfeld", "Oelixdorf", "Gehrenrode","Tressentin","Buoch"
 ]
 
 var FILL_POSITION = [10,9,7,12,4,15,6,13,14,5,8,11,16,17,3,2,1,0,19,18]

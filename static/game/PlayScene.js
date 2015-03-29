@@ -193,6 +193,9 @@ PlayScene.prototype.PreloadComplete = function(event){
 	PlayScene.scoreText = this.scoreText;
 	PlayScene.detectIcon = this.detectIcon;
 
+	this.baseView.bitmap.on("click", function(e){
+		endGame("retire")
+	}, this)
 	this.Show(SceneManager.stage, SceneManager.params);
 	SceneManager.currentScene = this;
 }
@@ -246,16 +249,7 @@ PlayScene.Launch = function(e){
 	}
 
 	if(p.activeLevel>=8){
-		SceneManager.ChangeScene("end")
-		var req;
-		if (window.XMLHttpRequest){
-		  req=new XMLHttpRequest();
-		}else{
-		  req=new ActiveXObject("Microsoft.XMLHTTP");
-		}
-		req.open("POST","/end-game?wpid="+p.wayKey+"&score="+p.score+"&turn="+p.turnText.text+"&reason=detected",false);
-		req.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-		req.send();
+		endGame("detected")
 		return
 	}
 	/*for (var i=0; i<p.atkQueue.length; i++){		
@@ -467,6 +461,19 @@ function getBuildingById(id){
 	return null;
 }
 
+function endGame(reason){
+	SceneManager.ChangeScene("end")
+	var p = PlayScene
+	var req;
+	if (window.XMLHttpRequest){
+	  req=new XMLHttpRequest();
+	}else{
+	  req=new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	req.open("POST","/end-game?wpid="+p.wayKey+"&score="+p.score+"&turn="+p.turnText.text+"&reason="+reason,false);
+	req.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+	req.send();
+}
 PlayScene.prototype.Hide=function(stage){
 	stage.removeChild(this.scene);
 }

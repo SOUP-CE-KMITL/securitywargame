@@ -73,8 +73,7 @@ SceneManager.ChangeScene=function(dest, effect, dur){
 
 	var newScene = this.scenes[dest];
 	
-	if(!newScene.inited) 
-		newScene.Init();
+	newScene.Init();
 }
 
 function HomeScene(){}

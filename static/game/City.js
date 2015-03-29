@@ -2,7 +2,7 @@
 function City(machine, paths){
 	this.machine = machine;
 	this.cityID = machine.machineID;
-	this.name = machine.name;
+	this.name = RANDOM_CITY[this.cityID%RANDOM_CITY.length];
 	this.to=[];
 	this.services=[];
 
@@ -180,7 +180,7 @@ City.ClickHandler=function(event){
 City.ShowCityInfo=function(event){
 	var t = event.target;
 	var info = "";
-	info = "name: "+t.ref.machine.name+"\n"+
+	info = "name: "+t.ref.name+"\n"+
 				 "size: "+t.ref.services.length+"\n"+
 				 "status: "+t.ref.machine.status+"\n";
 	PlayScene.inspecWin.stat.text = info;
