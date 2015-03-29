@@ -113,6 +113,9 @@ Soldier.Action = function (e){
 	*/
 
 	//if(PlayScene.moneyText.text-t.ref.level > 0){
+		//play sound
+		Jukebox.play("mission-sfx")
+
 		var to = getServiceById(t.ref.to)
 		var score = SCORE_SYSTEM.av[t.ref.vector];
 		score += SCORE_SYSTEM.ac[t.ref.level];
@@ -146,6 +149,8 @@ Soldier.Action = function (e){
 
 Soldier.ShowInfo = function(e){
 	var t=e.target;
+	Jukebox.play("hover-sfx")
+
 	console.log(t);
 	PlayScene.inspecWin.stat.text = 
 		"name: "+t.ref.name+"\n"+
@@ -232,6 +237,7 @@ Explorer.prototype.Erase=function(){
 }
 
 Explorer.ShowInfo=function(e){
+	Jukebox.play("hover-sfx")
 	var t=e.target;
 	PlayScene.inspecWin.stat.text = 
 		"name: "+t.ref.name+"\n"+

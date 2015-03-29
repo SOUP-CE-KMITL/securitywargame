@@ -198,9 +198,13 @@ PlayScene.prototype.PreloadComplete = function(event){
 }
 
 PlayScene.prototype.Show = function(stage, params){
+
+	SceneManager.currentScene = this
 	stage.addChild(this.scene);
 	PlayScene.turnText.text = "0"
-	//new XMLLoader(SceneManager.params, this);
+	
+	//play bgm
+	Jukebox.play("play-bgm", -1)
 
 	var req;
 	if (window.XMLHttpRequest){
@@ -241,6 +245,19 @@ PlayScene.Launch = function(e){
 		PlayScene.activeLevel -= 1;
 	}
 
+	if(p.activeLevel>=8){
+		SceneManager.ChangeScene("end")
+		var req;
+		if (window.XMLHttpRequest){
+		  req=new XMLHttpRequest();
+		}else{
+		  req=new ActiveXObject("Microsoft.XMLHTTP");
+		}
+		req.open("POST","/end-game?wpid="+p.wayKey+"&score="+p.score+"&turn="+p.turnText.text+"&reason=detected",false);
+		req.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+		req.send();
+		return
+	}
 	/*for (var i=0; i<p.atkQueue.length; i++){		
 		var s = p.atkQueue[i].soldier;
 		if(s.name=="Picklocker"){
@@ -290,24 +307,27 @@ PlayScene.Launch = function(e){
 				var dstService = getServiceById(sol.edge.dest);
 				var dstMachine = getMachineById(dstService.machineID);
 				
-				//Occupy
-				PlayScene.activeLevel += 1;
-				if(sol.integrity<2){
-					var b = getBuildingById(sol.edge.dest);
-					score += b.Capture(sol)
-				}else{
-					var c = getCityById(sol.to);
-					for(var  j=0; j<c.services.length; j++){
-						var b = getBuildingById(c.services[j].serviceID)
-						score += b.Capture(sol)
-					}
-				}
-				c.Spread();
-				c.DrawLink();
-
 				//Set status
 				dstMachine.status = "ready";
 				sol.edge.status = "used";
+
+				//play sound
+				Jukebox.play("success-sfx")
+				//Occupy
+				PlayScene.activeLevel += 1;
+				if(sol.integrity==1){
+					var service = getServiceById(sol.edge.dest);
+					score += Building.Capture(service, sol)
+				}else if(sol.integrity==2){
+					var c = getCityById(sol.to);
+					for(var  j=0; j<c.services.length; j++){
+						var service = getServiceById(c.services[j].serviceID)
+						score += Building.Capture(service, sol)
+					}
+					c.Spread();
+					c.DrawLink();
+				}
+
 				
 
 				score+= SCORE_SYSTEM.av[sol.vector];
@@ -336,13 +356,20 @@ PlayScene.Launch = function(e){
 				)
 			}
 
-			//erase character
 			if(PlayScene.cityMap){
+				//erase character
 				createjs.Tween.get(sol.sprite, {"override":true})
 					.to({"scaleX":0, "scaleY":0}, 300)
 					.call(function(e){
 						PlayScene.cityMap.removeChild(sol.sprite);
 					})
+			}
+
+			//play fx
+			if(sol.sprite){
+				EffectMaster.Explode(PlayScene.objLayer, sol.sprite.x, sol.sprite.y)
+			}else{
+				EffectMaster.Explode(PlayScene.objLayer)
 			}
 
 			//dequeue
@@ -438,4 +465,8 @@ function getBuildingById(id){
 		}
 	}
 	return null;
+}
+
+PlayScene.prototype.Hide=function(stage){
+	stage.removeChild(this.scene);
 }

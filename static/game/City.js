@@ -79,6 +79,7 @@ City.prototype.IsConnect = function(city){
 }
 
 City.ClickHandler=function(event){
+	Jukebox.play("click-sfx")
 	var target = event.target.ref;
 	if(target.machine.status == "found"){
 		//set cursor position

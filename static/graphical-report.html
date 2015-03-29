@@ -1,5 +1,6 @@
 <html>
 <head>
+	Graphical report v1.0
 	<!-- crete.js-->
 	<script src="/static/game/lib/easeljs-0.8.0.min.js"></script>
 	<scrpit src="/static/game/lib/tweenjs-0.6.0.min.js"></script>
@@ -13,6 +14,13 @@
 		</canvas>
 	</div>
 	<script>
+		//num_to_dic
+		myDict={
+			"av":["remote", "network", "local"],
+			"au":["none", "1", "2+"],
+			"ac":["low", "medium", "high"],
+			"impact":["none", "partial", "all"]
+		}
 		//precision function
 		function fp(num, point){
 			point = point || 2;
@@ -42,13 +50,14 @@
 			tooltip.text.text = 
 				"pathName: "+p.name+"\n"+
 				"pathID: "+p.pathID+"\n"+
-				"Access: "+p.av+"\n"+
-				"Authen: "+p.au+"\n"+
-				"Complex: "+p.ac+"\n"+
+				"Access: "+myDict.av[p.av]+"\n"+
+				"Authen: "+myDict.au[p.au]+"\n"+
+				"Complex: "+myDict.ac[p.ac-1]+"\n"+
 				"Hits: "+p.hits+"\n"+
-				"Integrity: "+p.ii+"\n"+
-				"Confident: "+p.ci+"\n"+
-				"Available: "+p.ai+"\n"
+				"Prob: "+fp(p.avgHits)+"\n"+
+				"Integrity: "+myDict.impact[p.ii]+"\n"+
+				"Confident: "+myDict.impact[p.ci]+"\n"+
+				"Available: "+myDict.impact[p.ai]+"\n"
 		}
 		function getMachineByID(id){
 			for(var i=0; i<graph.machines.length; i++){
@@ -283,7 +292,7 @@
 		tooltip.addChild(text);
 
 		tooltip.text = new createjs.Text("Details go here.", "18px Arial", "#EEE")
-		tooltip.text.maxWidth = 180
+		tooltip.text.lineWidth = 180
 		tooltip.text.x = 10
 		tooltip.text.y = 30
 		tooltip.addChild(tooltip.text);

@@ -41,6 +41,7 @@ Building.prototype.Draw=function(parent, x, y){
 	this.sprite.gotoAndStop("default");
 
 	this.sprite.on("mouseover", function(e){
+		Jukebox.play("hover-sfx")
 		createjs.Tween.get(this.sprite)
 			.to({"scaleX":0.35, "scaleY":0.35}, 250);
 	}, this);
@@ -61,6 +62,7 @@ Building.ShowInfo=function(event){
 }
 
 Building.ShowActions=function(event){
+	Jukebox.play("click-sfx")
 	var t = event.target.ref;
 	var edges = PlayScene.graph.paths;
 
@@ -102,13 +104,12 @@ Building.ShowActions=function(event){
 	*/
 }
 
-Building.prototype.Capture = function(sol){
-	var oldScore = PlayScene.score;
-	this.service.captured = true;
+Building.Capture = function(service, sol){
+	service.captured = true;
 
 	//Calculate the score
 	var score = 0;
-	var im = this.service.impact;
+	var im = service.impact;
 	if(im.c < sol.confident){
 		var value = sol.confident - im.c;
 		im.c += value

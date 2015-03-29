@@ -1341,25 +1341,24 @@ class PlayerRegisterHandler(Handler,FacebookHandler):
 		
 class MapSummarizeHandler(Handler, FacebookHandler):
 	def get(self):
-		retJson = {"avgScore":0, "avgTurn":0, "playCount":0, "uniquePlay":0}
+		retJson = {"avgScore":0, "avgTurn":0, "playCount":0}
 		map_id = int(self.request.get("map_id"))
 		waypoints = WayPoints.query(WayPoints.mapID==map_id)
 		#avg field value for every waypoints
 		avgScore = 0
 		avgTurn = 0
 		wpCount = 0
+		topScore = 0
 		for wp in waypoints:
-			#sum erery step attr
-			sumTurn = 0
-			for step in wp.step:
-				sumTurn += step.endTurn - step.startTurn
-				#sumScore += step.score
-			avgTurn += sumTurn
+			if wp.score > topScore:
+				topScore = wp.score
+			avgTurn += wp.savedTurn
+			avgScore += wp.score
 			wpCount += 1
-		avgTurn /= wpCount
-		retJson["avgTurn"] = avgTurn
+		retJson["avgTurn"] = avgTurn/(wpCount*1.0)
 		retJson["playCount"] = wpCount
-		retJson["score"] = 0
+		retJson["avgScore"] = avgScore/(wpCount*1.0)
+		retJson["topScore"] = topScore
 		self.response.write(json.dumps(retJson))
 
 class RenderCVEGraphHandler(Handler, FacebookHandler):
@@ -1516,6 +1515,28 @@ class updateScoreHandler(Handler, FacebookHandler):
 		wp.savedTurn = currentTurn
 		wp.put()
 
+class getHighScoreHandler(Handler, FacebookHandler):
+	def get(self):
+		mapID = int(self.request.get("map_id"))
+		highWp = WayPoints.query(WayPoints.mapID==mapID).order(-WayPoints.score).fetch(10)
+		scoreList = [];
+		for wp in highWp:
+			scoreList.append(wp.score)
+		self.response.write(scoreList)
+
+class endGameHandler(Handler, FacebookHandler):
+	def post(self):
+		wpid = int(self.request.get("wpid"))
+		lastScore = int(self.request.get("score"))
+		reason = self.request.get("reason")
+		turn = int(self.request.get("turn"))
+		wp = WayPoints.query(WayPoints.waypointsID==wpid).get()
+		wp.score = lastScore
+		wp.status = reason
+		wp.savedTurn = turn
+		wp.put()
+		self.response.write("success")
+
 #######################################################################################################
 #######################################################################################################
 #######################################################################################################
@@ -1568,6 +1589,8 @@ app = webapp2.WSGIApplication([
 	('/node-report', NodeSummarizeHandler),
 	('/path-report', PathSummarizeHandler),
 	('/update-score', updateScoreHandler),
+	('/get-highscore', getHighScoreHandler),
+	('/end-game', endGameHandler),
 	('/render-cve-graph',RenderCVEGraphHandler)
 
 	

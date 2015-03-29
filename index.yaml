@@ -82,3 +82,14 @@ indexes:
   - name: from_sensor
   - name: created
     direction: desc
+
+- kind: WayPoints
+  properties:
+  - name: mapID
+  - name: score
+
+- kind: WayPoints
+  properties:
+  - name: mapID
+  - name: score
+    direction: desc
