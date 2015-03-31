@@ -1,6 +1,6 @@
 <html>
 <head>
-	Graphical report v1.0
+	<title>Graphical report v1.0</title>
 	<!-- crete.js-->
 	<script src="/static/game/lib/easeljs-0.8.0.min.js"></script>
 	<scrpit src="/static/game/lib/tweenjs-0.6.0.min.js"></script>
@@ -191,7 +191,27 @@
 			}
 		}
 
+		//Draw machine node
 		var bigNode = [];
+		var avgBigPos = [];
+		for(var i=0; i<hostReport.length; i++){
+			var h = hostReport[i];
+			myNode = new createjs.Shape();
+			myNode.bigNode = h;
+			myNode.sx = 0
+			myNode.sy = 0
+			myNode.count = 0
+			myNode.graphics
+				.f("#333")
+				.dc(0,0,75)
+				.ef()
+			myNode.alpha = 0.25
+			myNode.x = Math.random()*1024
+			myNode.y = Math.random()*768
+			stage.addChild(myNode)
+			bigNode.push(myNode)
+		}
+		//Draw service node
 		var smNode = [];
 		var nodeLabel = [];
 		for(var i=0; i<nodeReport.length; i++){
@@ -200,6 +220,7 @@
 				myNode.node = nodeReport[i];
 				myNode.score = Math.round((nodeReport[i].avgCI+nodeReport[i].avgII+nodeReport[i].avgAI)*255/6)
 				var d = nodeReport[i].machineID;
+				bigNode[d-1].count += 1;
 				var h = graph.machines.length;
 				var red = Math.round(127+Math.pow(-1,d)*d*(127/h))
 				var green = Math.round(127-Math.pow(-1,d)*d*(127/h))
@@ -236,7 +257,7 @@
 				nodeLabel.push(nodeLabelGroup);
 			}
 		}
-		console.log(smNode)
+
 		//create internet node
 		var internet = new createjs.Shape();
 		internet.graphics.f("#DDD").dc(0,0, 30)
@@ -399,7 +420,9 @@
 						var n2 = smNode[k];
 						var d0 = new Vector(n2.x-n1.x, n2.y-n1.y);
 						var di //constant to control not push/pull too much
-						if(isNodeConnect(n1,n2)){
+						if(n1.node.machineID == n2.node.machineID){
+							di = d0.unit().multiply(30);
+						}else if(isNodeConnect(n1,n2)){
 							di = d0.unit().multiply(60);
 						}else{
 							di = d0.unit().multiply(120);
@@ -427,6 +450,11 @@
 					smNode[j].y -= dy;
 					smNode[j].x = Math.max(50, Math.min(smNode[j].x, 950));
 					smNode[j].y = Math.max(100, Math.min(smNode[j].y, 684));
+					var v = smNode[j].node.machineID-1
+					if(v>=0){
+						bigNode[v].sx += smNode[j].x;
+						bigNode[v].sy += smNode[j].y;
+					}
 				}
 				
 				for(var i=0; i<pathReport.length; i++){
@@ -456,6 +484,13 @@
 						.es();
 					shapes[i].alpha = 0.1+pathReport[i].avgHits*0.9
 					stage.addChild(shapes[i]);
+				}
+
+				for(var i=0; i<bigNode.length; i++){
+					bigNode[i].x = bigNode[i].sx/bigNode[i].count;
+					bigNode[i].y = bigNode[i].sy/bigNode[i].count;
+					bigNode[i].sx = 0
+					bigNode[i].sy = 0
 				}
 			}
 			myStage.update()

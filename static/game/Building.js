@@ -2,19 +2,17 @@
 function Building(service, city){
 	var s = getServiceById(service)
 	this.service=s;
-	s.captured = false;  //TODO: this should be in datastore too.
+	s.captured = false;
 	this.name=s.name;
 	this.buildingID = s.serviceID;
-	if (Building.supportedServices.indexOf(this.name) >= 0){
-		this.sName = this.name;
+	if (SERVICE_DICT[s.name]){
+		this.sName = SERVICE_DICT[this.name];
 	}else{
-		this.sName = "lab";
+		this.sName = "Lab";
 	}
 	this.city = city;
 	
 }
-
-Building.supportedServices = ["hq", "www", "db"];
 
 Building.prototype.Draw=function(parent, x, y){
 	this.sheet = new createjs.SpriteSheet({

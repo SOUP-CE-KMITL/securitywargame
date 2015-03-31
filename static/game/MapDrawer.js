@@ -95,6 +95,7 @@ MapDrawer.prototype.DrawWorldMap=function(layer){
 		evt.currentTarget.px = evt.localX;
 		evt.currentTarget.py = evt.localY;
 	});
+	
 	/*
 	layer.addEventListener("pressmove", function (evt) {
     evt.currentTarget.set({

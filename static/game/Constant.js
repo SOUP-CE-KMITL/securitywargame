@@ -14,12 +14,17 @@ var SCORE_SYSTEM = {
 }
 
 var SERVICE_DICT = {
-	"os": "HQ",
+	"os": "Headquater",
 	"db": "Warehouse",
+	"mysql": "Warehouse",
 	"web": "Trade port",
 	"www": "Trade port",
-	"unknown": "Store",
-	"aaa": "bbb"
+	"http": "Trade port",
+	"https": "Trade port",
+	"ssh": "Barrack",
+	"firewall": "Turret",
+	"fw": "Turret",
+	"ftp": "Barrack",
 }
 
 var CWE_DICT = {
