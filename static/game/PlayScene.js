@@ -309,6 +309,7 @@ PlayScene.Launch = function(e){
 				Jukebox.play("success-sfx")
 				//Occupy
 				PlayScene.activeLevel += 1;
+				console.log(sol)
 				if(sol.integrity==1){
 					var service = getServiceById(sol.edge.dest);
 					score += Building.Capture(service, sol)

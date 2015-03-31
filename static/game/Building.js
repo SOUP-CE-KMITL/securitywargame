@@ -2,7 +2,7 @@
 function Building(service, city){
 	var s = getServiceById(service)
 	this.service=s;
-	s.captured = false;
+	s.captured = s.captured || false
 	this.name=s.name;
 	this.buildingID = s.serviceID;
 	if (SERVICE_DICT[s.name]){
@@ -114,12 +114,12 @@ Building.Capture = function(service, sol){
 		score += SCORE_SYSTEM.ci[value];
 	}
 	if(im.i < sol.integrity){
-		var value = sol.confident - im.i;
+		var value = sol.integrity - im.i;
 		im.i += value
 		score += SCORE_SYSTEM.ii[value];
 	}
 	if(im.a < sol.availability){
-		var value = sol.confident - im.a;
+		var value = sol.availability - im.a;
 		im.a += value
 		score += SCORE_SYSTEM.ai[value];
 	}
