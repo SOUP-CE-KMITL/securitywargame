@@ -9,7 +9,7 @@ MapDrawer.prototype.Format = function(){
 		var s = this.graph.services[i];
 		s.status = s.status || "found";
 		s.impact = {"a":0, "i":0, "c":0}; //s.impact || 0;
-		s.captured = false;
+		s.captured = s.captured || false;
 
 		var m = getMachineById(s.machineID);
 		m.services = m.services || [];
@@ -89,6 +89,24 @@ MapDrawer.prototype.DrawWorldMap=function(layer){
 	//draw road
 	for(var i=0; i<cities.length; i++){
 		cities[i].DrawLink()
+		//put flag on city
+		var captured = false;
+		for(var j=0; j<cities[i].services.length; j++){
+			if(!cities[i].services[j].captured) break;
+			captured = true;
+		}
+		if(captured){
+			var options ={
+				"images": ["resource/char/char-flag.png"],
+				"frames": {"width":64, "height":64, "regX":32, "regY":64, "count":2},
+				"animations": {"default":[0,1, "default", 0.5]}
+			}
+			var sheet = new createjs.SpriteSheet(options);
+			var sprite = new createjs.Sprite(sheet, "default");
+			sprite.x = cities[i].sprite.x+24;
+			sprite.y = cities[i].sprite.y;
+			PlayScene.objLayer.addChild(sprite);
+		}
 	}
 
 	layer.addEventListener("mousedown", function(evt){

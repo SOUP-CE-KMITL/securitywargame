@@ -224,13 +224,12 @@ PlayScene.prototype.Show = function(stage, params){
 	PlayScene.replayStep = retObj.step
 	PlayScene.score = retObj.score
 	PlayScene.scoreText.text = PlayScene.score;
-	PlayScene.turnText.text  = retObj.savedTurn
+	PlayScene.turnText.text  = retObj.savedTurn;
 
 	var p=PlayScene
 	var jGraph = JSON.parse(retObj.graphStat)
 	p.mapDrawer = new MapDrawer(jGraph);
 	PlayScene.graph = jGraph;
-	console.log(jGraph);
 
 	var cities = p.mapDrawer.DrawWorldMap(p.objLayer);
 	for(var i=0; i<cities.length; i++){
@@ -309,7 +308,6 @@ PlayScene.Launch = function(e){
 				Jukebox.play("success-sfx")
 				//Occupy
 				PlayScene.activeLevel += 1;
-				console.log(sol)
 				if(sol.integrity==1){
 					var service = getServiceById(sol.edge.dest);
 					score += Building.Capture(service, sol)
@@ -321,9 +319,18 @@ PlayScene.Launch = function(e){
 					}
 					c.Spread();
 					c.DrawLink();
+					//put flag on city
+					var options ={
+						"images": ["resource/char/char-flag.png"],
+						"frames": {"width":64, "height":64, "regX":32, "regY":64, "count":2},
+						"animations": {"default":[0,1, "default", 0.5]}
+					}
+					var sheet = new createjs.SpriteSheet(options);
+					var sprite = new createjs.Sprite(sheet, "default");
+					sprite.x = c.sprite.x+24;
+					sprite.y = c.sprite.y;
+					PlayScene.objLayer.addChild(sprite);
 				}
-
-				
 
 				score+= SCORE_SYSTEM.av[sol.vector];
 				score+= SCORE_SYSTEM.ac[sol.level];
