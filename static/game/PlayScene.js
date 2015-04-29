@@ -59,7 +59,7 @@ PlayScene.prototype.PreloadComplete = function(event){
 	this.baseView.stat = new createjs.Text("name: camp", "18px arial", "#FFFFFF");
 	this.baseView.stat.x = 200;
 	this.baseView.stat.y = 620;
-	this.baseView.addChild(this.baseView.stat);
+	//this.baseView.addChild(this.baseView.stat);
 	this.inspecWin.addChild(this.baseView);
 
 	this.inspecWin.stat = new createjs.Text("", "18px arial", "#FFFFFF");
@@ -73,7 +73,7 @@ PlayScene.prototype.PreloadComplete = function(event){
 	this.guiLayer.addChild(this.topBar);
 
 
-	this.comment = new createjs.Text("this is comment.", "18px arial", "#FFFFFF");
+	this.comment = new createjs.Text("Choose city to explore.", "18px arial", "#FFFFFF");
 	this.guiLayer.addChild(this.comment);
 	this.comment.x = 10;
 	this.comment.y = 558;
@@ -136,7 +136,7 @@ PlayScene.prototype.PreloadComplete = function(event){
 	this.activeLevelText = new createjs.Text("0", "18px arial", "#FFF");
 	this.guiLayer.addChild(this.activeLevelText);
 	this.activeLevelText.x = 512;
-	this.activeLevelText.y = 18;
+	this.activeLevelText.y = 21;
 	this.activeLevelText.textAlign = "center";
 
 	this.moneyIcon = new createjs.Bitmap("resource/icon/MoneyIcon.png")
@@ -330,6 +330,8 @@ PlayScene.Launch = function(e){
 					sprite.x = c.sprite.x+24;
 					sprite.y = c.sprite.y;
 					PlayScene.objLayer.addChild(sprite);
+					if(PlayScene.cityMap)
+						PlayScene.objLayer.addChild(PlayScene.cityMap);
 				}
 
 				score+= SCORE_SYSTEM.av[sol.vector];

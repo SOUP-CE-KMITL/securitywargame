@@ -154,7 +154,7 @@ Soldier.ShowInfo = function(e){
 	console.log(t);
 	PlayScene.inspecWin.stat.text = 
 		"name: "+t.ref.name+"\n"+
-		"range: "+t.ref.vector+"\n"+
+		//"range: "+t.ref.vector+"\n"+
 		"level: "+t.ref.level+"\n"+
 		"key: "+t.ref.edge.keyHeld+"/"+(t.ref.authen)+"\n"+
 		"occupiable: "+t.ref.confident+"\n"+

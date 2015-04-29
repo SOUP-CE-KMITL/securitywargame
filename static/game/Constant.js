@@ -58,7 +58,7 @@ var RANDOM_NAME = [
 ]
 
 var RANDOM_CITY = [
-	"St.James","Nichueyen","Rome","Brookhaven","Black Butte Ranch",
+	"St.James","Cyro","Rome","Brookhaven","Black Butte Ranch",
 	"Crosbyton","Cedar Vale","Gnadenhutten","Ash Shu‘aybah",
 	"‘Atf Jabara","Aushaziya","Daff Khuzā‘ah","Ras at Tannura",
 	"Heesfeld", "Oelixdorf", "Gehrenrode","Tressentin","Buoch"
