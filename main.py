@@ -1029,7 +1029,7 @@ class AddStepHandler(Handler,FacebookHandler):
 		waypoint.put()
 		#block comment 
 		#TODO: Report table will no longer use this.?
-		"""
+
 		#1 generate waypoint report
 		#generate report when step is added
 		graph = Graph.query().filter(Graph.graphID == waypoint.mapID).get()
@@ -1068,7 +1068,11 @@ class AddStepHandler(Handler,FacebookHandler):
 		if v:
 			v.play_count = v.play_count + 1
 			play_count = v.play_count
+			top_score = v.top_score
+			#update top score
 			v.score = v.score + score
+			if top_score < v.score:
+				v.top_score = v.score
 			v.avg_score = v.score / ( play_count*1.000 )
 			v.total_turn = v.total_turn + total_turn
 			v.avg_total_turn = v.total_turn / ( play_count*1.000 )
@@ -1101,13 +1105,25 @@ class AddStepHandler(Handler,FacebookHandler):
 			SolTypeReport.cve_id == cve_id,SolTypeReport.service_name == service_name, \
 			SolTypeReport.cwe_name == cwe_name).get()
 		if w:
+			
 			w.counting = w.counting + 1
+			#newly added
+			if w.avg_hit:
+				avg_hit = w.avg_hit
+			else:
+				avg_hit = 1
+			if v:
+				w.avg_hit = avg_hit / v.play_count
+			else:
+				w.avg_hit = avg_hit / new_map_report.play_count
 			if w.solType_impact == None:
 				w.solType_impact = 0
 			w.solType_impact = w.solType_impact + 1
 		else:
 			w = SolTypeReport.add_new_soltype(owner_id,mapID,cve_id,cwe_name,service_name,solType_impact)
 		w.put()
+
+
 
 		srcM = "External network"
 		dstM = "Impossible"
@@ -1116,6 +1132,8 @@ class AddStepHandler(Handler,FacebookHandler):
 		myPath = None
 		src = None
 		dst = None
+
+
 
 		for p in graph.paths:
 			if p.pathID==pathID:
@@ -1136,21 +1154,25 @@ class AddStepHandler(Handler,FacebookHandler):
 					srcM = m.name
 				if m.machineID==dst.machineID:
 					dstM = m.name
-				
+			my_name = myPath.name
 		# path analysis
+
 		# query path with pathID
-		p = PathReport.query().filter(PathReport.pathID == pathID).get()
-		if p: #path exist
+		old_path_report = PathReport.query().filter(PathReport.pathID == pathID).get()
+		# naming path
+
+		if old_path_report: #path exist
 			#update
-			p.counting = p.counting + 1
-			p.ai = p.ai + 1
-			p.ii = p.ii + 1
-			p.ci = p.ci + 1
-			p.srcMachine = srcM
-			p.srcService = srcS
-			p.dstMachine = dstM
-			p.dstService = dstS
-			p.put()
+			old_path_report.counting = old_path_report.counting + 1
+			old_path_report.ai = old_path_report.ai + 1
+			old_path_report.ii = old_path_report.ii + 1
+			old_path_report.ci = old_path_report.ci + 1
+			
+			old_path_report.srcMachine = srcM
+			old_path_report.srcService = srcS
+			old_path_report.dstMachine = dstM
+			old_path_report.dstService = dstS
+			old_path_report.put()
 		else:
 			new_path_report = PathReport.add_new_path_report(
 				mapID,
@@ -1161,8 +1183,13 @@ class AddStepHandler(Handler,FacebookHandler):
 				ai,ii,ci,
 				counting=1
 			)
+			if my_name:
+				new.path_report.name = my_name
+			else:
+				my_name = "No name path"
+				new.path_report.name = my_name
 			new_path_report.put()
-		"""
+
 		self.write("success")
 
 class CreateDummyUserHandler(Handler,FacebookHandler):
@@ -1469,25 +1496,40 @@ class NodeSummarizeHandler(Handler, FacebookHandler):
 		retJson.sort(key=lambda x: x["hits"], reverse=True)
 		self.response.write(json.dumps(retJson))
 
+class DummyReportHandler(Handler, FacebookHandler):
+	def get(self):
+		self.render('dummy.html')
+
 class PathSummarizeHandler(Handler, FacebookHandler):
 	def get(self):
 		retJson = [];
 		map_id = int(self.request.get("map_id"))
 		waypoints = WayPoints.query(WayPoints.mapID==map_id)
 		graphOfMap = Graph.query(Graph.graphID==map_id).get()
-
+		av_list = ["remote","adjacent","local"]
+		ac_list = ["Low","Med","High"]
+		au_list = ["None","1+","2+"]
+		ci_list = ["None","Partial","Complete"]
+		ii_list = ["None","Partial","Complete"]
+		ai_list = ["None","Partial","Complete"]
 		for p in graphOfMap.paths:
+			av = av_list[p.gained_access-1]
+			ac = ac_list[p.access_complexity-1]
+			au = au_list[p.authentication-1]
+			ai = ai_list[p.availability_impact-1]
+			ii = ii_list[p.integrity_impact-1]
+			ci = ci_list[p.confidentiality_impact-1]
 			obj = {
 				"name": p.name,
 				"pathID": p.pathID,
 				"hits": 0,
 				"avgHits": 0,
-				"av": p.gained_access,
-				"ac": p.access_complexity,
-				"au": p.authentication,
-				"ai": p.integrity_impact,
-				"ii": p.integrity_impact,
-				"ci": p.confidentiality_impact
+				"av": av,
+				"ac": ac,
+				"au": au,
+				"ai": ai,
+				"ii": ii,
+				"ci": ci
 			}
 			retJson.append(obj)
 
@@ -1597,7 +1639,8 @@ app = webapp2.WSGIApplication([
 	('/update-score', updateScoreHandler),
 	('/get-highscore', getHighScoreHandler),
 	('/end-game', endGameHandler),
-	('/render-cve-graph',RenderCVEGraphHandler)
+	('/render-cve-graph',RenderCVEGraphHandler),
+	('/dummy-report',DummyReportHandler)
 
 	
 	#('/updateGraph',UpdateJSONGraphHandler)
@@ -1849,6 +1892,8 @@ class WaypointReport(ndb.Model):
 	owner_id = ndb.IntegerProperty(required=True)
 	play_count = ndb.IntegerProperty(default=0)
 	maximum_impact = ndb.FloatProperty(required=True)
+	#newly add 
+	status = ndb.StringProperty(required=True)
 	@classmethod
 	def add_new_waypoint_report(cls,waypointID,play_by,score,total_turn,total_impact,owner_id,graph_id,maximum_impact):
 		return WaypointReport(	waypointID = waypointID, 
@@ -1865,14 +1910,17 @@ class MapReport(ndb.Model):
 	mapID = ndb.IntegerProperty(required=True)
 	# map name doesn't exist?
 	#map_name = ndb.IntegerProperty(required=True)
-	play_count = ndb.IntegerProperty(required=True)
-	score = ndb.IntegerProperty(required=True)
-	avg_score = ndb.FloatProperty(required=True)
-	total_turn = ndb.IntegerProperty(required=True)
-	avg_total_turn = ndb.FloatProperty(required=True)
-	total_impact = ndb.IntegerProperty(required=True)
-	avg_total_impact = ndb.FloatProperty(required=True)
-	maximum_impact = ndb.FloatProperty(required=True)
+	play_count = ndb.IntegerProperty()
+	score = ndb.IntegerProperty()
+	avg_score = ndb.FloatProperty()
+	total_turn = ndb.IntegerProperty()
+	avg_total_turn = ndb.FloatProperty()
+	total_impact = ndb.IntegerProperty()
+
+	top_score = ndb.IntegerProperty(default=0)
+
+	avg_total_impact = ndb.FloatProperty()
+	maximum_impact = ndb.FloatProperty()
 	# query without exhausted joining
 	graph_id = ndb.IntegerProperty(required=True)
 	owner_id = ndb.IntegerProperty(required=True)
@@ -1896,15 +1944,20 @@ class PathReport(ndb.Model):
 	graph_id = ndb.IntegerProperty(required=True)
 	owner_id = ndb.IntegerProperty(required=True)
 	pathID = ndb.IntegerProperty(required=True)
-	srcMachine = ndb.StringProperty(required=True)
-	dstMachine = ndb.StringProperty(required=True)
-	srcService = ndb.StringProperty(required=True)
-	dstService = ndb.StringProperty(required=True)
+	srcMachine = ndb.StringProperty()
+	dstMachine = ndb.StringProperty()
+	srcService = ndb.StringProperty()
+	dstService = ndb.StringProperty()
 	### what for ???
 	ai = ndb.IntegerProperty(required=True)
 	ii = ndb.IntegerProperty(required=True)
 	ci = ndb.IntegerProperty(required=True)
+	### newly added
+	av = ndb.IntegerProperty(required=True)
+	ac = ndb.IntegerProperty(required=True)
+	au = ndb.IntegerProperty(required=True)
 	counting = ndb.IntegerProperty(default=0)
+	name = ndb.StringProperty()
 
 	@classmethod
 	def add_new_path_report(cls,mapID,graph_id,owner_id,pathID,srcM,dstM,srcS,dstS,ai,ii,ci,counting):
@@ -1939,7 +1992,7 @@ class SolTypeReport(ndb.Model):
 	solType_impact = ndb.IntegerProperty()
 	cwe_name = ndb.StringProperty(required=True)
 	counting = ndb.IntegerProperty(default=0)
-
+	avg_hit = ndb.FloatProperty(default=1)
 	@classmethod
 	def add_new_soltype(cls,owner_id,mapID,cve_id,cwe_name,service_name,solType_impact):
 		return SolTypeReport( 	owner_id = owner_id, 

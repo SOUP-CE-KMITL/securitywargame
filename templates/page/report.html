@@ -36,15 +36,14 @@
 			<div class='panel-body'>
 				<h1 class="text-center">Statistics <i class="glyphicon glyphicon-th-list"></i></h1>
 				<hr>
-				<h3>Waypoint summary</h3>
+				<h3 class="3">Waypoint summary</h3>
 				<table class="text-center table table-bordered">
 <tr>
 	<td>Waypoint ID</td>
-	<td>play_by</td>
-	<td>score</td>
-	<td>play count</td>
-	<td>total turn</td>
-	<td>total impact</td>
+	<td>Play by</td>
+	<td>Turn</td>
+	<td>Score</td>	
+	<td>Status</td>
 
 </tr>
 {% for waypoint_report in waypoint_reports %}
@@ -52,31 +51,27 @@
 <tr>
 	<td>{{ waypoint_report.waypointID }}</td>
 	<td>{{ waypoint_report.play_by }}</td>
-	<td>{{ waypoint_report.score }}</td>
-	<td>{{ waypoint_report.play_count }}</td>
 	<td>{{ waypoint_report.total_turn }}</td>
-	<td><span 
-	{% if waypoint_report.total_impact / waypoint_report.maximum_impact < 0.33 %} 
-	style="color:green" 
-	{% elif waypoint_report.total_impact / waypoint_report.maximum_impact < 0.66 %} 
-	style="color:orange" 
+	<td>{{ waypoint_report.score }}</td>
+	{% if waypoint_report.graphStat %}
+		<td>{{ waypoint_report.graphStat }}</td>
 	{% else %}
-	style="color:red" 
-	{% endif %}>{{ waypoint_report.total_impact }} / {{ waypoint_report.maximum_impact }}</span></td>
+		<td>{{ waypoint_report.graphStat }}</td>
+	{% endif %}
 </tr>
+
 	{% endif %}							
 {% endfor %}
 				</table>
 
-<h3>Map summary</h3>
+<h3 class="h3">Map summary</h3>
 <hr>
 				<table class="text-center table table-bordered">
 <tr>
 	<td>Map ID</td>
-	<td>play count</td>
-	<td>average score</td>
-	<td>average total turn</td>
-	<td>average total impact</td>
+	<td>Play count</td>
+	<td>Top score</td>
+	<td>Average turn</td>
 </tr>
 <!-- Iterate map report her -->
 {% for map_report in map_reports %}
@@ -99,7 +94,7 @@
 {% endfor %}	
 				</table>
 <hr>
-<h3>CVE summary</h3>
+<h3 class="h3">CVE summary</h3>
 <hr>
 <div class="row">
 	<div id="pie-canvas-container" class="col-md-4 col-md-offset-2">
@@ -122,25 +117,26 @@
 
 	<tr>
 		<td>CVE ID</td>
-		<td>Machine Name</td>
-		<td>CWE Name</td>
-		<td>Total Impact</td>
+		<td>CWE Name</td>		
 		<td>hits</td>
+		<td>Avg Hit</td>
+
 	</tr>
 
 	{% for soltype_report in soltype_reports %} 
 		{% if soltype_report.mapID == graph.graphID %}
-	<tr>
-		{% if soltype_report.cve_id != "undefined" %}
-			<td>{{ soltype_report.cve_id}}</td>
-		{% else %}
-			<td></td>
-		{% endif %}
-		<td>{{ soltype_report.service_name}}</td>
-		<td>{{ soltype_report.cwe_name}}</td>
-		<td>{{ soltype_report.solType_impact}} / {{ soltype_report.counting * 9 }}</td>
-		<td>{{ soltype_report.counting}}</td>
-	</tr>
+			{% if ( soltype_report.cve_id != "undefined" ) and ( soltype_report.cve_id != None ) %}
+			<tr>
+				<td>{{ soltype_report.cve_id }}</td>
+				<td>{{ soltype_report.cwe_name}}</td>
+				<td>{{ soltype_report.counting}}</td>
+				{% if soltype_report.avg_hit %}
+					<td>{{ soltype_report.avg_hit}}</td>
+				{% else %}
+					<td></td>
+				{% endif %}
+			</tr>
+			{% endif %}
 		{% endif %}
 	{% endfor %}
 	</table>
@@ -150,72 +146,84 @@
 
 </script>
 
-<h3>Path summary</h3>
+<h3 class="h3">Path summary</h3>
 <hr>				
 				<table class="text-center table table-bordered">
 
 <tr>
 	<td>Path ID</td>
-	<td>Availability Impact</td>
-	<td>Integrity Impact</td>
+	<td>Name</td>
+	<td>Hits</td>
+	<td>Access Vector</td>
+	<td>Access Complexity</td>
+	<td>Authentication</td>	
 	<td>Confidentialy Impact</td>
-	<td>hits</td>
+	<td>Integrity Impact</td>
+	<td>Availability Impact</td>
 </tr>
+
 {% for path_report in path_reports %}
 	{% if path_report.graph_id == graph.graphID %}
 <tr>
 	<td>{{ path_report.pathID }}</td>
-	<td>{{ path_report.ai}}</td>
-	<td>{{ path_report.ii}}</td>
-	<td>{{ path_report.ci}}</td>
+	<td>{{ path_report.name }}</td>
 	<td>{{ path_report.counting}}</td>
+	<!-- AV -->
+	{% if path_report.av == 0 %}
+		<td>Local</td>
+	{% elif path_report.av == 1 %}
+		<td>Remote</td>
+	{% else %}
+		<td>Adjacent</td>
+	{% endif %}
+
+	{% if path_report.ac == 0 %}
+		<td>High</td>
+	{% elif path_report.ac == 1 %}
+		<td>Med</td>
+	{% else %}
+		<td>Low</td>
+	{% endif %}
+
+	{% if path_report.au == 0 %}
+		<td>None</td>
+	{% elif path_report.ac == 1 %}
+		<td>1</td>
+	{% else %}
+		<td>2+</td>
+	{% endif %}
+
+	{% if path_report.ci == 0 %}
+		<td>None</td>
+	{% elif path_report.ci == 1 %}
+		<td>Partial</td>
+	{% else %}
+		<td>Complete</td>
+	{% endif %}
+
+	{% if path_report.ii == 0 %}
+		<td>None</td>
+	{% elif path_report.ii == 1 %}
+		<td>Partial</td>
+	{% else %}
+		<td>Complete</td>
+	{% endif %}
+
+	{% if path_report.ai == 0 %}
+		<td>None</td>
+	{% elif path_report.ai == 1 %}
+		<td>Partial</td>
+	{% else %}
+		<td>Complete</td>
+	{% endif %}
 </tr>
 	{% endif %}
 {% endfor %}
 </table>
 			</div>
 		</div>
-<script>
-
-
-	var soltypedata{{graph.graphID}} = [
-		{% for soltype_report in soltype_reports %}
-			{% if soltype_report.mapID == graph.graphID %}
-				{% if soltype_report.cve_id != "undefined" %}
-
-		    {
-		        value: {{ soltype_report.counting }},
-		        color:"#{{pallettes[loop.index]}}",
-		        label: "{{ soltype_report.cve_id}}"
-		    } , 
-
-		    	{% endif %}
-			{% endif %}
-		{% endfor %}	
-		]	
-	
-
-
-
-</script>
-<script>
-var ctx{{graph.graphID}} = document.getElementById("solTypeChart{{graph.graphID}}").getContext("2d");
-var myPieChart{{graph.graphID}} = new Chart(ctx{{graph.graphID}}).Pie(soltypedata{{graph.graphID}});
-
-</script>
-<a onclick="window.open ('static/graphical-report.html?map_id={{graph.graphID}}', 'newwindow', config='height=800,width=1054, toolbar=no, menubar=no, scrollbars=no, resizable=no, location=no, directories=no, status=no')"> View graphical report </a>
-		{% endfor %}
-
-	</div>
-
-	{% else %}
-	<div class="alert alert-danger" role="alert">
-		You don't have any graph.
-	</div>
-	{% endif %}
-</div>
-
-
+	{% endfor %}
+{% endif %}
 
 {% endblock %}
 
