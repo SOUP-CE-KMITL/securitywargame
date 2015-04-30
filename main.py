@@ -1132,7 +1132,7 @@ class AddStepHandler(Handler,FacebookHandler):
 		myPath = None
 		src = None
 		dst = None
-
+		my_name = "eiei"
 
 
 		for p in graph.paths:
@@ -1181,13 +1181,15 @@ class AddStepHandler(Handler,FacebookHandler):
 				pathID,
 				srcM, dstM, srcS, dstS,
 				ai,ii,ci,
+				0,0,0,
+				#myPath.gained_access, myPath.access_complexity, myPath.authentication,
 				counting=1
 			)
 			if my_name:
-				new.path_report.name = my_name
+				new_path_report.name = my_name
 			else:
 				my_name = "No name path"
-				new.path_report.name = my_name
+				new_path_report.name = my_name
 			new_path_report.put()
 
 		self.write("success")
@@ -1893,9 +1895,9 @@ class WaypointReport(ndb.Model):
 	play_count = ndb.IntegerProperty(default=0)
 	maximum_impact = ndb.FloatProperty(required=True)
 	#newly add 
-	status = ndb.StringProperty(required=True)
+	#status = ndb.StringProperty(required=True)
 	@classmethod
-	def add_new_waypoint_report(cls,waypointID,play_by,score,total_turn,total_impact,owner_id,graph_id,maximum_impact):
+	def add_new_waypoint_report(cls,waypointID,play_by,score,total_turn,total_impact,owner_id,graph_id,maximum_impact,status):
 		return WaypointReport(	waypointID = waypointID, 
 								play_by = play_by,
 								score = score,
@@ -1960,7 +1962,7 @@ class PathReport(ndb.Model):
 	name = ndb.StringProperty()
 
 	@classmethod
-	def add_new_path_report(cls,mapID,graph_id,owner_id,pathID,srcM,dstM,srcS,dstS,ai,ii,ci,counting):
+	def add_new_path_report(cls,mapID,graph_id,owner_id,pathID,srcM,dstM,srcS,dstS,ai,ii,ci,av,ac,au,counting):
 		return PathReport(
 			mapID=mapID,
 			graph_id=graph_id,
@@ -1971,6 +1973,7 @@ class PathReport(ndb.Model):
 			srcService=srcS,
 			dstService=dstS,
 			ai=ai,ii=ii,ci=ci,
+			av=av,au=au,ac=ac,
 			counting=counting
 		)
 
