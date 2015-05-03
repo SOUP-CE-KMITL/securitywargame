@@ -1060,7 +1060,7 @@ class AddStepHandler(Handler,FacebookHandler):
 		else:
 			#create a new one
 			maximum_impact = 10
-			new_waypoint = WaypointReport.add_new_waypoint_report(waypointID,play_by,score,total_turn,total_impact,owner_id,graph_id,maximum_impact)
+			new_waypoint = WaypointReport.add_new_waypoint_report(waypointID,play_by,score,total_turn,total_impact,owner_id,graph_id,maximum_impact, "playing")
 			new_waypoint.put()
 		#create new map report
 		mapID = waypoint.mapID
@@ -1191,6 +1191,8 @@ class AddStepHandler(Handler,FacebookHandler):
 				my_name = "No name path"
 				new_path_report.name = my_name
 			new_path_report.put()
+
+
 
 		self.write("success")
 
@@ -1510,7 +1512,7 @@ class PathSummarizeHandler(Handler, FacebookHandler):
 		graphOfMap = Graph.query(Graph.graphID==map_id).get()
 		av_list = ["remote","adjacent","local"]
 		ac_list = ["Low","Med","High"]
-		au_list = ["None","1+","2+"]
+		au_list = ["None","1","2+"]
 		ci_list = ["None","Partial","Complete"]
 		ii_list = ["None","Partial","Complete"]
 		ai_list = ["None","Partial","Complete"]
@@ -1526,12 +1528,12 @@ class PathSummarizeHandler(Handler, FacebookHandler):
 				"pathID": p.pathID,
 				"hits": 0,
 				"avgHits": 0,
-				"av": av,
-				"ac": ac,
-				"au": au,
-				"ai": ai,
-				"ii": ii,
-				"ci": ci
+				"av": p.gained_access,
+				"ac": p.access_complexity,
+				"au": p.authentication,
+				"ai": p.availability_impact,
+				"ii": p.integrity_impact,
+				"ci": p.confidentiality_impact
 			}
 			retJson.append(obj)
 
