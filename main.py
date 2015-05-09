@@ -27,8 +27,6 @@ import base64
 import urllib
 import re
 import random
-import hashlib
-import hmac
 import logging
 import json
 from json import JSONEncoder
@@ -51,7 +49,8 @@ from xml.dom.minidom import parse, parseString
 from HTMLParser import HTMLParser
 from BeautifulSoup import BeautifulSoup
 from random import randint
-#from Graph import *
+from models import *
+from helpers import *
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),autoescape = False)
@@ -60,111 +59,9 @@ jinja_environment = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__))
 )
 
-secret = "you-will-never-guess"
-
-## config ##
-
-config = {}
-config['webapp2_extras.sessions'] = dict(secret_key='slhflsnhflsgkfgvsdbfksdhfksdhfkjs')
 #Cyber Security War Game
 FACEBOOK_APP_ID = "566537650156899"
 FACEBOOK_APP_SECRET = "27ca20aee5a7af959a26157b3ddf2dc6"
-
-#######################################################################################################
-#######################################################################################################
-#######################################################################################################
-###############  						Helper Function Section								###########
-#######################################################################################################
-#######################################################################################################
-#######################################################################################################
-class DateEncoder(JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, datetime.date):
-            return obj.isoformat()
-        return JSONEncoder.default(self, obj)
-
-def calculate_impact():
-	return randint(1,9)
-
-def split_by_colon(str):
-	result = []
-	result = str.split(';')
-	return result
-	
-def create_params():
-	length = 10
-	return ''.join(random.choice(letters) for x in xrange(length))
-
-def checkPassword(password,re_password):
-	if password == re_password:
-		return True
-	else:
-		return False
-		
-##html input escape
-def escape_html(s):
-	return cgi.escape(s, quote = True)
-
-## user stuff goes here ##
-def make_secure_val(val):
-    return '%s|%s' % (val, hmac.new(secret, val).hexdigest())
-
-def check_secure_val(secure_val):
-    val = secure_val.split('|')[0]
-    if secure_val == make_secure_val(val):
-        return val
-def make_salt(length = 5):
-	return ''.join(random.choice(letters) for x in xrange(length))
-
-def make_pw_hash(name, pw, salt = None):
-	if not salt:
-		salt = make_salt()
-	h = hashlib.sha256(name + pw + salt).hexdigest()
-	return '%s,%s' % (salt, h)
-
-def valid_pw(name, password, h):
-	salt = h.split(',')[0]
-	return h == make_pw_hash(name, password, salt)
-
-
-USER_RE = re.compile(r"^[\S\s]{3,25}$")
-def valid_displayname(display_name):
-    return display_name and USER_RE.match(display_name)
-
-def valid_username(username):
-    return username and USER_RE.match(username)
-
-LOGIN_RE = re.compile(r"^[a-zA-Z0-9_-]{6,25}$")
-def valid_loginname(login_name):
-    return login_name and LOGIN_RE.match(login_name)
-
-PASS_RE = re.compile(r"^.{6,25}$")
-def valid_password(password):
-    return password and PASS_RE.match(password)
-
-EMAIL_RE  = re.compile(r'^[\S]+@[\S]+\.[\S]+$')
-def valid_email(email):
-    return not email or EMAIL_RE.match(email)
-
-def string_normalize(s):
-	s = re.sub('[^0-9a-zA-Z]+', '', s)
-	s = s.lower()
-	return s
-
-
-def generate_key():
-	length = 20
-	api_key = ''.join(random.choice(letters) for x in xrange(length))		
-	return api_key
-	
-def assign_graph_ID():
-	graphID = 0
-	graphs = Graph.query().order(-Graph.graphID).get()
-	if graphs:
-		graphID = graphs.graphID + 1
-	else:
-		graphID = 1
-	return graphID
 
 #######################################################################################################
 #######################################################################################################
@@ -343,7 +240,6 @@ class AdminHandler(Handler,FacebookHandler):
 		if user:
 			graphs = Graph.query().filter(Graph.owner_id == user.user_id).order(Graph.graphID).fetch()
 			data['graphs'] = graphs
-			#check validate first
 			data['url'] = "home"
 			self.render('home.html',**data)
 		else:
@@ -363,8 +259,6 @@ class APIHandler(Handler,FacebookHandler):
 		data = init_data(self)
 		data['url'] = "api"
 		user = self.user
-
-		#data['key'] = 
 		self.render('/page/api.html',**data)
 
 class CreateMapHandler(Handler,FacebookHandler):
@@ -423,38 +317,6 @@ class AddNewAttackerHandler(Handler,FacebookHandler,blobstore_handlers.Blobstore
 			upload.put()
 		time.sleep(2)
 		self.redirect('/attacker')
-
-def translateCWE_ID(cwe_id):
-	return { 	"20" 	: 	"Input Validation",
-				"22"	:	"Path Transversal",
-				"59"	:	"Link Following",
-				"78"	:	"OS Command Injection",
-				"89"	:	"SQL Injection",
-				"287"	: 	"Authentication Issues",
-				"255"	:	"Credentials Management",
-				"264"	: 	"Permission Priviledge & Access Point",
-				"119"	:	"Buffer Error",
-				"352"	:	"Cross-site request forgery",
-				"310"	:	"Cryptography Issues",
-				"94"	:	"Code Injection",
-				"134"	:	"Format String Vulnerability",
-				"16"	:	"Configuration",
-				"189"	:	"Numeric Errors",
-				"362"	:	"Race Condition",
-				"399"	:	"Resource Management Error"	
-			}.get(cwe_id,"Others")
-			
-def setOption(option):
-	if option:
-		option = 1
-	else:
-		option = 0
-	return option
-
-def setOrderOption(option):
-	return {	"publishDate"		:	1,
-				"lastUpdateDate"	:	2,
-				"CVE_id"			:	3}.get(option,1)
 
 #NVD calculator
 #http://nvd.nist.gov/cvss.cfm?version=2&name=CVE-2014-5318&vector=(AV:A/AC:M/Au:N/C:P/I:P/A:P)
@@ -708,7 +570,6 @@ class CreateGraphHandler(Handler,FacebookHandler):
 		graph_amount = owner.graph_created + 1
 		owner.graph_created = graph_amount
 
-		#ADD GRAPH FIRST
 		u = Graph(	graphID		= 	graphID,
 					name		=	name,
 					owner_id = owner_id)
@@ -838,13 +699,6 @@ class AddNewPathHandler(Handler,FacebookHandler):
 			u.put()
 			self.write("success!")
 
-def check_api_key(api_key):
-	u = User.query().filter(User.APIkey == api_key).get()
-	if u:
-		return True
-	else:
-		return False
-
 class post_graph_v2Handler(Handler,FacebookHandler):
 	def post(self):
 		#SETUP GRAPH
@@ -892,11 +746,6 @@ class PostJSONGraphHandler(Handler,FacebookHandler):
 		service_objects = json.loads(self.request.get('services'))
 		path_objects = json.loads(self.request.get('paths'))
 		#FLASHING
-		#self.write(machine_objects)
-		#self.write(service_objects)
-		#self.write(path_objects)
-		#ITERATE
-		#for object in machine_objects:
 		uv = Graph.query().filter(Graph.graphID == graphID).get()
 		for key, value in machine_objects.iteritems():
 			for i, item in enumerate(value): 
@@ -1191,9 +1040,6 @@ class AddStepHandler(Handler,FacebookHandler):
 				my_name = "No name path"
 				new_path_report.name = my_name
 			new_path_report.put()
-
-
-
 		self.write("success")
 
 class CreateDummyUserHandler(Handler,FacebookHandler):
@@ -1206,8 +1052,6 @@ class CreateDummyUserHandler(Handler,FacebookHandler):
 
 class BypassLoginHandler(Handler,FacebookHandler):
 	def get(self):
-
-
 		user_id = int(self.request.get('user_id'))
 		u = User.query().filter(User.user_id == user_id).get()
 		self.bypass_login(u)
@@ -1233,104 +1077,6 @@ class OverallReportHandler(Handler,FacebookHandler):
 		data['pallettes'] = pallettes
 		self.render("/page/report.html",**data)
 
-#depricated
-class ReportHandler(Handler,FacebookHandler):
-	def get(self):
-		map_id = int(self.request.get('map_id'))
-		if map_id == None:
-			self.write("MAP ID PLEASE")
-		data = {}
-		player_list = [] # number of participants
-		turn_list = [] # time take
-		cost_list = [] # cost
-		path_list = [] # available
-		path_dict = {} # favor
-		player_dict = {} # player dict
-		map_winner = {} # who win
-		#FYI
-		number_of_turn = 0		
-		#remind graph=map
-		waypoints = WayPoints.query().filter(WayPoints.mapID == map_id).fetch()	
-		#count list -> Len(MyList)
-		#report this -> totals number of player used to play this map
-		#players
-		if waypoints:
-			for waypoint in waypoints:
-				#iterate step
-				for step in waypoint.step:
-					if len(player_list) != 0: #player existed
-						if waypoint.playerID not in player_list:
-							player_list.append(waypoint.playerID)
-					else:
-						player_list.append(waypoint.playerID)
-					#-1 get number of turns -sum,average,min,max
-					#iterate player list					
-					number_of_turn = step.endTurn - step.startTurn
-					if len(turn_list) != 0:
-						turn_list.append(number_of_turn)
-					else:
-						turn_list.append(number_of_turn)
-					#-2 get number of cost -sum,average,min,max				
-					if len(cost_list) != 0:
-						cost_list.append(step.cost)
-					else:
-						cost_list.append(step.cost)
-					#2.5 cost per each player
-					if len(player_dict) != 0:
-						if waypoint.playerID not in player_dict:
-							player_dict.update({"playerID"+str(waypoint.playerID):step.cost})
-					else:
-						player_dict.update({"playerID"+str(waypoint.playerID):step.cost})				
-					#-3 get number of path -sum,number of attempts in each path
-					if len(path_dict) != 0:
-						if step.pathID not in path_dict:
-							path_dict.update({"pathID"+str(step.pathID):1})
-						else: #pathID existed
-							path_dict["pathID"+str(step.pathID)] = path_dict["pathID"+str(step.pathID)] + 1
-					else:
-						path_dict.update({"pathID"+str(step.pathID):1})
-					#release				
-					number_of_turn = 0					
-			#end of loop
-			#time for analyze
-			#turn
-			min_turn = min(turn_list)
-			max_turn = max(turn_list)
-			turns = sum(turn_list)
-			average_turn = round(turns*1.0/len(turn_list),2)
-			#cost
-			min_cost = min(cost_list)
-			max_cost = max(cost_list)
-			costs = sum(cost_list)
-			average_cost = round(costs*1.0/len(cost_list),2)
-			#player
-			players = len(player_list)
-			#path 
-			paths = len(path_dict)
-			path_occur = path_dict
-			player_cost = player_dict
-			#prepared
-			data['min_turn'] = min_turn
-			data['max_turn'] = max_turn
-			data['turns'] = turns
-			data['average_turn'] = average_turn
-			
-			data['min_cost'] = min_cost
-			data['max_cost'] = max_cost
-			data['costs'] = costs
-			data['average_cost'] = average_cost
-			
-			data['players'] = players
-			data['paths'] = paths
-			data['path_occur'] = path_occur
-			data['player_cost'] = player_cost
-			data['map_id'] = map_id
-			#render
-			self.render("report.html",**data)
-		else:
-			self.write("Map not found!")
-
-#quick validate! 
 #error result not show yet!
 class AdminRegisterHandler(Handler,FacebookHandler):
 	def post(self):
@@ -1589,20 +1335,10 @@ class endGameHandler(Handler, FacebookHandler):
 		wp.put()
 		self.response.write("success")
 
-#######################################################################################################
-#######################################################################################################
-#######################################################################################################
-###############  						Handler	Mapper Section							###############
-#######################################################################################################
-#######################################################################################################
-#######################################################################################################
-	
 app = webapp2.WSGIApplication([
     ('/', HubHandler),
     ('/admin',AdminHandler),
 	('/logout',LogOutHandler),
-	#('/pleaselogin',PleaseLoginHandler),
-	#('/connectWithFacebook',FacebookLoginHandler),
 	('/logout_with_facebook',FacebookLogoutHandler),
 	('/map',MapHandler),
 	('/dashboard',DashboardHandler),
@@ -1612,8 +1348,6 @@ app = webapp2.WSGIApplication([
 	('/displayImage',DisplayImageHandler),
 	('/fetch-profile',CVEProfileFetchHandler),
 	('/fetch-score',CVSScoreHandler),
-	#('/addfakedata', AddFakeData),
-	#('/loader', LoadGraphHandler),
 	('/edit-graph',EditGraphHandler),
 	('/create-graph',CreateGraphHandler),
 	('/get-graph',GetGraphHandler),
@@ -1627,7 +1361,6 @@ app = webapp2.WSGIApplication([
 	('/add-step', AddStepHandler),
 	('/create-dummy-user', CreateDummyUserHandler),
 	('/bypass-login', BypassLoginHandler),
-	('/report', ReportHandler),
 	('/overall-report',OverallReportHandler),
 	('/admin-login',AdminLoginHandler),
 	('/admin-regis',AdminRegisterHandler),
@@ -1644,372 +1377,6 @@ app = webapp2.WSGIApplication([
 	('/get-highscore', getHighScoreHandler),
 	('/end-game', endGameHandler),
 	('/render-cve-graph',RenderCVEGraphHandler),
-	('/dummy-report',DummyReportHandler)
-
-	
-	#('/updateGraph',UpdateJSONGraphHandler)
-
-	
+	('/dummy-report',DummyReportHandler)	
 ], debug=True,config=config)
-
-#######################################################################################################
-#######################################################################################################
-#######################################################################################################
-###############  						Data Structure Section						###################
-#######################################################################################################
-#######################################################################################################
-#######################################################################################################
-
-class CVEProfile(ndb.Model):
-	profile_name = ndb.StringProperty(default="N/A")
-	cve_id = ndb.StringProperty(required=True)
-	cwe_id = ndb.StringProperty(required=True)
-	cwe_name = ndb.StringProperty(required=True)
-	summary = ndb.TextProperty()
-	cvss_score = ndb.FloatProperty()
-	exploit_count = ndb.IntegerProperty()
-	publish_date = ndb.StringProperty()
-	update_date = ndb.StringProperty()	
-	cve_url = ndb.StringProperty()
-	created = ndb.DateTimeProperty(auto_now_add=True)
-	access_params = ndb.StringProperty()
-	confidentiality_impact = ndb.IntegerProperty()
-	integrity_impact = ndb.IntegerProperty()
-	availability_impact = ndb.IntegerProperty()
-	access_complexity = ndb.IntegerProperty()
-	gained_access = ndb.IntegerProperty()
-	authentication = ndb.IntegerProperty()
 	
-	@classmethod
-	def createProfile(cls, cve_id , cwe_id , cwe_name, summary, cvss_score, exploit_count, publish_date, update_date, cve_url, confidentiality_impact, integrity_impact, availability_impact, access_complexity, gained_access, authentication):
-		access_params = create_params()
-		return CVEProfile(	cve_id = cve_id,
-							cwe_id = cwe_id,
-							cwe_name = cwe_name,
-							summary = summary,
-							cvss_score = cvss_score,
-							exploit_count = exploit_count,
-							publish_date = publish_date,
-							update_date = update_date,
-							cve_url = cve_url,
-							confidentiality_impact = confidentiality_impact,
-							integrity_impact = integrity_impact,
-							availability_impact = availability_impact,
-							access_complexity = access_complexity,
-							gained_access = gained_access,
-							authentication = authentication,
-							access_params = access_params					)
-
-class Service(ndb.Model):
-	serviceID=ndb.IntegerProperty(required=True)
-	name=ndb.StringProperty()
-	status=ndb.StringProperty()
-	impact=ndb.IntegerProperty()
-	machineID=ndb.IntegerProperty()
-	
-	@classmethod
-	def add_new_service(cls,serviceID,name,status,impact,machineID):
-		return Service(		serviceID 	= 	serviceID,
-							name 		= 	name,
-							status 		=	status,
-							impact 		= 	impact,
-							machineID	=	machineID)
-
-class Machine(ndb.Model):
-	machineID=ndb.IntegerProperty(required=True)
-	name=ndb.StringProperty()
-	status=ndb.StringProperty()
-	impact=ndb.IntegerProperty()
-	
-	@classmethod
-	def add_new_machine(cls,machineID,name,status,impact):
-		return Machine(		machineID 	= 	machineID,
-							name 		= 	name,
-							status 		=	status,
-							impact 		= 	impact)
-
-class Path(ndb.Model):
-	pathID=ndb.IntegerProperty(required=True)
-	name=ndb.StringProperty()
-	status=ndb.StringProperty()
-	src=ndb.IntegerProperty()
-	dest=ndb.IntegerProperty()
-	#cvss=ndb.StringProperty()
-	cve_id = ndb.StringProperty()
-	confidentiality_impact = ndb.IntegerProperty()
-	integrity_impact = ndb.IntegerProperty()
-	availability_impact = ndb.IntegerProperty()
-	access_complexity = ndb.IntegerProperty()
-	gained_access = ndb.IntegerProperty()
-	authentication = ndb.IntegerProperty()
-	
-	@classmethod
-	def add_new_path(cls,pathID,name,status,src,dest,cve_id,c_imp,i_imp,a_imp,acc_com,g_acc,auth):
-		return Path(		pathID 						= 	pathID,
-							name 						= 	name,
-							status 						=	status,
-							src 						= 	src,
-							dest						=	dest,
-							cve_id = cve_id,
-							confidentiality_impact 		= 	c_imp,
-							integrity_impact 			= 	i_imp,
-							availability_impact 		= 	a_imp,
-							access_complexity 			= 	acc_com,
-							gained_access 				= 	g_acc,
-							authentication 				= 	auth )
-
-class Graph(ndb.Model):
-	name=ndb.StringProperty(required=True)
-	graphID=ndb.IntegerProperty(required=True)	
-	#owner=ndb.KeyProperty(kind='User') #GUI push	
-	owner_id=ndb.IntegerProperty(required=True) #JSON push
-	machines=ndb.StructuredProperty(Machine, repeated=True)
-	services=ndb.StructuredProperty(Service, repeated=True)
-	paths=ndb.StructuredProperty(Path, repeated=True)	
-	# keep track for reporting
-	machine_hold = ndb.IntegerProperty(default=0)
-	service_hold = ndb.IntegerProperty(default=0)
-	path_hold = ndb.IntegerProperty(default=0)							
-														
-class CharacterImage(ndb.Model):
-	blob = ndb.BlobKeyProperty()
-	owner = ndb.StringProperty()
-	access_params = ndb.StringProperty()	
-
-class FacebookUser(ndb.Model):
-	displayname = ndb.StringProperty(required=True)
-	user_id = ndb.StringProperty()
-	profile_url = ndb.StringProperty(required=True)
-	access_token = ndb.StringProperty(required=True)
-	access_params = ndb.StringProperty()
-	email = ndb.StringProperty()
-	joined_date = ndb.DateTimeProperty(auto_now_add=True)
-	last_visited = ndb.DateTimeProperty(auto_now=True)
-	avatar = ndb.StringProperty()
-
-	
-class User(ndb.Model):
-	user_id=ndb.IntegerProperty(required=True)
-	email = ndb.StringProperty()
-	#displayname = ndb.StringProperty()
-	username = ndb.StringProperty(required=True)
-	org = ndb.StringProperty()
-	access_params = ndb.StringProperty()	
-	pw_hash = ndb.StringProperty()
-	last_visited = ndb.DateTimeProperty(auto_now=True)
-	joined_date = ndb.DateTimeProperty(auto_now_add=True)
-	APIkey = ndb.StringProperty()
-	graph_created = ndb.IntegerProperty(default=0)
-	
-	@classmethod
-	def by_id(cls, uid):
-		return User.get_by_id(uid)
-	
-		
-	@classmethod
-	def by_username(cls, username):
-		u = User.query(User.username == username).get()
-		return u
-	
-	@classmethod
-	def by_login(cls, user_id):
-		u = User.query(User.user_id == user_id).get()
-		return u
-		
-	@classmethod
-	def by_email(cls, email):
-		u = User.query(User.email == email).get()
-		return u
-
-	@classmethod
-	def register(cls, username,email, password, org, user_id):
-		pw_hash = make_pw_hash(username, password)
-		access_params = create_params()
-		api_key = generate_key()
-		return User(	user_id = user_id,
-						username = username,
-						email = email,
-						pw_hash = pw_hash,
-						org = org,
-						access_params = access_params,
-						APIkey = api_key	)
-	
-	@classmethod
-	def add_test_user(cls, user_id , username ):
-		return User(	user_id = user_id,
-						username = username		)					
-					
-	@classmethod
-	def login(cls, username, password):
-		u = cls.by_username(username)
-		if u and valid_pw(username, password, u.pw_hash):
-			return u
-
-	@classmethod
-	def bypass_login(cls, user_id):
-		u = cls.by_user_id(user_id)
-		if u:
-			return u		
-
-#check unauthorized post
-class APIDatabase(ndb.Model):
-	api_id = ndb.IntegerProperty(required=True)
-	api_key = ndb.StringProperty(required=True)
-
-	@classmethod
-	def add_new_key(cls,api_id,api_key):
-		return APIDatabase(api_id = api_id, api_key = api_key)
-	
-class Step(ndb.Model):
-	startTurn = ndb.IntegerProperty()
-	endTurn = ndb.IntegerProperty()
-	solType = ndb.StringProperty()
-	cost = ndb.IntegerProperty()
-	fromCity = ndb.IntegerProperty()
-	toCity = ndb.IntegerProperty()
-	pathID = ndb.IntegerProperty()
-	score = ndb.IntegerProperty()
-	ai = ndb.IntegerProperty()
-	ci = ndb.IntegerProperty()
-	ii = ndb.IntegerProperty()
-	
-
-class WayPoints(ndb.Model):
-	waypointsID = ndb.IntegerProperty()	
-	#just a graph
-	status = ndb.StringProperty()
-	mapID = ndb.IntegerProperty()
-	playerID = ndb.StringProperty()
-	score = ndb.IntegerProperty()
-	step = ndb.StructuredProperty(Step, repeated=True)
-	savedTurn = ndb.IntegerProperty()
-	graphStat = ndb.TextProperty()
-
-class WaypointReport(ndb.Model):
-	waypointID = ndb.IntegerProperty(required=True)
-	play_by = ndb.StringProperty(required=True)
-	score = ndb.IntegerProperty(required=True)
-	total_turn = ndb.IntegerProperty(required=True)
-	total_impact = ndb.IntegerProperty(required=True)
-	# query without exhausted joining
-	graph_id = ndb.IntegerProperty(required=True)
-	owner_id = ndb.IntegerProperty(required=True)
-	play_count = ndb.IntegerProperty(default=0)
-	maximum_impact = ndb.FloatProperty(required=True)
-	#newly add 
-	#status = ndb.StringProperty(required=True)
-	@classmethod
-	def add_new_waypoint_report(cls,waypointID,play_by,score,total_turn,total_impact,owner_id,graph_id,maximum_impact,status):
-		return WaypointReport(	waypointID = waypointID, 
-								play_by = play_by,
-								score = score,
-								total_turn = total_turn,
-								total_impact = total_impact,
-								graph_id = graph_id,
-								owner_id = owner_id,
-								play_count = 1,
-								maximum_impact = maximum_impact )
-
-class MapReport(ndb.Model):
-	mapID = ndb.IntegerProperty(required=True)
-	# map name doesn't exist?
-	#map_name = ndb.IntegerProperty(required=True)
-	play_count = ndb.IntegerProperty()
-	score = ndb.IntegerProperty()
-	avg_score = ndb.FloatProperty()
-	total_turn = ndb.IntegerProperty()
-	avg_total_turn = ndb.FloatProperty()
-	total_impact = ndb.IntegerProperty()
-
-	top_score = ndb.IntegerProperty(default=0)
-
-	avg_total_impact = ndb.FloatProperty()
-	maximum_impact = ndb.FloatProperty()
-	# query without exhausted joining
-	graph_id = ndb.IntegerProperty(required=True)
-	owner_id = ndb.IntegerProperty(required=True)
-
-	@classmethod
-	def add_new_map_report(cls,mapID,play_count,score,avg_score,total_turn,avg_total_turn,total_impact,avg_total_impact,owner_id,graph_id,maximum_impact):
-		return MapReport(	mapID = mapID, 
-								play_count = play_count,
-								score = score,
-								avg_score = avg_score,
-								total_turn = total_turn,
-								avg_total_turn = avg_total_turn,
-								total_impact = total_impact,
-								avg_total_impact = avg_total_impact,
-								graph_id = graph_id,
-								owner_id = owner_id,
-								maximum_impact = maximum_impact)
-
-class PathReport(ndb.Model):
-	mapID = ndb.IntegerProperty(required=True)
-	graph_id = ndb.IntegerProperty(required=True)
-	owner_id = ndb.IntegerProperty(required=True)
-	pathID = ndb.IntegerProperty(required=True)
-	srcMachine = ndb.StringProperty()
-	dstMachine = ndb.StringProperty()
-	srcService = ndb.StringProperty()
-	dstService = ndb.StringProperty()
-	### what for ???
-	ai = ndb.IntegerProperty(required=True)
-	ii = ndb.IntegerProperty(required=True)
-	ci = ndb.IntegerProperty(required=True)
-	### newly added
-	av = ndb.IntegerProperty(required=True)
-	ac = ndb.IntegerProperty(required=True)
-	au = ndb.IntegerProperty(required=True)
-	counting = ndb.IntegerProperty(default=0)
-	name = ndb.StringProperty()
-
-	@classmethod
-	def add_new_path_report(cls,mapID,graph_id,owner_id,pathID,srcM,dstM,srcS,dstS,ai,ii,ci,av,ac,au,counting):
-		return PathReport(
-			mapID=mapID,
-			graph_id=graph_id,
-			owner_id=owner_id,
-			pathID=pathID,
-			srcMachine=srcM,
-			dstMachine=dstM,
-			srcService=srcS,
-			dstService=dstS,
-			ai=ai,ii=ii,ci=ci,
-			av=av,au=au,ac=ac,
-			counting=counting
-		)
-
-class Solution(ndb.Model):
-	cve_id = ndb.StringProperty(required=True)
-	cwe_name = ndb.StringProperty(required=True)
-	from_map = ndb.IntegerProperty(required=True)
-	counting = ndb.IntegerProperty(default=0)
-
-	@classmethod
-	def add_new_solution(cls,solution_id,cve_id,cwe_name,from_map):
-		return Solution( solution_id=solution_id,cve_id=cve_id,cwe_name=cwe_name,from_map=from_map,counting=1)
-
-class SolTypeReport(ndb.Model):
-	owner_id = ndb.IntegerProperty(required=True)
-	mapID = ndb.IntegerProperty(required=True)
-	cve_id = ndb.StringProperty(required=True)
-	service_name = ndb.StringProperty()
-	solType_impact = ndb.IntegerProperty()
-	cwe_name = ndb.StringProperty(required=True)
-	counting = ndb.IntegerProperty(default=0)
-	avg_hit = ndb.FloatProperty(default=1)
-	@classmethod
-	def add_new_soltype(cls,owner_id,mapID,cve_id,cwe_name,service_name,solType_impact):
-		return SolTypeReport( 	owner_id = owner_id, 
-								mapID = mapID,
-								cve_id = cve_id,
-								cwe_name = cwe_name,
-								counting = 1,
-								service_name = service_name,
-								solType_impact = solType_impact)
-
-
-
-#class WayPointSummary(ndb.Model): -> just a list of step!
-
-
