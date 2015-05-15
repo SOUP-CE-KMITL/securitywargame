@@ -1,17 +1,7 @@
+/* global createjs */
+/* global PlayScene */
 
 function Soldier(sol){
-	/*
-	console.log(sol);
-	this.edge = sol;
-	this.name = "John Doe";
-	this.vector = 2
-	this.level = 2
-	this.authen = 2
-	this.confident = 2
-	this.integrity = 2
-	this.availability = 2
-	this.cwe = "buffer overflow"
-	*/
 
 	this.edge = sol;
 	this.vector = sol.gained_access;
@@ -23,8 +13,8 @@ function Soldier(sol){
 	this.score = (this.vector+this.level+this.authen+this.confident+this.integrity+this.availability-1)/6
 	this.name = RANDOM_NAME[sol.pathID];
 	this.op = sol.name || "unknown";
-	this.from  = getServiceById(sol.src).machineID;
-	this.to = getServiceById(sol.dest).machineID;
+	this.from  = PlayScene.graph._sDict[sol.src].machineID;
+	this.to = PlayScene.graph._sDict[sol.dest].machineID;
 	this.pathId = sol.pathID;
 	this.cve_id = sol.cve_id;
 }
@@ -33,13 +23,13 @@ Soldier.prototype.Draw = function (parent,x,y){
 	var options;
 	if(this.score < 1){
 		options = {
-			"images": ["resource/char/char-sol1.png"],
+			"images": [myItems["char-sol1"]],
 			"frames": {"width":63, "height":57, "regX":32, "regY":28, "count":20},
 			"animations": {"default":[0,19, "default", 0.75]}
 		}
 	}else{
 		options ={
-			"images": ["resource/char/char-tank.png"],
+			"images": [myItems["char-tank"]],
 			"frames": {"width":94, "height":53, "regX":47, "regY":27, "count":12},
 			"animations": {"default":[0,11, "default", 0.75]}
 		}
@@ -59,7 +49,7 @@ Soldier.prototype.Draw = function (parent,x,y){
 
 Soldier.Action = function (e){
 	var t = e.target;
-	if( !getServiceById(t.ref.edge.src).captured ){
+	if( !PlayScene.graph._sDict[t.ref.edge.src].captured ){
 		PlayScene.comment.text = "I can't attack from here."
 		return;
 	}
@@ -111,48 +101,42 @@ Soldier.Action = function (e){
 		return;
 	}
 	*/
+	//play sound
+	createjs.Sound.play("start-sfx")
 
-	//if(PlayScene.moneyText.text-t.ref.level > 0){
-		//play sound
-		Jukebox.play("mission-sfx")
+	var to = PlayScene.graph._sDict[t.ref.to]
+	var score = SCORE_SYSTEM.av[t.ref.vector];
+	score += SCORE_SYSTEM.ac[t.ref.level];
+	score += SCORE_SYSTEM.au[t.ref.authen];
+	score += SCORE_SYSTEM.ai[Math.max(0, t.ref.availability - to.impact.a)];
+	score += SCORE_SYSTEM.ii[Math.max(0, t.ref.integrity - to.impact.i)];
+	score += SCORE_SYSTEM.ci[Math.max(0, t.ref.confident - to.impact.c)];
 
-		var to = getServiceById(t.ref.to)
-		var score = SCORE_SYSTEM.av[t.ref.vector];
-		score += SCORE_SYSTEM.ac[t.ref.level];
-		score += SCORE_SYSTEM.au[t.ref.authen];
-		score += SCORE_SYSTEM.ai[Math.max(0, t.ref.availability - to.impact.a)];
-		score += SCORE_SYSTEM.ii[Math.max(0, t.ref.integrity - to.impact.i)];
-		score += SCORE_SYSTEM.ci[Math.max(0, t.ref.confident - to.impact.c)];
-
-		var atkObj = {
-			"start": parseInt(PlayScene.turnText.text, 10),
-			"soldier": t.ref,
-			"dur": 3,
-			"ci": t.ref.confident,
-			"ii": t.ref.integrity,
-			"ai": t.ref.availability,
-			"score": score,
-			"cve_id": 0
-		};
-		t.ref.edge.status="using";
-		var dstMachine = getMachineById(getServiceById(t.ref.edge.dest).machineID)
-		dstMachine.status="attacking";
-		dstMachine.atkCount += 1;
-		t.ref.Draw(PlayScene.cityMap, PlayScene.cursor.x, PlayScene.cursor.y);
-		t.ref.sprite.gotoAndPlay("default");
-		QueueList.Add(t.ref.name, atkObj.dur);
-		PlayScene.atkQueue.push(atkObj);
-		ActionPane.container.removeAllChildren();
-
-		//addStep(atkObj);
+	var atkObj = {
+		"start": parseInt(PlayScene.turnText.text, 10),
+		"soldier": t.ref,
+		"dur": 3,
+		"ci": t.ref.confident,
+		"ii": t.ref.integrity,
+		"ai": t.ref.availability,
+		"score": score,
+		"cve_id": 0
+	};
+	t.ref.edge.status="using";
+	var dstMachine = PlayScene.graph._mDict[PlayScene.graph._sDict[t.ref.edge.dest].machineID];
+	dstMachine.status="attacking";
+	dstMachine.atkCount += 1;
+	t.ref.Draw(PlayScene.cityMap.symbolLayer, PlayScene.cursor.x, PlayScene.cursor.y);
+	t.ref.sprite.gotoAndPlay("default");
+	QueueList.Add(t.ref.name, atkObj.dur);
+	PlayScene.atkQueue.push(atkObj);
+	ActionPane.container.removeAllChildren();
 }
 
 Soldier.ShowInfo = function(e){
 	var t=e.target;
-	Jukebox.play("hover-sfx")
-
-	console.log(t);
-	PlayScene.inspecWin.stat.text = 
+	createjs.Sound.play("hover-sfx");
+	PlayScene.stat.text = 
 		"name: "+t.ref.name+"\n"+
 		//"range: "+t.ref.vector+"\n"+
 		"level: "+t.ref.level+"\n"+
@@ -167,7 +151,7 @@ function Explorer(city){
 	this.city=city;
 	this.level=2;
 	this.op = "scan";
-	this.from = PlayScene.base.machineID;
+	this.from = 0;
 	this.to = city.machine.machineID;
 }
 
@@ -177,7 +161,7 @@ Explorer.prototype.Draw=function(parent, x, y){
 		"animations":{
 			"default":[0,3,"default"]
 		},
-		"images":["resource/char/char-scout-test.png"],
+		"images":[myItems["char-scout"]],
 		"frames":{
 			"width": 128,
 			"height": 46,
@@ -229,17 +213,17 @@ Explorer.prototype.Erase=function(){
 			createjs.Tween.removeTweens(this.sprite);
 			createjs.Tween.removeTweens(this.scan1);
 			createjs.Tween.removeTweens(this.scan0);
-			PlayScene.objLayer.removeChild(this.scan1);
-			PlayScene.objLayer.removeChild(this.scan0);
-			PlayScene.objLayer.removeChild(this.sprite);
+			PlayScene.worldMap.removeChild(this.scan1);
+			PlayScene.worldMap.removeChild(this.scan0);
+			PlayScene.worldMap.removeChild(this.sprite);
 		}, null, this);
 	
 }
 
 Explorer.ShowInfo=function(e){
-	Jukebox.play("hover-sfx")
+	createjs.Sound.play("hover-sfx")
 	var t=e.target;
-	PlayScene.inspecWin.stat.text = 
+	PlayScene.stat.text = 
 		"name: "+t.ref.name+"\n"+
 		"city: "+t.ref.city.name+"\n";
 }
@@ -265,7 +249,7 @@ Explorer.Action=function(e){
 		QueueList.Add(t.ref.name, atkObj.dur);
 		PlayScene.atkQueue.push(atkObj);
 		ActionPane.container.removeAllChildren();
-		t.ref.Draw(PlayScene.objLayer, PlayScene.cursor.x, PlayScene.cursor.y);
+		t.ref.Draw(PlayScene.worldMap, PlayScene.cursor.x, PlayScene.cursor.y);
 		//addStep(atkObj)
 	/*}else{
 		PlayScene.comment.text = "Insufficient fund.";
@@ -322,15 +306,5 @@ function addStep(atkObj){
 		"ii="+atkObj.ii +"&"+
 		"score="+atkObj.score +"&"+
 		"cve_id="+atkObj.soldier.cve_id;
-	console.log(params);
-
-	var req;
-	if (window.XMLHttpRequest){
-	  req=new XMLHttpRequest();
-	}else{
-	  req=new ActiveXObject("Microsoft.XMLHTTP");
-	}
-	req.open("POST","/add-step",false);
-	req.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-	req.send(params);
+	callAPI("POST", "/add-step", params);
 }

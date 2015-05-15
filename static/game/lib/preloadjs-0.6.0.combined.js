@@ -4867,6 +4867,7 @@ this.createjs = this.createjs || {};
 		if (plugin == null) { return; }
 
 		if (plugin.getPreloadHandlers != null) {
+			
 			var map = plugin.getPreloadHandlers();
 			map.scope = plugin;
 
@@ -5256,10 +5257,11 @@ this.createjs = this.createjs || {};
 
 		// Give plugins a chance to modify the loadItem:
 		var customHandler = this._typeCallbacks[item.type] || this._extensionCallbacks[item.ext];
+		
 		if (customHandler) {
 			// Plugins are now passed both the full source, as well as a combined path+basePath (appropriately)
 			var result = customHandler.callback.call(customHandler.scope, item, this);
-
+			
 			// The plugin will handle the load, or has canceled it. Ignore it.
 			if (result === false) {
 				return null;

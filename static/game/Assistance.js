@@ -1,5 +1,5 @@
 ////////////////////////
-//***** CONSTANT *****//
+//****** GLOBAL ******//
 ////////////////////////
 var SCORE_SYSTEM = {
 	//accessibility
@@ -24,7 +24,7 @@ var SERVICE_DICT = {
 	"ssh": "Barrack",
 	"firewall": "Turret",
 	"fw": "Turret",
-	"ftp": "Barrack",
+	"ftp": "Barrack"
 }
 
 var CWE_DICT = {
@@ -65,3 +65,31 @@ var RANDOM_CITY = [
 ]
 
 var FILL_POSITION = [10,9,7,12,4,15,6,13,14,5,8,11,16,17,3,2,1,0,19,18]
+
+/* global stage */
+function callAPI(method, url, params){
+	var xmlhttp;
+	if (window.XMLHttpRequest){
+	  xmlhttp=new XMLHttpRequest();
+	}else{
+	  xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+	}
+
+	xmlhttp.open(method,url,false);
+	xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+	if(method == "POST"){
+		xmlhttp.send(params);
+	}else{
+		xmlhttp.send();	
+	}
+	return xmlhttp.responseText
+}
+
+function drawBitMap(parent, img, x, y, regX, regY){
+	var bit = new createjs.Bitmap(img);
+	bit.x = x;
+	bit.y = y;
+	bit.regX = regX;
+	bit.regY = regY;
+	parent.addChild(bit);
+}

@@ -19,7 +19,7 @@ ActionPane.SetActions=function(set){
 		}else{
 			ActionPane.actions[i].img.addEventListener("mouseover", Soldier.ShowInfo);
 			ActionPane.actions[i].img.addEventListener("click", Soldier.Action);
-			if( !getServiceById(set[i].soldier.edge.src).captured ){
+			if( !PlayScene.graph._sDict[set[i].soldier.edge.src].captured ){
 				ActionPane.actions[i].img.alpha = 0.5
 			}
 		}

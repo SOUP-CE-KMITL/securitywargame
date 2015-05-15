@@ -35,7 +35,6 @@ QueueList.Add = function(text, turn){
 
 	var a=false;
 	for(var i=0; i<QueueList.names.length; i++){
-		console.log(QueueList.remTurns[i].text==turn && !a);
 		if(QueueList.remTurns[i].text==turn && !a){
 			msg.y=30*i;
 			num.y=30*i;

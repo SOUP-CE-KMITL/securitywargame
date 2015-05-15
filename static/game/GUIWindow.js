@@ -78,7 +78,6 @@ GUIWindow.prototype.NewImgButton=function(img, x, y, clickHandler, scope){
 	g.y = y;
 	g.regX = 32;
 	g.regY = 32;
-	console.log(g.regX + " , " + g.regY);
 	g.on("click", clickHandler, scope);
 	g.on("mouseover", function(){
 		createjs.Tween.removeTweens(g);

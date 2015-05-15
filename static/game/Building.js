@@ -1,6 +1,5 @@
 
-function Building(service, city){
-	var s = getServiceById(service)
+function Building(s, city){
 	this.service=s;
 	s.captured = s.captured || false
 	this.name=s.name;
@@ -39,7 +38,7 @@ Building.prototype.Draw=function(parent, x, y){
 	this.sprite.gotoAndStop("default");
 
 	this.sprite.on("mouseover", function(e){
-		Jukebox.play("hover-sfx")
+		createjs.Sound.play("hover-sfx")
 		createjs.Tween.get(this.sprite)
 			.to({"scaleX":0.35, "scaleY":0.35}, 250);
 	}, this);
@@ -56,11 +55,11 @@ Building.ShowInfo=function(event){
 	           "city: "+t.ref.city.name+"\n"+
 	           "status: "+t.ref.service.status+"\n"+
 	           "captured: "+t.ref.service.captured+"\n";
-	PlayScene.inspecWin.stat.text = info;
+	PlayScene.stat.text = info;
 }
 
 Building.ShowActions=function(event){
-	Jukebox.play("click-sfx")
+	createjs.Sound.play("click-sfx");
 	var t = event.target.ref;
 	var edges = PlayScene.graph.paths;
 
