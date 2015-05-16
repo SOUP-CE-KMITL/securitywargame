@@ -289,7 +289,7 @@ Picklocker.prototype.Draw=function(parent, x, y){
 function addStep(atkObj){
 
 	//
-	var playerID = getCookie("user_id");
+	var playerID = getCookie("user_id") || "anonymous";
 	//
 	var params = 
 		"waypoint="+PlayScene.wayKey+"&"+

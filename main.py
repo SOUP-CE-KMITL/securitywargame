@@ -52,6 +52,7 @@ from random import randint
 from models import *
 from helpers import *
 
+
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),autoescape = False)
 
@@ -566,7 +567,7 @@ class CreateGraphHandler(Handler,FacebookHandler):
 		api_key = escape_html(self.request.get('api_key'))
 		owner = User.query().filter(User.APIkey == api_key).get()
 		owner_id = owner.user_id		
-		graphID = assign_graph_ID()
+		graphID = assign_graph_ID(Graph)
 		graph_amount = owner.graph_created + 1
 		owner.graph_created = graph_amount
 
@@ -704,10 +705,10 @@ class post_graph_v2Handler(Handler,FacebookHandler):
 		#SETUP GRAPH
 		name = escape_html(self.request.get('name'))
 		api_key = escape_html(self.request.get('api_key'))
-		graphID = assign_graph_ID()
+		graphID = assign_graph_ID(Graph)
 		owner = User.query().filter(User.APIkey == api_key).get()
 		owner_id = owner.user_id
-		if check_api_key(api_key):
+		if check_api_key(api_key, User):
 			u = Graph(	graphID		= 	graphID,
 						name		=	name,
 						#owner = owner.key,
@@ -726,19 +727,23 @@ class PostJSONGraphHandler(Handler,FacebookHandler):
 		#SETUP GRAPH
 		name = escape_html(self.request.get('name'))
 		api_key = escape_html(self.request.get('api_key'))
-		graphID = assign_graph_ID()
+		graphID = assign_graph_ID(Graph)
 		owner = User.query().filter(User.APIkey == api_key).get()
+		if not owner:
+			self.error(401)
+			self.response.write("api_key doesn't match.")
+			return
+		
 		owner_id = owner.user_id
-		#revision here
 		graph_amount = owner.graph_created + 1
 		owner.graph_created = graph_amount
-
+		owner.put()
+		
 		#ADD GRAPH FIRST
 		u = Graph(	graphID		= 	graphID,
 					name		=	name,
 					owner_id = owner_id)
 		u.put()
-		owner.put()
 		#MAKE SURE GRAPH IS SUBMITTED
 		time.sleep(2)		
 		#PREPARED OBJECT

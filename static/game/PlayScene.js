@@ -19,7 +19,7 @@ var PlayScene = {
 	
 	load: function(params){
 		//create waypoint
-		var waypoint = JSON.parse(callAPI("POST", "/create-waypoint", "mapID="+params.mapID+"&playerID="+getCookie("user_id")))
+		var waypoint = JSON.parse(callAPI("POST", "/create-waypoint", "mapID="+params.mapID+"&playerID="+ (getCookie("user_id") || "anonymous")))
 		this.graph = new Graph(JSON.parse(waypoint.graphStat));
 		this.wayKey = waypoint.waypointsID;
 		this.mapID = waypoint.mapID;

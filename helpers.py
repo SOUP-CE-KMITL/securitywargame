@@ -1,3 +1,4 @@
+import sys
 from random import randint
 import hashlib
 import hmac
@@ -18,7 +19,7 @@ secret = "you-will-never-guess"
 config = {}
 config['webapp2_extras.sessions'] = dict(secret_key='slhflsnhflsgkfgvsdbfksdhfksdhfkjs')
 
-def assign_graph_ID():
+def assign_graph_ID(Graph):
 	graphID = 0
 	graphs = Graph.query().order(-Graph.graphID).get()
 	if graphs:
@@ -134,7 +135,7 @@ def setOrderOption(option):
 				"lastUpdateDate"	:	2,
 				"CVE_id"			:	3}.get(option,1)
 
-def check_api_key(api_key):
+def check_api_key(api_key, User):
 	u = User.query().filter(User.APIkey == api_key).get()
 	if u:
 		return True
